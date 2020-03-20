@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">DirectD</string>
+    <string name="action_map">DirectD</string>
+    <string name="action_email_guests">DirectD</string>
+    <string name="all_rights">All Rights Reserved!</string>
+    <string name="facebook_app_id">353720835473501</string>
+    <string name="fb_login_protocol_scheme">fb353720835473501</string>
+</resources>

@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "324398162611",
+    "firebase_url": "https://directd-957e2.firebaseio.com",
+    "project_id": "directd-957e2",
+    "storage_bucket": "directd-957e2.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:324398162611:android:a32a2fe4315dc4b24ec6c6",
+        "android_client_info": {
+          "package_name": "com.directd"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "324398162611-hq18dt1vpm68iefc4289io037gkdg0lc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDIOTaB9umsGPj4orbsPVBK0FWJENC8280"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "324398162611-hq18dt1vpm68iefc4289io037gkdg0lc.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
