@@ -18,6 +18,7 @@ import {
 import MyLANG from '../shared/MyLANG';
 import MyUtil from '../common/MyUtil';
 import {MyConstant} from '../common/MyConstant';
+import {MyConfig} from "../shared/MyConfig";
 // import moment from 'moment';
 
 
@@ -173,7 +174,6 @@ class GoogleMapScreen extends React.Component {
                     </View>
                     <View style={styles.buttonContainer}>
                         <TouchableOpacity
-                            onPress={() => MyUtil.reactNavigate('Login', {}, null)}
                             style={styles.bubble}
                         >
                             <Text>{this.state.address}</Text>

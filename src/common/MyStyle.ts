@@ -1,52 +1,68 @@
 import {Platform, Dimensions, StyleSheet, StatusBar} from 'react-native';
 import {getBottomSpace, getStatusBarHeight} from "react-native-iphone-x-helper";
-
-import {MyConfig} from "../shared/MyConfig";
 import MyColor from "./MyColor";
-
+import MyIcon from "../components/MyIcon";
+import React from "react";
+import {MyConstant} from "./MyConstant";
 
 const screenHeight = Dimensions.get('window').height;
 const screenWidth  = Dimensions.get('window').width;
 
 const isIphoneX = Platform.OS === "ios" && !Platform.isPad && !Platform.isTVOS && (screenHeight >= 812 || screenWidth >= 812);
 
-const StatusBarHeight = Platform.select(
+const statusBarHeight = Platform.select(
     {
         ios    : isIphoneX ? 44 : 20,
         android: StatusBar.currentHeight,
         default: 0
     }
-)
-const HeaderHeight    = Platform.select(
+);
+const headerHeight    = Platform.select(
     {
         ios    : isIphoneX ? 40 : 40,
         android: 80,
         default: 0
     }
-)
+);
 
 const MyStyle: any = {
-    height      : Platform.OS !== 'ios' ? screenHeight : screenWidth - 20,
     screenHeight: screenHeight,
     screenWidth : screenWidth,
 
-    StatusBarHeight: StatusBarHeight,
-    HeaderHeight   : HeaderHeight,
-    // @ts-ignore
-    navBarHeight   : Platform !== 'ios' ? screenHeight - screenWidth : 0,
+    statusBarHeight     : statusBarHeight,
+    headerHeight        : headerHeight,
+    headerHeightAdjusted: headerHeight - statusBarHeight,
+    toolbarHeight       : isIphoneX ? 35 : 0,
 
-    ToolbarHeight: isIphoneX ? 35 : 0,
+    marginHorizontalList: 12,
+    marginVerticalList  : 15,
 
-    FontSize: {
-        tiny  : 12,
-        small : 14,
-        medium: 16,
-        big   : 18,
-        large : 20,
-    },
+    marginHorizontalPage: 24,
+    marginVerticalPage  : 24,
+
+    marginHorizontalLogin: 32,
+    marginVerticalLogin  : 32,
+
+    marginHorizontalTextsView: 10,
+
+    borderRadiusImageList     : 4,
+    borderRadiusImageListLarge: 8,
+
+    borderRadiusButtonSquare  : 0.1,
+    borderRadiusButtonOutlined: 4,
+    borderRadiusButtonRounded : 50,
+    borderRadiusButtonCircular: 100,
+
+    buttonHeightSmall : 32,
+    buttonHeightNormal: 46,
+    buttonHeightLarge : 56,
+
+    fontFamilyPrice     : 'roboto_regular',
+    fontFamilyPriceBold : 'roboto_bold',
+    fontFamilyPriceLight: 'roboto_light',
 
     FontFamily: {
-        OpenSans    : {
+        OpenSans: {
             light         : 'open_sans_light',
             regular       : 'open_sans_regular',
             semiBold      : 'open_sans_semi_bold',
@@ -54,7 +70,7 @@ const MyStyle: any = {
             bold          : 'open_sans_bold',
             extraBold     : 'open_sans_extra_bold',
         },
-        Roboto      : {
+        Roboto  : {
             thin   : 'roboto_thin',
             light  : 'roboto_light',
             regular: 'roboto_regular',
@@ -62,7 +78,7 @@ const MyStyle: any = {
             bold   : 'roboto_bold',
             black  : 'roboto_black',
         },
-        Exo2        : {
+        /*Exo2    : {
             thin      : 'exo2_thin',
             light     : 'exo2_light',
             extraLight: 'exo2_extra_light',
@@ -72,16 +88,19 @@ const MyStyle: any = {
             bold      : 'exo2_bold',
             extraBold : 'exo2_extra_bold',
             black     : 'exo2_black',
-        },
-        TitilliumWeb: {
-            light     : 'titillium_web_light',
-            extraLight: 'titillium_web_extra_light',
-            regular   : 'titillium_web_regular',
-            semiBold  : 'titillium_web_semi_bold',
-            bold      : 'titillium_web_bold',
-            black     : 'titillium_web_black',
-        },
+        },*/
     },
+
+    FontSize: {
+        tiny       : 12,
+        small      : 14,
+        medium     : 16,
+        big        : 18,
+        large      : 20,
+        input      : 17,
+        placeHolder: 15,
+    },
+
 
     IconSize: {
         TextInput  : 25,
@@ -97,25 +116,89 @@ const MyStyle: any = {
         colors   : MyColor.PrimaryGradient.second,
     },
 
-    LGButtonPrimary: {
+    LGButtonPrimaryMyButton: {
         start    : {x: 0.0, y: 0.0},
         end      : {x: 1.0, y: 1.0},
         locations: [0.0, 1.0],
         colors   : MyColor.PrimaryGradient.thrid,
     },
-
-    LGButtonPrimary2: {
+    LGButtonPrimary        : {
         start    : {x: 0.0, y: 0.0},
         end      : {x: 1.0, y: 1.0},
         locations: [0.0, 1.0],
         colors   : MyColor.PrimaryGradient.thrid,
     },
+    LGButtonFacebook       : {
+        start    : {x: 0.0, y: 0.0},
+        end      : {x: 1.0, y: 1.0},
+        locations: [0.0, 1.0],
+        colors   : MyColor.Gradient.facebook,
+    },
+    LGButtonGoogle         : {
+        start    : {x: 0.0, y: 0.0},
+        end      : {x: 1.0, y: 1.0},
+        locations: [0.0, 1.0],
+        colors   : MyColor.Gradient.google,
+    },
 
-    LGWhite: {
+    LGWhite  : {
+        start    : {x: 0, y: 0},
+        end      : {x: 1, y: 1},
+        locations: [0.1, 0.5, 1],
+        colors   : MyColor.Gradient.white,
+    },
+    LGWhitish: {
         start    : {x: 0, y: 0},
         end      : {x: 1, y: 1},
         locations: [0.1, 0.5, 1],
         colors   : MyColor.Gradient.whitish,
+    },
+    LGBlue   : {
+        start    : {x: 0, y: 0},
+        end      : {x: 1, y: 1},
+        locations: [0.1, 0.5, 1],
+        colors   : MyColor.Gradient.blueish,
+    },
+
+    LGDrawerItem      : {
+        start    : {x: 0, y: 0},
+        end      : {x: 1, y: 1},
+        locations: [0.1, 0.5, 1],
+        colors   : MyColor.Gradient.white,
+    },
+    LGDrawerItemActive: {
+        start    : {x: 0.0, y: 0.0},
+        end      : {x: 1.0, y: 1.0},
+        locations: [0.0, 1.0],
+        colors   : MyColor.Gradient.whitish2,
+    },
+
+    MaterialRipple: {
+        default     : {
+            rippleSize                 : 400,
+            rippleDuration             : 1000,
+            rippleContainerBorderRadius: 0,
+            rippleCentered             : false,
+        },
+        drawer      : {
+            rippleSize                 : 400,
+            rippleDuration             : 1000,
+            rippleContainerBorderRadius: 0,
+            rippleCentered             : false,
+        },
+        headerButton: {
+            rippleSize                 : 400,
+            rippleDuration             : 1000,
+            rippleContainerBorderRadius: 0,
+            rippleCentered             : false,
+        },
+    },
+
+    iconStar: {
+        fontFamily: MyConstant.VectorIcon.FontAwesome5,
+        name      : "star",
+        size      : 12,
+        color     : MyColor.Material.YELLOW['600'],
     },
 
     Column            : {},
@@ -144,13 +227,7 @@ const MyStyle: any = {
         ...Platform.select(
             {
                 ios    : {
-                    top: !MyConfig.showStatusBar
-                         ? isIphoneX
-                           ? -20
-                           : -8
-                         : isIphoneX
-                           ? -15
-                           : 0,
+                    top: 0,
                 },
                 android: {
                     top: 0,
@@ -193,7 +270,7 @@ const MyStyle: any = {
         ...Platform.select(
             {
                 ios    : {
-                    marginTop: isIphoneX ? -40 : MyConfig.showStatusBar ? -4 : -15,
+                    marginTop: -15,
                 },
                 android: {
                     marginTop : 2,
@@ -210,32 +287,41 @@ const MyStyle: any = {
     },
 
     TinyToast: {
-        TOP   : 40 + (Platform.OS === 'ios' ? getStatusBarHeight() : 0),
-        BOTTOM: -40 - (Platform.OS === 'ios' ? getBottomSpace() : 0),
+        TOP   : 80 + (Platform.OS === 'ios' ? getStatusBarHeight() : 0),
+        BOTTOM: -80 - (Platform.OS === 'ios' ? getBottomSpace() : 0),
         CENTER: 0,
 
-        containerStyleWhite: {
-            backgroundColor  : "rgba(255,255,255,0.90)",
-            paddingHorizontal: 15,
-            borderRadius     : 20
+        White: {
+            containerStyle: {
+                backgroundColor  : "rgba(255,255,255,0.99)",
+                paddingHorizontal: 15,
+                paddingVertical  : 10,
+                borderRadius     : 10,
+            },
+            textColor     : "#000000",
+            textStyle     : {
+                fontFamily: 'open_sans_regular',
+                fontSize  : 13
+            },
         },
-        containerStyleDark : {
-            backgroundColor  : "rgba(0,0,0,0.90)",
-            paddingHorizontal: 15,
-            paddingVertical  : 10,
-            borderRadius     : 4
+
+        Black: {
+            containerStyle: {
+                backgroundColor  : "rgba(0,0,0,0.65)",
+                paddingHorizontal: 15,
+                paddingVertical  : 10,
+                borderRadius     : 10
+            },
+            textColor     : "#FFFFFF",
+            textStyle     : {
+                fontFamily: 'open_sans_regular',
+                fontSize  : 13
+            },
         },
 
         imageStyleSucess: {
             width : 30,
             height: 30
-        },
-
-        textColorWhite: "#FFFFFF",
-        textColorDark : "#000000",
-
-        textStyleWhite: {
-            fontSize: 14
         },
     },
 
@@ -251,13 +337,7 @@ const MyStyle: any = {
         ...Platform.select(
             {
                 ios    : {
-                    height: MyConfig.showStatusBar
-                            ? isIphoneX
-                              ? 5
-                              : 40
-                            : isIphoneX
-                              ? 5
-                              : 25,
+                    height: 25,
                 },
                 android: {
                     height    : 46,
@@ -268,82 +348,56 @@ const MyStyle: any = {
             }),
     }),
 
-
-    headerStyle: {
-        // color   : MyColor.category.navigationTitleColor,
-        // fontSize: 16,
-        // textAlign: "left",
-        // alignSelf      : "center",
-        // flex           : 1,
-        height: 80,
-        // backgroundColor: "green",
-        // fontFamily: MyConfig.fontHeader,
-
-        /*...Platform.select(
-            {
-                ios    : {
-                    marginBottom: !MyConfig.showStatusBar ? 14 : 0,
-                    marginTop   : isIphoneX ? -10 : 12,
-                },
-                android: {
-                    // marginBottom: 4,
-                    // elevation   : 0,
-                },
-            }),*/
-    },
-
     headerStyleNoShadow: {
         height       : 80,
         elevation    : 0,
         shadowOpacity: 0,
         shadowRadius : 0,
     },
-
-    headerTitleStyle: {
-        // color     : MyConfig.Theme.isDark ? MyTheme.dark.colors.text : MyTheme.dark.colors.text,
-        fontSize  : 16,
-        // height    : 40,
-        // textAlign : "center",
-        fontFamily: 'OpenSans-Semibold',
-        // alignSelf : "center",
-
-        /*...Platform.select(
-            {
-                ios    : {
-                    marginBottom: !MyConfig.showStatusBar ? 14 : 0,
-                    marginTop   : isIphoneX ? -10 : 12,
-                },
-                android: {
-                    // marginTop: 25,
-                },
-            }),*/
-    },
 }
 
-const MyStyleCommon = {
-    screenOptions: {
-        IntroStack    : {
-            headerShown: false
-        },
+const MyStyleCommon: any = {
+    StackOptions      : {
         LoginStack    : {
-            headerTitleStyle : MyStyle.headerTitleStyle,
-            headerStyle      : MyStyle.headerStyle,
-            headerTintColor  : MyColor.black,
-            headerTransparent: true
+            // headerShown: false,
+            headerTransparent: true,
+            headerStyle      : {
+                height: MyStyle.headerHeight,
+            },
+            headerTintColor  : MyColor.Material.BLACK,
+            headerTitleStyle : {
+                color     : MyColor.Material.WHITE,
+                fontSize  : 18,
+                fontFamily: MyStyle.FontFamily.OpenSans.semiBold,
+            },
         },
         BottomTabStack: {
-            headerTitleStyle : MyStyle.headerTitleStyle,
-            headerStyle      : MyStyle.headerStyle,
-            headerTintColor  : MyColor.black,
-            headerTransparent: true
+            // headerShown: false,
+            headerTransparent        : true,
+            headerStyle              : {
+                height: MyStyle.headerHeight,
+            },
+            headerTintColor          : MyColor.Material.WHITE,
+            headerTitleContainerStyle: {
+                right: MyStyle.marginHorizontalPage,
+            },
+            headerTitleStyle         : {
+                color     : MyColor.Material.WHITE,
+                fontSize  : 18,
+                fontFamily: MyStyle.FontFamily.OpenSans.semiBold,
+            },
+            // headerTitleAlign : "center",
         },
-        DrawerStack   : {
-            headerTitleStyle : MyStyle.headerTitleStyle,
-            headerStyle      : MyStyle.headerStyle,
-            headerTintColor  : MyColor.black,
-            headerTransparent: true
+    },
+    StackScreenOptions: {
+        SplashStack: {
+            headerShown: false
         },
-        TopTabStack   : {
+        IntroStack : {
+            headerShown: false
+        },
+        LoginStack : {},
+        TopTabStack: {
             headerStyle     : {
                 // height: 64,
 
@@ -369,7 +423,7 @@ const MyStyleCommon = {
                         },
                     }),*/
             },
-            // headerTintColor : MyColor.white,
+            // headerTintColor : MyColor.Material.WHITE,
         },
     },
 
@@ -398,21 +452,11 @@ const MyStyleCommon = {
 
 const MyStyleSheet = StyleSheet.create(
     {
-        layoutView1: {
-            marginTop: 68
-        },
-        layoutView2: {
-            minHeight : screenHeight - 68,
-            paddingTop: 0
-        },
-        layoutView3: {
-            display       : "flex",
-            flexDirection : "column",
-            justifyContent: "flex-start",
-            // flex          : 1,
-        },
+        layoutView1: {},
+        layoutView2: {},
+        layoutView3: {},
 
-
+        //
         SafeAreaView1: {
             flex           : 0,
             backgroundColor: MyColor.Material.RED["500"],
@@ -424,16 +468,110 @@ const MyStyleSheet = StyleSheet.create(
         },
 
         SafeAreaView3: {
-            flex           : 1,
-            backgroundColor: MyColor.Material.WHITE,
+            flex      : 1,
+            paddingTop: MyStyle.statusBarHeight,
+        },
+
+        mainView: {
+            marginTop: MyStyle.headerHeightAdjusted,
+
+            flex: 1,
+
+            display       : "flex",
+            flexDirection : "column",
+            justifyContent: "flex-start",
         },
 
 
-        pageBigTitle: {
-            fontFamily: "Lato-Bold",
+        linkTextList   : {
+            fontFamily: MyStyle.FontFamily.OpenSans.regular,
+            fontSize  : 13,
+            color     : MyColor.attentionDark,
+        },
+        headerList     : {
+            fontFamily: MyStyle.FontFamily.OpenSans.regular,
+            fontSize  : 16,
+            color     : MyColor.Material.BLACK,
+        },
+        headerPage     : {
+            fontFamily: MyStyle.FontFamily.OpenSans.bold,
+            fontSize  : 18,
+            color     : MyColor.textDarkPrimary,
+        },
+        headerPageLarge: {
+            fontFamily: MyStyle.FontFamily.OpenSans.bold,
+            fontSize  : 44,
+            color     : MyColor.textDarkPrimary,
+        },
+        subHeaderPage  : {
+            fontFamily: MyStyle.FontFamily.Roboto.regular,
+            fontSize  : 14,
+            color     : MyColor.textDarkSecondary,
+        },
+
+        titleList               : {
+            fontFamily: MyStyle.FontFamily.OpenSans.semiBold,
             fontSize  : 30,
             color     : "#f0f0f0",
-            textAlign : "center",
+        },
+        titlePage               : {
+            fontFamily: MyStyle.FontFamily.OpenSans.bold,
+            fontSize  : 18,
+            color     : MyColor.textDarkPrimary,
+        },
+        titlePricePage          : {
+            fontFamily: MyStyle.fontFamilyPriceBold,
+            fontSize  : 22,
+            color     : MyColor.Primary.first,
+        },
+        titlePriceDiscountedPage: {
+            fontFamily        : MyStyle.fontFamilyPrice,
+            fontSize          : 14,
+            color             : MyColor.textDarkSecondary,
+            textDecorationLine: "line-through",
+        },
+        titleAlert              : {
+            fontFamily: MyStyle.FontFamily.OpenSans.semiBold,
+            fontSize  : 30,
+            color     : "#f0f0f0",
+        },
+
+        textHTMLBody: {
+            fontFamily: MyStyle.FontFamily.OpenSans.regular,
+            fontSize  : 14,
+            color     : MyColor.Material.GREY["700"],
+            textAlign : "justify",
+            lineHeight: 18,
+        },
+
+        imageListSmall : {
+            width          : MyStyle.screenWidth * 0.16,
+            height         : MyStyle.screenWidth * 0.16,
+            borderRadius   : 3,
+            backgroundColor: MyColor.Material.GREY["100"],
+        },
+        imageList      : {
+            width          : MyStyle.screenWidth * 0.22,
+            height         : MyStyle.screenWidth * 0.22,
+            borderRadius   : 3,
+            backgroundColor: MyColor.Material.GREY["100"],
+        },
+        imageListMedium: {
+            width          : MyStyle.screenWidth * 0.25,
+            height         : MyStyle.screenWidth * 0.25,
+            borderRadius   : 4,
+            backgroundColor: MyColor.Material.GREY["100"],
+        },
+        imageListLarge : {
+            width          : MyStyle.screenWidth * 0.35,
+            height         : MyStyle.screenWidth * 0.35,
+            borderRadius   : 4,
+            backgroundColor: MyColor.Material.GREY["100"],
+        },
+        imageBackground: {
+            width          : MyStyle.screenWidth,
+            height         : MyStyle.screenWidth / 2,
+            backgroundColor: MyColor.Material.GREY["100"],
         },
     })
 

@@ -19,12 +19,12 @@ import MyIcon from '../components/MyIcon';
 
 import {
     ActivityIndicatorLarge,
-    ListEmptyView, ListEmptyViewLottie,
+    ListEmptyViewLottie,
     StatusBarDark,
     StatusBarLight
 } from '../components/MyComponent';
 import {
-    ContentLoaderProductListItem,
+    ProductListItemContentLoader,
     ListItemSeparator,
     ProductListItem,
 } from "../shared/MyContainer";
@@ -42,7 +42,7 @@ const ProductListScreen = ({route, navigation}: any) => {
     const [loadingMore, setLoadingMore]                                           = useState(false);
     const [refreshing, setRefreshing]                                             = useState(false);
     const [onEndReachedCalledDuringMomentum, setOnEndReachedCalledDuringMomentum] = useState(true);
-    const [product, setProduct]                                                   = useState([]);
+    const [product, setProduct]: any                                              = useState([]);
 
     useLayoutEffect(() => {
         MyUtil.printConsole(true, 'log', `LOG: ${ProductListScreen.name}. useLayoutEffect: `, '');
@@ -75,8 +75,8 @@ const ProductListScreen = ({route, navigation}: any) => {
         setRefreshing(true);
 
         fetchProduct(0, MyConfig.ListLimit.productList, MyLANG.Loading + '...', true, {
-            'showError': MyConstant.SHOW_MESSAGE.TOAST,
-            'message'  : MyLANG.PageRefreshed
+            'showMessage': MyConstant.SHOW_MESSAGE.TOAST,
+            'message'    : MyLANG.PageRefreshed
         }, MyConstant.DataSetType.fresh);
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -97,7 +97,7 @@ const ProductListScreen = ({route, navigation}: any) => {
                          false,
                          true,
                          false,
-                         MyConstant.DataSetType.addToEndnCheck
+                         MyConstant.DataSetType.addToEndUnique
             );
         }
     }
@@ -110,7 +110,7 @@ const ProductListScreen = ({route, navigation}: any) => {
 
         if (firstLoad || (product && product.length > 0)) return null;
 
-        return <ListEmptyViewLottie source = {MyImage.emptyLostLottie}
+        return <ListEmptyViewLottie source = {MyImage.lottie_empty_lost}
                                     message = {MyLANG.NoProductFound}
                                     style = {{view: {}, image: {}, text: {}}}/>;
     }
@@ -124,17 +124,17 @@ const ProductListScreen = ({route, navigation}: any) => {
     }
 
     // Refresh All existing on Component Visibile, Show Placeholder on start and loadmore, No Data Found Design
-    const fetchProduct = async (offset: number = 0, limit: number = MyConfig.ListLimit.productList, showLoader: any = MyLANG.Loading + '...', setRefresh: boolean = false, showInfoMessage: any = false, DataSetType: string = MyConstant.DataSetType.fresh) => {
+    const fetchProduct = async (skip: number = 0, take: number = MyConfig.ListLimit.productList, showLoader: any = MyLANG.Loading + '...', setRefresh: boolean = false, showInfoMessage: any = false, DataSetType: string = MyConstant.DataSetType.fresh) => {
 
         setLoading(true);
 
         const response: any = await MyUtil
-            .myHTTP(true, MyConstant.HTTP_POST, MyAPI.product_by_category,
+            .myHTTP(false, MyConstant.HTTP_POST, MyAPI.product_by_category,
                     {
                         'language_id'  : MyConfig.LanguageActive,
                         'categories_id': route?.params?.id,
-                        'skip'         : offset,
-                        'take'         : limit,
+                        'skip'         : skip,
+                        'take'         : take,
 
                         'app_ver'      : MyConfig.app_version,
                         'app_build_ver': MyConfig.app_build_version,
@@ -144,7 +144,7 @@ const ProductListScreen = ({route, navigation}: any) => {
             );
 
         MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
-            'apiURL': MyAPI.categories, 'response': response
+            'apiURL': MyAPI.product_by_category, 'response': response
         });
 
         if (response && response.type === MyConstant.RESPONSE.TYPE.data && response.data.status === 200 && response.data.data && response.data.data.data && response.data.data.data.product) {
@@ -158,20 +158,20 @@ const ProductListScreen = ({route, navigation}: any) => {
                     case MyConstant.DataSetType.addToStart:
                         setProduct(data.concat(product));
                         break;
-                    case MyConstant.DataSetType.addToEndnCheck:
+                    case MyConstant.DataSetType.addToEndUnique:
                         // const newData = product.concat(data.filter(({id}: any) => !product.find((f: any) => f.id == id)));
                         const newData1: any = product;
                         for (let i = 0; i < data.length; i++) {
-                            if (product.some((item: any) => item.id === data[i]['id']) === false) {
+                            if (product.some((item: any) => item?.id === data[i]?.id) === false) {
                                 newData1.push(data[i]);
                             }
                         }
                         setProduct(newData1);
                         break;
-                    case MyConstant.DataSetType.addToStartnCheck:
+                    case MyConstant.DataSetType.addToStartUnique:
                         const newData2: any = product;
                         for (let i = 0; i < data.length; i++) {
-                            if (product.some((item: any) => item.id === data[i]['id']) === false) {
+                            if (product.some((item: any) => item?.id === data[i]?.id) === false) {
                                 newData2.unshift(data[i]);
                             }
                         }
@@ -196,7 +196,7 @@ const ProductListScreen = ({route, navigation}: any) => {
         }
 
         if (showInfoMessage !== false) {
-            MyUtil.showMessage(showInfoMessage.showError, showInfoMessage.message, false);
+            MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message, false);
         }
     }
 
@@ -206,27 +206,35 @@ const ProductListScreen = ({route, navigation}: any) => {
             <StatusBarLight/>
             <SafeAreaView style = {MyStyleSheet.SafeAreaView1}/>
             <SafeAreaView style = {MyStyleSheet.SafeAreaView2}>
-                <View style = {[MyStyleSheet.SafeAreaView3, {}]}>
-                    {/*<StatusBarGradientPrimary/>*/}
-                    {firstLoad && product && product.length === 0 &&
-                     <ScrollView contentInsetAdjustmentBehavior = "automatic"
-                                 style = {{flexGrow: 1}}>
-                         {ContentLoaderProductListItem(8)}
+                <View style = {[MyStyleSheet.SafeAreaView3, {backgroundColor: MyColor.Material.WHITE}]}>
+
+                    {firstLoad && product?.length === 0 &&
+                     <ScrollView
+                         contentInsetAdjustmentBehavior = "automatic"
+                         contentContainerStyle = {{paddingTop: MyStyle.headerHeightAdjusted, flexGrow: 1}}
+                     >
+                         {ProductListItemContentLoader(8)}
                      </ScrollView>
                     }
 
                     <FlatList
-                        contentContainerStyle = {{flexGrow: 1}}
+                        contentContainerStyle = {{paddingTop: MyStyle.headerHeightAdjusted, flexGrow: 1}}
                         refreshControl = {
-                            <RefreshControl refreshing = {refreshing}
-                                            onRefresh = {onRefresh}/>
+                            <RefreshControl
+                                refreshing = {refreshing}
+                                onRefresh = {onRefresh}
+                                progressViewOffset = {MyStyle.headerHeightAdjusted}
+                                colors = {[MyColor.Primary.first]}
+                            />
                         }
                         data = {product}
-                        renderItem = {({item, index}) =>
-                            <ProductListItem item = {item}
-                                             index = {index}/>
+                        renderItem = {({item, index}: any) =>
+                            <ProductListItem
+                                item = {item}
+                                index = {index}
+                            />
                         }
-                        keyExtractor = {item => String(item['id'])}
+                        keyExtractor = {(item: any) => String(item?.id)}
                         ListEmptyComponent = {ListEmptyComponent}
                         ItemSeparatorComponent = {ListItemSeparator}
                         ListFooterComponent = {ListFooter}

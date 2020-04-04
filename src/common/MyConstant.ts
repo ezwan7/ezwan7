@@ -19,17 +19,31 @@ const MyConstant = {
         ExtraHigh: 30000
     },
 
-    AUTH_TOKEN: 'token',
-    PHONE     : 'phone',
-    USERNAME  : 'username',
-    PASSWORD  : 'password',
+    ID         : 'id',
+    AUTH_TOKEN : 'token',
+    PHONE      : 'phone',
+    username   : 'username',
+    USERNAME   : 'email',
+    PASSWORD   : 'password',
+    FACEBOOK_ID: 'facebook_id',
+    GOOGLE_ID  : 'google_id',
+    EMAIL      : 'email',
+    NAME       : 'name',
+    PHOTO      : 'photo',
 
     DataSetType: {
         fresh           : 'fresh',
         addToEnd        : 'addToEnd',
-        addToEndnCheck  : 'addToEndnCheck',
+        addToEndUnique  : 'addToEndUnique',
         addToStart      : 'addToStart',
-        addToStartnCheck: 'addToStartnCheck',
+        addToStartUnique: 'addToStartUnique',
+    },
+
+    LOGIN_MODE: {
+        EMAIL   : 'EMAIL',
+        FACEBOOK: 'FACEBOOK',
+        GOOGLE  : 'GOOGLE',
+        SMS     : 'SMS',
     },
 
     RESPONSE: {
@@ -44,14 +58,18 @@ const MyConstant = {
     },
 
     LOGIN_REDIRECT: {
-        'BACK'          : 'BACK',
+        'GO_BACK'       : 'GO_BACK',
         'ROUTE_TO_HOME' : 'ROUTE_TO_HOME',
         'ROUTE_TO_LOGIN': 'ROUTE_TO_LOGIN',
         'NO_ACTION'     : 'NO_ACTION',
     },
 
     NAVIGATION_ACTIONS: {
-        'HIDE_SPLASH': 'HIDE_SPLASH',
+        'HIDE_SPLASH'         : 'HIDE_SPLASH',
+        'SWITCH_APP_NAVIGATOR': 'SWITCH_APP_NAVIGATOR',
+        'POP_TO_ROOT'         : 'POP_TO_ROOT',
+        'GO_BACK'             : 'GO_BACK',
+        'CLOSE_DRAWER'        : 'CLOSE_DRAWER',
     },
 
     NAVIGATION_ACTION: {
@@ -61,11 +79,41 @@ const MyConstant = {
         'SET_PARAMS': 'SET_PARAMS',
     },
 
-    DRAWER: {
-        OPEN   : 'OPEN_DRAWER',
-        CLOSE  : 'CLOSE_DRAWER',
-        TOGGLE : 'TOGGLE_DRAWER',
-        JUMP_TO: 'jumpTo',
+    NAVIGATION_PARAMS_ACTION: {
+        'NO_HEADER_LEFT'     : 'NO_HEADER_LEFT',
+        'NO_HEADER_LEFT_PUSH': 'NO_HEADER_LEFT_PUSH',
+    },
+
+    CommonAction: {
+        navigate : 'navigate',
+        reset    : 'reset',
+        goBack   : 'goBack',
+        setParams: 'setParams',
+    },
+    StackAction : {
+        replace : 'replace',
+        push    : 'push',
+        pop     : 'pop',
+        popToTop: 'popToTop',
+    },
+    DrawerAction: {
+        openDrawer  : 'openDrawer',
+        closeDrawer : 'closeDrawer',
+        toggleDrawer: 'toggleDrawer',
+        jumpTo      : 'jumpTo',
+    },
+    TabAction   : {
+        jumpTo: 'jumpTo',
+    },
+
+    DrawerOnPress: {
+        Navigate    : 'Navigate',
+        DrawerJump  : 'DrawerJump',
+        TabJump     : 'TabJump',
+        PromptLogout: 'PromptLogout',
+        RateApp     : 'RateApp',
+        ShareApp    : 'ShareApp',
+        ShowAlert   : 'ShowAlert',
     },
 
     CLEAR_STORAGE: {
@@ -129,6 +177,10 @@ const MyConstant = {
             success: 'success',
             custom : 'custom',
         },
+    },
+
+    Linking: {
+        openURL: 'openURL'
     },
 
     SHARE: {
@@ -210,6 +262,21 @@ const MyConstant = {
         '08:30pm' : 'hh:mma',
         '23:00:00': 'HH:mm:ss',
     },
+
+    InputIconRightOnPress: {
+        secureTextEntry: 'secureTextEntry'
+    },
+
+    RegistrationAction: {
+        welcome_screen_only: 'welcome_screen_only',
+        verification_needed: 'verification_needed',
+        auto_login         : 'auto_login',
+    },
+
+    Validation: {
+        email: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i,
+        phone: /^(?:[+\d].*\d|\d)$/,
+    }
 }
 
 export {MyConstant};

@@ -1,33 +1,56 @@
 import 'react-native-gesture-handler';
 import * as React from 'react';
 import {NavigationContainer} from "@react-navigation/native";
-import AppContainer from "./src/NavContainer";
 import NavigationService from "./src/common/NavigationService";
-import Splash from "react-native-splash-screen";
+import AppNavigator from "./src/AppNavigator";
+import {Provider} from 'react-redux';
+import {store} from "./src/store/MyStore";
+
 
 const App = () => {
-    Splash.hide();
 
-    return <NavigationContainer
-        ref = {(navigatorRef: any) => {
-            NavigationService.setTopLevelNavigator(navigatorRef);
-        }}
-    >
-        <AppContainer/>
-    </NavigationContainer>;
+    if (__DEV__) {
+        console.log(`LOG: ${App.name}. renderCount: `, 'App');
+    }
+
+    return (
+        <Provider store = {store}>
+            <NavigationContainer
+                ref = {(navigatorRef: any) => {
+                    NavigationService.setTopLevelNavigator(navigatorRef);
+                }}
+            >
+
+                <AppNavigator/>
+
+            </NavigationContainer>
+        </Provider>
+    );
 }
 
 export default App;
 
 
-// New Navigation: Push Pop Animation, Switch From Stack to Stack, Splash Show Until Ready
-// Git
-// Custom Header: list header, back button, scroll animation
-// blur, back button handeler, nav animation, header blinking, extra shadow component,
-// New React Navigation, switch replace, combine stack drawer tabs, toptab style, header shadow,
+// TODO: signup, signup completed, navigation actions, facebook google, signup pages optimize
+// TODO: white loader, allow style in toast loader,
+// TODO: New Input Design
+// TODO: FingerPrint, SMS Login
+// TODO: Invoke validation on submit, from utils file, custom validation and message
+// TODO: Login after registration flow
+// TODO: signup already have account
+// TODO: info html page, info+html modal, all modal functions
+// TODO: Input Params default, input clear on page open
 
-// Google Map key replace
-// Facebook and Google+ Login Replace
-// Drawer Item on press style, padding of items, border radius,
-// Custom Bottom Drawer and Sidebar Item
-// Button Input Icon Left Right
+
+// TODO: Filter page, price slider, Image Viewer,
+// TODO: Route Active using Redux, Pull to refresh on seach page, header blinking,
+
+// TODO: Search ontype list show, delay
+// TODO: Custom Header: back button, right button, scroll animation, list header,
+// TODO: Custom Bottom Tabs
+// TODO: blur,
+
+// No Internet Lottie
+// Validation delay, on type gone
+// mask forced value
+

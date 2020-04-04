@@ -1,33 +1,353 @@
 import React from 'react';
 
-import {Image, ImageBackground, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {
+    Image,
+    ImageBackground,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    View
+} from "react-native";
 import {Component} from "react";
-import FastImage from "react-native-fast-image";
 import ContentLoader, {Rect} from "react-content-loader/native";
 import LinearGradient from "react-native-linear-gradient";
+import {DrawerContentScrollView, DrawerItemList} from "@react-navigation/drawer";
 
-import {MyStyle} from "../common/MyStyle";
+import MyAuth from "../common/MyAuth";
+import {MyStyle, MyStyleSheet} from "../common/MyStyle";
 import MyColor from "../common/MyColor";
 import MyUtil from "../common/MyUtil";
 import {MyConstant} from "../common/MyConstant";
 import MyImage from "../shared/MyImage";
 import {MyConfig, MyAPI} from "../shared/MyConfig";
 import MyIcon from "../components/MyIcon";
-import {DrawerContentScrollView, DrawerItemList} from "@react-navigation/drawer";
 import MyLANG from "./MyLANG";
+import MyMaterialRipple from "../components/MyMaterialRipple";
+import {getMyIcon, IconStar} from "../components/MyComponent";
+import {MyFastImage} from "../components/MyFastImage";
+import {store} from "../store/MyStore";
 
 // const MaterialTopTabBarComponent = (props: any) => (<MaterialTopTabBar {...props} />);
 
-const CustomDrawerContent = (props: any) => {
+const drawerItemOnPress = (loginRequired: boolean, navigation: any, actionType: string, routeName: any, params: any, navigationActions: any) => {
+    MyUtil.printConsole(true, 'log', 'LOG: drawerItemOnPress: ', {
+        'loginRequired'    : loginRequired,
+        // 'navigation'       : navigation,
+        'actionType'       : actionType,
+        'routeName'        : routeName,
+        'params'           : params,
+        'navigationActions': navigationActions,
+    });
+    if (actionType) {
+        switch (actionType) {
+            case MyConstant.DrawerOnPress.Navigate:
+                MyUtil.commonAction(loginRequired, navigation, MyConstant.CommonAction.navigate, routeName, params, null);
+                break;
+            case MyConstant.DrawerOnPress.DrawerJump:
+                MyUtil.drawerAction(loginRequired, navigation, MyConstant.DrawerAction.jumpTo, routeName, null, null);
+                break;
+            case MyConstant.DrawerOnPress.TabJump:
+                MyUtil.drawerAction(loginRequired, navigation, MyConstant.DrawerAction.closeDrawer, routeName, params, null);
+                MyUtil.tabAction(loginRequired, MyConstant.TabAction.jumpTo, routeName, params, null, null);
+                break;
+            case MyConstant.DrawerOnPress.RateApp:
+                MyUtil.drawerAction(loginRequired, navigation, MyConstant.DrawerAction.closeDrawer, routeName, params, null);
+                MyUtil.linking(MyConstant.Linking.openURL, MyConfig.android_store_link, MyConstant.SHOW_MESSAGE.TOAST);
+                break;
+            case MyConstant.DrawerOnPress.ShareApp:
+                MyUtil.share(MyConstant.SHARE.TYPE.open,
+                             {
+                                 message: MyLANG.ShareUs,
+                                 subject: MyLANG.AppShare,
+                                 url    : MyConfig.android_store_link,
+                             },
+                             false
+                )
+                break;
+            case MyConstant.DrawerOnPress.PromptLogout:
+                MyAuth.showLogoutConfirmation(MyConstant.SHOW_MESSAGE.ALERT,
+                                              MyLANG.LogginOut + '...',
+                                              true,
+                                              null,
+                                              MyConstant.NAVIGATION_ACTIONS.GO_BACK
+                );
+                break;
+            default:
+                break;
+        }
+    }
+};
+
+const CustomDrawerContent = ({props}: any) => {
+    // console.log('test', props?.state?.routes[props?.state?.index].name);
+    const user = store.getState().auth.user;
+    MyUtil.printConsole(true, 'log', 'LOG: CustomDrawerContent: ', {props, user});
+
+    let DrawerItem = [];
+    if (user.id) {
+        DrawerItem = [
+            {
+                gradient      : MyStyle.LGDrawerItem,
+                gradientActive: MyStyle.LGDrawerItemActive,
+                ripple        : MyStyle.MaterialRipple.drawer,
+                image         : {src: MyImage.shop},
+                icon          : null,
+                text          : {text: MyLANG.Home},
+                onPress       : {loginRequired: false, actionType: MyConstant.DrawerOnPress.Navigate, routeName: MyConfig.routeName.Home},
+            },
+            {
+                gradient      : MyStyle.LGDrawerItem,
+                gradientActive: MyStyle.LGDrawerItemActive,
+                ripple        : MyStyle.MaterialRipple.drawer,
+                image         : {src: MyImage.bag},
+                icon          : null,
+                text          : {text: MyLANG.Cart},
+                onPress       : {loginRequired: false, actionType: MyConstant.DrawerOnPress.Navigate, routeName: MyConfig.routeName.CartPush},
+            },
+            {
+                gradient      : MyStyle.LGDrawerItem,
+                gradientActive: MyStyle.LGDrawerItemActive,
+                ripple        : MyStyle.MaterialRipple.drawer,
+                image         : {src: MyImage.monitor},
+                icon          : null,
+                text          : {text: MyLANG.MyOrders},
+                onPress       : {loginRequired: true, actionType: MyConstant.DrawerOnPress.Navigate, routeName: MyConfig.routeName.MyOrders},
+            },
+            {
+                gradient      : MyStyle.LGDrawerItem,
+                gradientActive: MyStyle.LGDrawerItemActive,
+                ripple        : MyStyle.MaterialRipple.drawer,
+                image         : {src: MyImage.notification},
+                icon          : null,
+                text          : {text: MyLANG.Notifications},
+                onPress       : {loginRequired: true, actionType: MyConstant.DrawerOnPress.Navigate, routeName: MyConfig.routeName.Notifications},
+            },
+            {
+                gradient      : MyStyle.LGDrawerItem,
+                gradientActive: MyStyle.LGDrawerItemActive,
+                ripple        : MyStyle.MaterialRipple.drawer,
+                image         : {src: MyImage.rate},
+                icon          : null,
+                text          : {text: MyLANG.RateApp},
+                onPress       : {actionType: MyConstant.DrawerOnPress.RateApp},
+            },
+            {
+                gradient      : MyStyle.LGDrawerItem,
+                gradientActive: MyStyle.LGDrawerItemActive,
+                ripple        : MyStyle.MaterialRipple.drawer,
+                image         : {src: MyImage.phone},
+                icon          : null,
+                text          : {text: MyLANG.ContactUs},
+                onPress       : {loginRequired: false, actionType: MyConstant.DrawerOnPress.Navigate, routeName: MyConfig.routeName.ContactUs},
+            },
+            {
+                gradient      : MyStyle.LGDrawerItem,
+                gradientActive: MyStyle.LGDrawerItemActive,
+                ripple        : MyStyle.MaterialRipple.drawer,
+                image         : {src: MyImage.info},
+                icon          : null,
+                text          : {text: MyLANG.AboutUs},
+                onPress       : {loginRequired: false, actionType: MyConstant.DrawerOnPress.Navigate, routeName: MyConfig.routeName.AboutUs},
+            },
+            {
+                gradient      : MyStyle.LGDrawerItem,
+                gradientActive: MyStyle.LGDrawerItemActive,
+                ripple        : MyStyle.MaterialRipple.drawer,
+                image         : {src: MyImage.power_off},
+                icon          : null,
+                text          : {text: MyLANG.Logout},
+                onPress       : {actionType: MyConstant.DrawerOnPress.PromptLogout},
+            },
+        ];
+    } else {
+        DrawerItem = [
+            {
+                gradient      : MyStyle.LGDrawerItem,
+                gradientActive: MyStyle.LGDrawerItemActive,
+                ripple        : MyStyle.MaterialRipple.drawer,
+                image         : {src: MyImage.shop},
+                icon          : null,
+                text          : {text: MyLANG.Home},
+                onPress       : {loginRequired: false, actionType: MyConstant.DrawerOnPress.Navigate, routeName: MyConfig.routeName.Home},
+            },
+            {
+                gradient      : MyStyle.LGDrawerItem,
+                gradientActive: MyStyle.LGDrawerItemActive,
+                ripple        : MyStyle.MaterialRipple.drawer,
+                image         : {src: MyImage.key},
+                icon          : null,
+                text          : {text: MyLANG.LoginRegister},
+                onPress       : {
+                    loginRequired: false,
+                    actionType   : MyConstant.DrawerOnPress.Navigate,
+                    routeName    : MyConfig.routeName.Login,
+                    params       : {splash: false}
+                },
+            },
+            {
+                gradient      : MyStyle.LGDrawerItem,
+                gradientActive: MyStyle.LGDrawerItemActive,
+                ripple        : MyStyle.MaterialRipple.drawer,
+                image         : {src: MyImage.bag},
+                icon          : null,
+                text          : {text: MyLANG.Cart},
+                onPress       : {loginRequired: false, actionType: MyConstant.DrawerOnPress.Navigate, routeName: MyConfig.routeName.CartPush},
+            },
+            {
+                gradient      : MyStyle.LGDrawerItem,
+                gradientActive: MyStyle.LGDrawerItemActive,
+                ripple        : MyStyle.MaterialRipple.drawer,
+                image         : {src: MyImage.monitor},
+                icon          : null,
+                text          : {text: MyLANG.MyOrders},
+                onPress       : {loginRequired: true, actionType: MyConstant.DrawerOnPress.Navigate, routeName: MyConfig.routeName.MyOrders},
+            },
+            {
+                gradient      : MyStyle.LGDrawerItem,
+                gradientActive: MyStyle.LGDrawerItemActive,
+                ripple        : MyStyle.MaterialRipple.drawer,
+                image         : {src: MyImage.notification},
+                icon          : null,
+                text          : {text: MyLANG.Notifications},
+                onPress       : {loginRequired: true, actionType: MyConstant.DrawerOnPress.Navigate, routeName: MyConfig.routeName.Notifications},
+            },
+            {
+                gradient      : MyStyle.LGDrawerItem,
+                gradientActive: MyStyle.LGDrawerItemActive,
+                ripple        : MyStyle.MaterialRipple.drawer,
+                image         : {src: MyImage.rate},
+                icon          : null,
+                text          : {text: MyLANG.RateApp},
+                onPress       : {actionType: MyConstant.DrawerOnPress.RateApp},
+            },
+            {
+                gradient      : MyStyle.LGDrawerItem,
+                gradientActive: MyStyle.LGDrawerItemActive,
+                ripple        : MyStyle.MaterialRipple.drawer,
+                image         : {src: MyImage.phone},
+                icon          : null,
+                text          : {text: MyLANG.ContactUs},
+                onPress       : {loginRequired: false, actionType: MyConstant.DrawerOnPress.Navigate, routeName: MyConfig.routeName.ContactUs},
+            },
+            {
+                gradient      : MyStyle.LGDrawerItem,
+                gradientActive: MyStyle.LGDrawerItemActive,
+                ripple        : MyStyle.MaterialRipple.drawer,
+                image         : {src: MyImage.info},
+                icon          : null,
+                text          : {text: MyLANG.AboutUs},
+                onPress       : {loginRequired: false, actionType: MyConstant.DrawerOnPress.Navigate, routeName: MyConfig.routeName.AboutUs},
+            },
+        ];
+    }
+
     return (
-        <DrawerContentScrollView style = {customDrawer.scrollView} {...props}>
-            <View>
-                <Text>Hello</Text>
+        <DrawerContentScrollView
+            style = {customDrawer.viewContentScrollView}
+            {...props}
+        >
+            <View style = {customDrawer.viewMain}>
+                <TouchableWithoutFeedback
+                    onPress = {
+                        () => {
+                            MyUtil.commonAction(user.id ? true : false,
+                                                props.navigation,
+                                                MyConstant.CommonAction.navigate,
+                                                user.id ? MyConfig.routeName.EditProfile : MyConfig.routeName.Login,
+                                                {splash: false},
+                                                null
+                            );
+                        }
+                    }
+                >
+                    <View style = {customDrawer.viewProfileSection}>
+                        <View style = {customDrawer.viewImageProfile}>
+                            <Image
+                                style = {customDrawer.imageProfile}
+                                source = {MyImage.defaultAvatar}
+                                resizeMode = "contain"
+                            />
+                        </View>
+                        <Text
+                            style = {customDrawer.textUserName}
+                            numberOfLines = {1}
+                        >
+                            {user.id ? `${user?.customers_firstname} ${user?.customers_lastname}` : MyLANG.Guest}
+                        </Text>
+                        <Text
+                            style = {customDrawer.textEmail}
+                            numberOfLines = {1}
+                        >
+                            {user.id ? `${user?.email}` : MyLANG.LoginToManageProfile}
+                        </Text>
+                    </View>
+                </TouchableWithoutFeedback>
+
+                <View style = {customDrawer.viewDrawerItemSection}>
+                    {DrawerItem.map((prop: any, key: any) => (
+
+                        <LinearGradient
+                            key = {key}
+                            style = {customDrawer.linearGradientStyles}
+                            {...prop[prop.text?.text === 'Home' ? 'gradientActive' : 'gradient']}
+
+                        >
+                            <MyMaterialRipple
+                                style = {customDrawer.materialRipple}
+                                {...prop.ripple}
+                                onPress = {() =>
+                                    drawerItemOnPress(prop.onPress?.loginRequired,
+                                                      props.navigation,
+                                                      prop.onPress?.actionType,
+                                                      prop.onPress?.routeName,
+                                                      prop.onPress?.params,
+                                                      prop.onPress?.navigationActions,
+                                    )
+                                }
+                            >
+                                <View style = {customDrawer.viewItem}>
+                                    {prop.image?.src &&
+                                     <Image
+                                         source = {prop.image?.src || MyImage.defaultAvatar}
+                                         resizeMode = "contain"
+                                         style = {[customDrawer.imageItem, prop.image?.style]}
+                                     />
+                                    }
+                                    {
+                                        prop.icon?.name &&
+                                        getMyIcon(
+                                            {
+                                                fontFamily: prop.icon?.fontFamily || MyConstant.VectorIcon.SimpleLineIcons,
+                                                name      : prop.icon?.name,
+                                                size      : prop.icon?.size || 28,
+                                                style     : [customDrawer.iconItem, prop.icon?.style]
+                                            }
+                                        )
+                                    }
+                                    {
+                                        prop.text?.text &&
+                                        <Text
+                                            style = {[customDrawer.textItem, prop.text?.style, prop.text?.text === 'Home' && customDrawer.textItemActive]}
+                                            numberOfLines = {1}
+                                        >
+                                            {prop.text?.text}
+                                        </Text>
+                                    }
+                                </View>
+                            </MyMaterialRipple>
+                        </LinearGradient>
+                    ))
+                    }
+                </View>
             </View>
-            <DrawerItemList style = {customDrawer.itemList} {...props} />
+            {/*<DrawerItemList style = {customDrawer.itemList} {...props} />*/}
         </DrawerContentScrollView>
     )
 }
+
 
 const ListItemSeparator = () => {
     return (
@@ -35,24 +355,29 @@ const ListItemSeparator = () => {
     )
 }
 
-//
+// Page Layouts:
 const CategoryListItem              = ({item, index}: any) => {
     // MyUtil.printConsole(true, 'log', 'LOG: CategoryListItem: ', {index, item});
 
     return (
-        <TouchableOpacity activeOpacity = {0.7}
-                          style = {[categoryList.touchable, {marginTop: (index === 0) ? MyStyle.HeaderHeight + 10 : null}]}
-                          onPress = {() =>
-                              MyUtil.reactNavigate(MyConfig.routeName.ProductList,
-                                                   {'id': item?.id, 'item': item},
-                                                   null
-                              )
-                          }
+        <TouchableOpacity
+            activeOpacity = {0.7}
+            style = {[categoryList.touchable]}
+            onPress = {() =>
+                MyUtil.commonAction(false,
+                                    null,
+                                    MyConstant.CommonAction.navigate,
+                                    MyConfig.routeName.ProductList,
+                                    {'id': item?.id, 'item': item},
+                                    null
+                )
+            }
         >
-            <ImageBackground source = {item['image'] ? {'uri': MyConfig.serverUrl + item['image']} : MyImage.defaultItem}
-                             resizeMode = "cover"
-                             style = {[categoryList.imageBackground]}
-                             imageStyle = {{borderRadius: 8}}
+            <ImageBackground
+                source = {item?.image ? {'uri': item.image} : MyImage.defaultItem}
+                resizeMode = "cover"
+                style = {[categoryList.imageBackground]}
+                imageStyle = {{borderRadius: MyStyle.borderRadiusImageListLarge}}
             >
                 <View style = {categoryList.tint}>
                     <Text style = {[categoryList.textTitle, {textAlign: (index % 2 === 0) ? 'right' : 'left'}]}>{item['categories_name']}</Text>
@@ -62,16 +387,15 @@ const CategoryListItem              = ({item, index}: any) => {
         </TouchableOpacity>
     )
 }
-const ContentLoaderCategoryListItem = (count: any) => {
-    // MyUtil.printConsole(true, 'log', 'LOG: ContentLoaderCategoryListItem: ', '');
+const CategoryListItemContentLoader = (count: any) => {
+    // MyUtil.printConsole(true, 'log', 'LOG: CategoryListItemContentLoader: ', '');
 
     return (
         <>
             {Array(count)
                 .fill('')
                 .map((prop, key) => (
-                         <View key = {key}
-                               style = {{marginTop: (key === 0) ? MyStyle.HeaderHeight : null}}>
+                         <View key = {key}>
                              <ContentLoader
                                  speed = {2}
                                  width = {MyStyle.screenWidth}
@@ -79,7 +403,7 @@ const ContentLoaderCategoryListItem = (count: any) => {
                                  viewBox = {'0 ' + '0 ' + (MyStyle.screenWidth) + ' ' + (140)}
                                  backgroundColor = {MyColor.Material.GREY["200"]}
                                  foregroundColor = {MyColor.Material.GREY["400"]}
-                                 style = {{marginVertical: 14, marginHorizontal: 12}}
+                                 style = {{marginVertical: MyStyle.marginVerticalList, marginHorizontal: MyStyle.marginHorizontalList}}
                              >
                                  <Rect x = "0"
                                        y = "0"
@@ -96,67 +420,80 @@ const ContentLoaderCategoryListItem = (count: any) => {
         </>
     )
 
-    // return ContentLoaderRestaurantItem(MyConfig.ListLimit.RestaurantHome);
+    // return RestaurantItemContentLoader(MyConfig.ListLimit.RestaurantHome);
 }
 
 const ProductListItem              = ({item, index}: any) => {
     // MyUtil.printConsole(true, 'log', 'LOG: ProductListItem: ', {index, item});
 
     return (
-        <TouchableOpacity activeOpacity = {0.7}
-                          style = {[productList.touchable, {marginTop: (index === 0) ? MyStyle.HeaderHeight : null}]}
-                          onPress = {() => ''}
+        <TouchableOpacity
+            activeOpacity = {0.7}
+            style = {[productList.touchable, {}]}
+            onPress = {
+                () =>
+                    MyUtil.commonAction(false,
+                                        null,
+                                        MyConstant.CommonAction.navigate,
+                                        MyConfig.routeName.ProductDetails,
+                                        {'id': item?.id, 'item': item},
+                                        null
+                    )
+            }
         >
             <View style = {productList.view}>
-                <FastImage source = {item['products_image'] ? {'uri': item['products_image']} : MyImage.defaultItem}
-                           resizeMode = {FastImage.resizeMode.contain}
-                           style = {productList.image}
+                <MyFastImage
+                    source = {[{'uri': item.image}, MyImage.defaultItem]}
+                    style = {productList.image}
                 />
                 <View style = {productList.textsView}>
-                    <Text style = {productList.textName}
-                          numberOfLines = {2}>{item['products_name']}</Text>
+                    <Text
+                        style = {productList.textName}
+                        numberOfLines = {2}>
+                        {item?.products_name}
+                    </Text>
 
-                    <View style = {{
-                        display       : "flex",
-                        flexDirection : "row",
-                        justifyContent: "flex-start",
-                        alignItems    : "center",
-                        marginTop     : 4,
-                    }}>
-                        <MyIcon.FontAwesome
-                            name = "star"
-                            size = {12}
-                            color = {MyColor.Material.YELLOW['600']}
-                            style = {{marginRight: 6}}
-                        />
-                        <Text style = {productList.textRating}>{item['rating'] > 0 ? item['rating'] : '0'}</Text>
+                    <View style = {productList.viewRating}>
+                        {
+                            Array(5)
+                                .fill('')
+                                .map((rating: any, key: any) => (
+                                         Number(key) < Number(item?.rating) ?
+                                         <IconStar
+                                             key = {key}
+                                             size = {10}
+                                             color = {MyColor.Material.YELLOW['600']}
+                                             solid
+                                             style = {{marginRight: 3}}
+                                         /> :
+                                         <IconStar
+                                             key = {key}
+                                             size = {10}
+                                             color = {MyColor.Material.YELLOW['200']}
+                                             style = {{marginRight: 3}}
+                                         />
+                                     )
+                                )
+                        }
+                        <Text style = {productList.textRating}>{Number(item?.rating) > 0 ? item.rating : '0'}</Text>
                     </View>
 
-                    <View style = {{
-                        display       : "flex",
-                        flexDirection : "row",
-                        justifyContent: "flex-start",
-                        alignItems    : "center",
-                        marginTop     : 6,
-                    }}>
+                    <View style = {productList.viewStock}>
                         <MyIcon.SimpleLineIcons
-                            name = "drawer"
+                            name = "layers"
                             size = {12}
                             color = {MyColor.Material.GREY["600"]}
                             style = {{marginRight: 6}}
                         />
-                        <Text style = {productList.textQuantity}>
-                            Available Stock {item['products_quantity'] > 0 ? item['products_quantity'] : '0'}
+                        <Text style = {productList.textStock}>
+                            {MyLANG.AvailableStock}&nbsp;
+                            <Text style = {{fontFamily: MyStyle.FontFamily.Roboto.regular}}>
+                                {Number(item?.products_quantity) > 0 ? item.products_quantity : '0'}
+                            </Text>
                         </Text>
                     </View>
 
-                    <View style = {{
-                        display       : "flex",
-                        flexDirection : "row",
-                        justifyContent: "flex-start",
-                        alignItems    : "center",
-                        marginTop     : 6,
-                    }}>
+                    <View style = {productList.viewPrice}>
                         <MyIcon.MaterialCommunityIcons
                             name = "cash-usd"
                             size = {14}
@@ -165,7 +502,7 @@ const ProductListItem              = ({item, index}: any) => {
                         />
                         <Text style = {productList.textPrice}
                               numberOfLines = {1}>
-                            {MyConfig.Currency.MYR.symbol} {item['products_price']}
+                            {MyConfig.Currency.MYR.symbol}{item?.products_price}
                         </Text>
                     </View>
 
@@ -174,16 +511,15 @@ const ProductListItem              = ({item, index}: any) => {
         </TouchableOpacity>
     )
 }
-const ContentLoaderProductListItem = (count: any) => {
-    // MyUtil.printConsole(true, 'log', 'LOG: ContentLoaderProductListItem: ', '');
+const ProductListItemContentLoader = (count: any) => {
+    // MyUtil.printConsole(true, 'log', 'LOG: ProductListItemContentLoader: ', '');
 
     return (
         <>
             {Array(count)
                 .fill('')
                 .map((prop, key) => (
-                         <View key = {key}
-                               style = {{marginTop: (key === 0) ? MyStyle.HeaderHeight : null}}>
+                         <View key = {key}>
                              <ListItemSeparator/>
                              <ContentLoader
                                  speed = {2}
@@ -192,7 +528,7 @@ const ContentLoaderProductListItem = (count: any) => {
                                  viewBox = {'0 ' + '0 ' + (MyStyle.screenWidth) + ' ' + (MyStyle.screenWidth * 0.22)}
                                  backgroundColor = {MyColor.Material.GREY["200"]}
                                  foregroundColor = {MyColor.Material.GREY["400"]}
-                                 style = {{marginVertical: 12, marginHorizontal: 14}}
+                                 style = {{marginVertical: MyStyle.marginVerticalList, marginHorizontal: MyStyle.marginHorizontalList}}
                              >
                                  <Rect x = "0"
                                        y = "0"
@@ -232,32 +568,37 @@ const ContentLoaderProductListItem = (count: any) => {
         </>
     )
 
-    // return ContentLoaderRestaurantItem(MyConfig.ListLimit.RestaurantHome);
+    // return RestaurantItemContentLoader(MyConfig.ListLimit.RestaurantHome);
 }
 
 
+// Home Page Layouts:
 const CategoryHorizontalListItem              = ({item, index}: any) => {
     // MyUtil.printConsole(true, 'log', 'LOG: CategoryHorizontalListItem: ', {item});
 
     return (
         <>{item
             .map((prop: any, key: any) => (
-                <TouchableOpacity activeOpacity = {0.7}
-                                  style = {[categoryHorizontalList.touchable, {}]}
-                                  onPress = {() =>
-                                      MyUtil.reactNavigate(MyConfig.routeName.ProductList,
-                                                           {'id': prop?.id, 'item': prop},
-                                                           null
-                                      )
-                                  }
-                                  key = {key}
+                <TouchableOpacity
+                    key = {key}
+                    activeOpacity = {0.7}
+                    style = {[categoryHorizontalList.touchable, {}]}
+                    onPress = {() =>
+                        MyUtil.commonAction(false,
+                                            null,
+                                            MyConstant.CommonAction.navigate,
+                                            MyConfig.routeName.ProductList,
+                                            {'id': prop?.id, 'item': prop},
+                                            null
+                        )
+                    }
                 >
                     <View style = {categoryHorizontalList.view}>
                         <View
                             style = {categoryHorizontalList.imageView}>
-                            <FastImage source = {prop['icon'] ? {'uri': prop['icon']} : MyImage.defaultItem}
-                                       resizeMode = {FastImage.resizeMode.contain}
-                                       style = {categoryHorizontalList.image}
+                            <MyFastImage
+                                source = {[{'uri': prop?.icon}, MyImage.defaultItem]}
+                                style = {categoryHorizontalList.image}
                             />
                         </View>
                         <Text
@@ -271,8 +612,8 @@ const CategoryHorizontalListItem              = ({item, index}: any) => {
         </>
     )
 }
-const ContentLoaderCategoryHorizontalListItem = (count: any) => {
-    // MyUtil.printConsole(true, 'log', 'LOG: ContentLoaderCategoryHorizontalListItem: ', '');
+const CategoryHorizontalListItemContentLoader = (count: any) => {
+    // MyUtil.printConsole(true, 'log', 'LOG: CategoryHorizontalListItemContentLoader: ', '');
 
     return (
         <>
@@ -288,7 +629,7 @@ const ContentLoaderCategoryHorizontalListItem = (count: any) => {
                                  viewBox = {'0 ' + '0 ' + (MyStyle.screenWidth * 0.16) + ' ' + ((MyStyle.screenWidth * 0.16) + 10 + 5 + 4 + 7)}
                                  backgroundColor = {MyColor.Material.GREY["200"]}
                                  foregroundColor = {MyColor.Material.GREY["400"]}
-                                 style = {{marginHorizontal: 12}}
+                                 style = {{marginHorizontal: MyStyle.marginHorizontalList}}
                              >
                                  <Rect x = "0"
                                        y = "0"
@@ -311,24 +652,28 @@ const ContentLoaderCategoryHorizontalListItem = (count: any) => {
     )
 }
 
-const BannerHorizontalListItem          = ({item, index}: any) => {
-    // MyUtil.printConsole(true, 'log', 'LOG: BannerHorizontalListItem: ', {item});
+const ImageSliderBanner              = ({item, index, style}: any) => {
+    // MyUtil.printConsole(true, 'log', 'LOG: ImageSliderBanner: ', {item, index, style});
 
     return (
         <>{item
             .map((prop: any, key: any) => (
-                <TouchableOpacity activeOpacity = {0.8}
-                                  style = {[bannerHorizontalList.touchable, {}]}
-                                  onPress = {() => ''}
-                                  key = {key}
+                <TouchableOpacity
+                    key = {key}
+                    activeOpacity = {0.9}
+                    style = {[bannerHorizontalList.touchable, {}]}
+                    onPress = {() =>
+                        ''
+                    }
                 >
                     <ImageBackground
-                        source = {prop['image'] ? {'uri': MyConfig.serverUrl + prop['image']} : MyImage.defaultItem}
+                        source = {prop?.image ? {'uri': prop.image} : MyImage.defaultItem}
+                        // defaultSource = {MyImage.defaultItem}
                         resizeMode = "cover"
-                        style = {bannerHorizontalList.image}
+                        style = {[bannerHorizontalList.image, style]}
                         imageStyle = {{}}
                     >
-                        {prop && prop.title &&
+                        {prop?.title &&
                          <Text
                              numberOfLines = {3}
                              style = {bannerHorizontalList.textName}
@@ -342,8 +687,8 @@ const BannerHorizontalListItem          = ({item, index}: any) => {
         </>
     )
 }
-const ContentLoaderBannerHorizontalList = () => {
-    // MyUtil.printConsole(true, 'log', 'LOG: ContentLoaderBannerHorizontalList: ', '');
+const ImageSliderBannerContentLoader = () => {
+    // MyUtil.printConsole(true, 'log', 'LOG: ImageSliderBannerContentLoader: ', '');
 
     return (
         <>
@@ -375,26 +720,34 @@ const ProductHorizontalListItem              = ({item, index}: any) => {
     return (
         <>{item
             .map((prop: any, key: any) => (
-                <TouchableOpacity activeOpacity = {0.7}
-                                  style = {[productHorizontalList.touchable, {}]}
-                                  onPress = {() => ''}
-                                  key = {key}
+                <TouchableOpacity
+                    key = {key}
+                    activeOpacity = {0.7}
+                    style = {[productHorizontalList.touchable, {}]}
+                    onPress = {() => MyUtil.commonAction(false,
+                                                         null,
+                                                         MyConstant.CommonAction.navigate,
+                                                         MyConfig.routeName.ProductDetails,
+                                                         {'id': prop?.id, 'item': prop},
+                                                         null
+                    )}
+
                 >
                     <View style = {productHorizontalList.view}>
-                        <FastImage source = {prop['products_image'] ? {'uri': prop['products_image']} : MyImage.defaultItem}
-                                   resizeMode = {FastImage.resizeMode.contain}
-                                   style = {productHorizontalList.image}
+                        <MyFastImage
+                            source = {[{'uri': prop?.image}, MyImage.defaultItem]}
+                            style = {productHorizontalList.image}
                         />
                         <View style = {productHorizontalList.textsView}>
                             <Text
                                 numberOfLines = {2}
                                 style = {productHorizontalList.textName}>
-                                {prop['products_name']}
+                                {prop?.products_name}
                             </Text>
                             <Text
                                 numberOfLines = {1}
                                 style = {productHorizontalList.textPrice}>
-                                {MyConfig.Currency.MYR.symbol} {prop['products_price']}
+                                {MyConfig.Currency.MYR.symbol}{prop?.products_price}
                             </Text>
                         </View>
                     </View>
@@ -403,8 +756,8 @@ const ProductHorizontalListItem              = ({item, index}: any) => {
         </>
     )
 }
-const ContentLoaderProductHorizontalListItem = (count: any) => {
-    // MyUtil.printConsole(true, 'log', 'LOG: ContentLoaderProductHorizontalListItem: ', count);
+const ProductHorizontalListItemContentLoader = (count: any) => {
+    // MyUtil.printConsole(true, 'log', 'LOG: ProductHorizontalListItemContentLoader: ', count);
 
     return (
         <>
@@ -420,7 +773,7 @@ const ContentLoaderProductHorizontalListItem = (count: any) => {
                                  viewBox = {'0 ' + '0 ' + (MyStyle.screenWidth * 0.35) + ' ' + ((MyStyle.screenWidth * 0.35) + 5 + 20 + 3 + 13 + 5 + 10)}
                                  backgroundColor = {MyColor.Material.GREY["200"]}
                                  foregroundColor = {MyColor.Material.GREY["400"]}
-                                 style = {{marginHorizontal: 12}}
+                                 style = {{marginHorizontal: MyStyle.marginHorizontalList}}
                              >
                                  <Rect x = "0"
                                        y = "0"
@@ -450,15 +803,75 @@ const ContentLoaderProductHorizontalListItem = (count: any) => {
 }
 
 
+// Product Details:
+const ProductDetailsContentLoader = () => {
+    // MyUtil.printConsole(true, 'log', 'LOG: ProductDetailsContentLoader: ', '');
+
+    return (
+        <>
+            <View style = {{}}>
+                <ContentLoader
+                    speed = {2}
+                    width = {MyStyle.screenWidth}
+                    height = {(MyStyle.screenWidth / 1.5) + 20 + 6 + 22 + 10 + 26 + 22 + 28 + (MyStyle.screenWidth / 1.5)}
+                    backgroundColor = {MyColor.Material.GREY["200"]}
+                    foregroundColor = {MyColor.Material.GREY["400"]}
+                    style = {{}}
+                >
+                    <Rect
+                        x = "0"
+                        y = "0"
+                        rx = "0"
+                        ry = "0"
+                        width = {MyStyle.screenWidth}
+                        height = {MyStyle.screenWidth / 1.5}
+                    />
+                    <Rect
+                        x = {MyStyle.marginHorizontalPage}
+                        y = {(MyStyle.screenWidth / 1.5) + 20}
+                        rx = "4"
+                        ry = "4"
+                        width = {MyStyle.screenWidth - (MyStyle.marginHorizontalPage * 2)}
+                        height = "22"
+                    />
+                    <Rect
+                        x = {MyStyle.marginHorizontalPage * 4}
+                        y = {(MyStyle.screenWidth / 1.5) + 20 + 6 + 22}
+                        rx = "4"
+                        ry = "4"
+                        width = {MyStyle.screenWidth - (MyStyle.marginHorizontalPage * 8)}
+                        height = "26"
+                    />
+                    <Rect
+                        x = {MyStyle.marginHorizontalPage * 3}
+                        y = {(MyStyle.screenWidth / 1.5) + 20 + 6 + 22 + 10 + 26}
+                        rx = "4"
+                        ry = "4"
+                        width = {MyStyle.screenWidth - (MyStyle.marginHorizontalPage * 6)}
+                        height = "22"
+                    />
+                    <Rect
+                        x = "0"
+                        y = {(MyStyle.screenWidth / 1.5) + 20 + 6 + 22 + 10 + 26 + 22 + 28}
+                        rx = "0"
+                        ry = "0"
+                        width = {MyStyle.screenWidth}
+                        height = {MyStyle.screenWidth / 1.5}
+                    />
+                </ContentLoader>
+            </View>
+        </>
+    )
+}
+
 //
 const RestaurantListItem          = ({item}: any) => {
     // MyUtil.printConsole(true, 'log', 'LOG: restaurantListItem: ', '');
 
     return (
         <View style = {restaurantItem.view}>
-            <FastImage source = {item['photo'] ? {'uri': MyAPI.imgRestaurant + item['photo']} : MyImage.defaultItem}
-                       resizeMode = {FastImage.resizeMode.contain}
-                       style = {restaurantItem.image}/>
+            <MyFastImage source = {[{'uri': MyAPI.imgRestaurant + item['photo']}, MyImage.defaultItem]}
+                         style = {restaurantItem.image}/>
             <View style = {restaurantItem.textsView}>
                 <Text style = {restaurantItem.textName}
                       numberOfLines = {1}>{item['name']}</Text>
@@ -561,8 +974,8 @@ const RestaurantListItem          = ({item}: any) => {
         </View>
     )
 }
-const ContentLoaderRestaurantItem = (count: any) => {
-    // MyUtil.printConsole(true, 'log', 'LOG: ContentLoaderRestaurantItem: ', '');
+const RestaurantItemContentLoader = (count: any) => {
+    // MyUtil.printConsole(true, 'log', 'LOG: RestaurantItemContentLoader: ', '');
 
     return (
         <>
@@ -578,7 +991,7 @@ const ContentLoaderRestaurantItem = (count: any) => {
                                  viewBox = {'0 ' + '0 ' + (MyStyle.screenWidth) + ' ' + (MyStyle.screenWidth * 0.22)}
                                  backgroundColor = {MyColor.Material.GREY["200"]}
                                  foregroundColor = {MyColor.Material.GREY["400"]}
-                                 style = {{marginVertical: 12, marginHorizontal: 16}}
+                                 style = {{marginVertical: MyStyle.marginVerticalList, marginHorizontal: MyStyle.marginHorizontalList}}
                              >
                                  <Rect x = "0"
                                        y = "0"
@@ -618,7 +1031,7 @@ const ContentLoaderRestaurantItem = (count: any) => {
         </>
     )
 
-    // return ContentLoaderRestaurantItem(MyConfig.ListLimit.RestaurantHome);
+    // return RestaurantItemContentLoader(MyConfig.ListLimit.RestaurantHome);
 }
 
 
@@ -627,131 +1040,128 @@ export {
     ListItemSeparator,
 
     CategoryListItem,
-    ContentLoaderCategoryListItem,
+    CategoryListItemContentLoader,
     ProductListItem,
-    ContentLoaderProductListItem,
+    ProductListItemContentLoader,
 
     CategoryHorizontalListItem,
-    ContentLoaderCategoryHorizontalListItem,
+    CategoryHorizontalListItemContentLoader,
     ProductHorizontalListItem,
-    ContentLoaderProductHorizontalListItem,
-    BannerHorizontalListItem,
-    ContentLoaderBannerHorizontalList,
+    ProductHorizontalListItemContentLoader,
+    ImageSliderBanner,
+    ImageSliderBannerContentLoader,
+
+    ProductDetailsContentLoader,
 
     RestaurantListItem,
-    ContentLoaderRestaurantItem,
+    RestaurantItemContentLoader,
 };
 
 const styles = StyleSheet.create(
     {
         itemSeparator: {
-            height         : 1,
-            width          : 'auto',
-            marginLeft     : 16,
-            marginRight    : 16,
-            backgroundColor: MyColor.Material.GREY["250"]
+            height          : 1,
+            width           : 'auto',
+            marginHorizontal: MyStyle.marginHorizontalList,
+            backgroundColor : MyColor.Material.GREY["250"]
         },
     }
 );
 
 const customDrawer = StyleSheet.create(
     {
-        scrollView: {
-            paddingTop: 20,
+        viewContentScrollView: {},
+        viewMain             : {
+            backgroundColor: MyColor.Material.WHITE,
         },
-        itemList  : {}
+
+        viewProfileSection: {
+            display       : "flex",
+            flexDirection : "column",
+            justifyContent: "center",
+            alignItems    : "flex-start",
+            marginVertical: 15,
+            marginLeft    : 15,
+        },
+        viewImageProfile  : {
+            width       : 60,
+            height      : 60,
+            borderRadius: 600,
+
+            backgroundColor: MyColor.Material.GREY["100"],
+            marginTop      : 10,
+        },
+        imageProfile      : {
+            width : 60,
+            height: 60,
+
+            borderRadius: 600,
+        },
+        textUserName      : {
+            fontFamily: MyStyle.FontFamily.OpenSans.bold,
+            fontSize  : 20,
+            color     : MyColor.textDarkPrimary,
+
+            marginTop  : 15,
+            marginRight: 15,
+        },
+        textEmail         : {
+            fontFamily: MyStyle.FontFamily.OpenSans.regular,
+            fontSize  : 14,
+            color     : MyColor.textDarkSecondary,
+
+            marginTop  : 0,
+            marginRight: 15,
+        },
+
+        viewDrawerItemSection: {
+            marginVertical: 15,
+            marginLeft    : 15,
+        },
+        linearGradientStyles : {
+            marginVertical        : 4,
+            borderTopLeftRadius   : 3,
+            borderBottomLeftRadius: 3,
+        },
+        materialRipple       : {},
+
+        viewItem      : {
+            display       : "flex",
+            flexDirection : "row",
+            justifyContent: "flex-start",
+            alignItems    : "center",
+
+            flexWrap: "wrap",
+
+            marginLeft : 12,
+            marginRight: 15,
+
+            paddingVertical: 11,
+        },
+        iconItem      : {
+            color      : MyColor.Material.GREY["700"],
+            marginRight: 26,
+        },
+        imageItem     : {
+            width      : 26,
+            height     : 26,
+            marginRight: 30,
+        },
+        textItem      : {
+            fontFamily: MyStyle.FontFamily.OpenSans.semiBold,
+            fontSize  : 13,
+            color     : MyColor.Material.GREY["700"],
+
+            textTransform: "uppercase",
+        },
+        textItemActive: {
+            color: MyColor.Material.BLACK,
+        },
     }
 );
 
 // CUSTOM:
-const categoryList = StyleSheet.create(
-    {
-        touchable      : {
-            height          : 140,
-            marginVertical  : 14,
-            marginHorizontal: 12,
-        },
-        imageBackground: {
-            flex           : 1,
-            borderRadius   : 8,
-            backgroundColor: MyColor.Material.GREY["100"],
-        },
-        tint           : {
-            width            : '100%',
-            flex             : 1,
-            display          : "flex",
-            flexDirection    : "column",
-            justifyContent   : 'center',
-            paddingHorizontal: 24,
-            borderRadius     : 8,
-            backgroundColor  : 'rgba(0,0,0,0.35)',
-        },
-        textTitle      : {
-            fontFamily: MyStyle.FontFamily.OpenSans.regular,
-            fontSize  : 21,
-            color     : MyColor.Material.WHITE,
-        },
-        textCount      : {
-            fontFamily: MyStyle.FontFamily.OpenSans.regular,
-            fontSize  : 12,
-            color     : MyColor.Material.WHITE,
-
-            marginTop: 2,
-        },
-    }
-);
-
-const productList = StyleSheet.create(
-    {
-        touchable   : {},
-        view        : {
-            display         : 'flex',
-            flexDirection   : 'row',
-            justifyContent  : 'flex-start',
-            alignItems      : 'center',
-            marginVertical  : 12,
-            marginHorizontal: 14,
-        },
-        image       : {
-            width       : MyStyle.screenWidth * 0.22,
-            height      : MyStyle.screenWidth * 0.22,
-            borderRadius: 3,
-
-            backgroundColor: MyColor.Material.GREY["100"],
-        },
-        textsView   : {
-            display       : 'flex',
-            flexDirection : 'column',
-            justifyContent: 'flex-start',
-
-            flex: 1,
-
-            marginLeft : 10,
-            marginRight: 8,
-        },
-        textName    : {
-            fontFamily: MyStyle.FontFamily.OpenSans.regular,
-            fontSize  : 13,
-            color     : MyColor.Material.BLACK,
-        },
-        textRating  : {
-            fontFamily: MyStyle.FontFamily.OpenSans.regular,
-            fontSize  : 12,
-            color     : MyColor.Material.GREY["700"],
-        },
-        textQuantity: {
-            fontFamily: MyStyle.FontFamily.Exo2.light,
-            fontSize  : 12,
-            color     : MyColor.Material.GREY["700"],
-        },
-        textPrice   : {
-            fontFamily: MyStyle.FontFamily.TitilliumWeb.semiBold,
-            fontSize  : 13,
-            color     : MyColor.Primary.first,
-        },
-    }
-);
-
+// HOME PAGE:
 const categoryHorizontalList = StyleSheet.create(
     {
         touchable: {},
@@ -760,7 +1170,7 @@ const categoryHorizontalList = StyleSheet.create(
             flexDirection   : "column",
             justifyContent  : "flex-start",
             alignItems      : "center",
-            marginHorizontal: 12,
+            marginHorizontal: MyStyle.marginHorizontalList,
         },
         imageView: {
             display       : "flex",
@@ -768,15 +1178,10 @@ const categoryHorizontalList = StyleSheet.create(
             justifyContent: "center",
             alignItems    : "center",
 
-            width          : MyStyle.screenWidth * 0.16,
-            height         : MyStyle.screenWidth * 0.16,
-            borderRadius   : 4,
-            backgroundColor: MyColor.Material.GREY["100"],
+            ...MyStyleSheet.imageListSmall,
         },
         image    : {
-            width       : (MyStyle.screenWidth * 0.16) - 0,
-            height      : (MyStyle.screenWidth * 0.16) - 0,
-            borderRadius: 4,
+            ...MyStyleSheet.imageListSmall,
         },
         textName : {
             width            : MyStyle.screenWidth * 0.16,
@@ -789,47 +1194,7 @@ const categoryHorizontalList = StyleSheet.create(
         },
     }
 );
-
-const productHorizontalList = StyleSheet.create(
-    {
-        touchable: {},
-        view     : {
-            display         : "flex",
-            flexDirection   : "column",
-            justifyContent  : "flex-start",
-            alignItems      : "center",
-            marginHorizontal: 12,
-        },
-        image    : {
-            width          : MyStyle.screenWidth * 0.35,
-            height         : MyStyle.screenWidth * 0.35,
-            borderRadius   : 4,
-            backgroundColor: MyColor.Material.GREY["100"],
-        },
-        textsView: {},
-        textName : {
-            width            : MyStyle.screenWidth * 0.35,
-            paddingTop       : 5,
-            paddingBottom    : 3,
-            paddingHorizontal: 2,
-            fontFamily       : MyStyle.FontFamily.OpenSans.regular,
-            fontSize         : 12,
-            color            : MyColor.Material.BLACK,
-
-            height: 40,
-        },
-        textPrice: {
-            width            : MyStyle.screenWidth * 0.35,
-            paddingBottom    : 5,
-            paddingHorizontal: 2,
-            fontFamily       : MyStyle.FontFamily.TitilliumWeb.semiBold,
-            fontSize         : 13,
-            color            : MyColor.Primary.first,
-        },
-    }
-);
-
-const bannerHorizontalList = StyleSheet.create(
+const bannerHorizontalList   = StyleSheet.create(
     {
         touchable: {},
         view     : {},
@@ -854,6 +1219,153 @@ const bannerHorizontalList = StyleSheet.create(
         },
     }
 );
+const productHorizontalList  = StyleSheet.create(
+    {
+        touchable: {},
+        view     : {
+            display         : "flex",
+            flexDirection   : "column",
+            justifyContent  : "flex-start",
+            alignItems      : "center",
+            marginHorizontal: MyStyle.marginHorizontalList,
+        },
+        image    : {
+            ...MyStyleSheet.imageListLarge,
+        },
+        textsView: {},
+        textName : {
+            width            : MyStyle.screenWidth * 0.35,
+            paddingTop       : 5,
+            paddingBottom    : 3,
+            paddingHorizontal: 2,
+            fontFamily       : MyStyle.FontFamily.OpenSans.regular,
+            fontSize         : 12,
+            color            : MyColor.Material.BLACK,
+
+            height: 40,
+        },
+        textPrice: {
+            width            : MyStyle.screenWidth * 0.35,
+            paddingBottom    : 5,
+            paddingHorizontal: 2,
+            fontFamily       : MyStyle.fontFamilyPrice,
+            fontSize         : 13,
+            color            : MyColor.Primary.first,
+        },
+    }
+);
+
+// TAB:
+const categoryList = StyleSheet.create(
+    {
+        touchable      : {
+            height          : 140,
+            marginHorizontal: MyStyle.marginHorizontalList,
+            marginVertical  : MyStyle.marginVerticalList,
+        },
+        imageBackground: {
+            flex           : 1,
+            borderRadius   : MyStyle.borderRadiusImageListLarge,
+            backgroundColor: MyColor.Material.GREY["100"],
+        },
+        tint           : {
+            width            : '100%',
+            flex             : 1,
+            display          : "flex",
+            flexDirection    : "column",
+            justifyContent   : 'center',
+            paddingHorizontal: 24,
+            borderRadius     : MyStyle.borderRadiusImageListLarge,
+            backgroundColor  : 'rgba(0,0,0,0.35)',
+        },
+        textTitle      : {
+            fontFamily: MyStyle.FontFamily.OpenSans.regular,
+            fontSize  : 21,
+            color     : MyColor.Material.WHITE,
+        },
+        textCount      : {
+            fontFamily: MyStyle.FontFamily.OpenSans.regular,
+            fontSize  : 12,
+            color     : MyColor.Material.WHITE,
+
+            marginTop: 2,
+        },
+    }
+);
+
+// PRODUCT LIST PAGE:
+const productList = StyleSheet.create(
+    {
+        touchable: {},
+        view     : {
+            display         : 'flex',
+            flexDirection   : 'row',
+            justifyContent  : 'flex-start',
+            alignItems      : 'center',
+            marginHorizontal: MyStyle.marginHorizontalList,
+            marginVertical  : MyStyle.marginVerticalList,
+        },
+        image    : {
+            ...MyStyleSheet.imageList,
+        },
+        textsView: {
+            display       : 'flex',
+            flexDirection : 'column',
+            justifyContent: 'flex-start',
+
+            flex: 1,
+
+            marginHorizontal: MyStyle.marginHorizontalTextsView,
+        },
+        textName : {
+            fontFamily: MyStyle.FontFamily.OpenSans.regular,
+            fontSize  : 13,
+            color     : MyColor.Material.BLACK,
+        },
+
+        viewRating: {
+            display       : "flex",
+            flexDirection : "row",
+            justifyContent: "flex-start",
+            alignItems    : "center",
+            marginTop     : 4,
+        },
+        textRating: {
+            fontFamily: MyStyle.FontFamily.OpenSans.semiBold,
+            fontSize  : 12,
+            color     : MyColor.Material.GREY["700"],
+
+            marginLeft: 5,
+        },
+
+        viewStock: {
+            display       : "flex",
+            flexDirection : "row",
+            justifyContent: "flex-start",
+            alignItems    : "center",
+            marginTop     : 6,
+        },
+        textStock: {
+            fontFamily: MyStyle.FontFamily.OpenSans.light,
+            fontSize  : 12,
+            color     : MyColor.Material.GREY["700"],
+        },
+
+        viewPrice: {
+            display       : "flex",
+            flexDirection : "row",
+            justifyContent: "flex-start",
+            alignItems    : "center",
+            marginTop     : 6,
+        },
+        textPrice: {
+            fontFamily: MyStyle.fontFamilyPrice,
+            fontSize  : 13,
+            color     : MyColor.Primary.first,
+        },
+    }
+);
+
 
 //
 const restaurantItem = StyleSheet.create(
@@ -866,11 +1378,7 @@ const restaurantItem = StyleSheet.create(
             marginHorizontal: 16,
         },
         image    : {
-            width       : MyStyle.screenWidth * 0.22,
-            height      : MyStyle.screenWidth * 0.22,
-            borderRadius: 3,
-
-            backgroundColor: MyColor.Material.GREY["100"],
+            ...MyStyleSheet.imageList,
         },
         textsView: {
             display       : 'flex',

@@ -1,9 +1,12 @@
-import React, {Fragment, useEffect, useState} from 'react';
+import React, {Fragment, useCallback, useEffect, useState} from 'react';
+import {useFocusEffect} from "@react-navigation/native";
 
-import {StatusBarLight} from "../components/MyComponent";
-import LinearGradient from 'react-native-linear-gradient';
-import {StyleSheet, View, Text, Image, SafeAreaView, ImageBackground} from 'react-native';
 import AppIntroSlider from 'react-native-app-intro-slider';
+import LinearGradient from 'react-native-linear-gradient';
+import Splash from "react-native-splash-screen";
+
+import {StyleSheet, View, Text, Image, SafeAreaView, ImageBackground, BackHandler} from 'react-native';
+import {StatusBarLight} from "../components/MyComponent";
 
 import MyImage from "../shared/MyImage";
 import MyIcon from '../components/MyIcon';
@@ -15,21 +18,46 @@ import {MyStyle} from "../common/MyStyle";
 import MyAuth from "../common/MyAuth";
 import MyLANG from "../shared/MyLANG";
 
-// I18nManager.forceRTL(false);
+let renderCount = 0;
 
-const IntroScreen = ({}) => {
+const IntroScreen = ({route, navigation}: any) => {
+
+    if (__DEV__) {
+        renderCount += 1;
+        MyUtil.printConsole(true, 'log', `LOG: ${IntroScreen.name}. renderCount: `, renderCount);
+    }
 
     const [slides, setSlides] = useState(MyConfig.Intro);
 
-    // Similar to componentDidMount and componentDidUpdate:
+    useFocusEffect(
+        useCallback(() => {
+
+            const onBackPress = () => {
+                return MyUtil.onBackButtonPress(navigation);
+            };
+
+            BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+            return () =>
+                BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, [])
+    );
+
     useEffect(() => {
 
         MyUtil.printConsole(true, 'log', `LOG: ${IntroScreen.name}. useEffect: `, null);
 
-        // Get from Parameter and Update Local Intro Data:
+        // Get from redux and Update Local Intro Data:
+        setSlides(MyConfig.Intro);
 
+        if (route?.params?.splash !== false) { // If splash param is not false then hide splash:
+            MyUtil.printConsole(true, 'log', `LOG: ${IntroScreen.name}. route?.params?.splash: `, route?.params?.splash);
+            Splash.hide();
+        }
 
-    });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const _renderItem = ({item, dimensions}: any) => (
         <Fragment>
@@ -46,9 +74,10 @@ const IntroScreen = ({}) => {
                 locations = {item.locations}
                 colors = {item.colors}
             >
-                <ImageBackground source = {MyImage.electronics_pattern}
-                                 style = {styles.imgBackground}
-                                 resizeMode = "repeat"
+                <ImageBackground
+                    source = {MyImage.electronics_pattern}
+                    style = {styles.imgBackground}
+                    resizeMode = "repeat"
                 >
                     {/*<MyIcon.Ionicons
                     style={{backgroundColor: 'transparent'}}
@@ -105,7 +134,12 @@ const IntroScreen = ({}) => {
         });
 
         // Check if Have Saved Login and Call Silent Background Login:
-        MyAuth.isSavedLogin(false, MyLANG.Loading + '...', true, MyConstant.LOGIN_REDIRECT.ROUTE_TO_HOME, null);
+        MyAuth.isSavedLogin(false,
+                            MyLANG.Loading + '...',
+                            true,
+                            null,
+                            MyConstant.NAVIGATION_ACTIONS.SWITCH_APP_NAVIGATOR
+        );
     }
 
     return (
@@ -144,19 +178,17 @@ const styles = StyleSheet.create(
             height: MyStyle.screenWidth * 0.6,
         },
         title        : {
-            fontFamily   : MyStyle.FontFamily.OpenSans.semiBold,
-            fontSize     : 21,
-            color        : MyColor.Material.WHITE,
-            textAlign    : 'center',
-            textTransform: 'capitalize',
-            marginBottom : 16,
+            fontFamily  : MyStyle.FontFamily.OpenSans.semiBold,
+            fontSize    : 21,
+            color       : MyColor.Material.WHITE,
+            textAlign   : 'center',
+            marginBottom: 16,
         },
         text         : {
             fontFamily       : MyStyle.FontFamily.OpenSans.regular,
             fontSize         : 14,
             color            : MyColor.Material.GREY['15'],
             textAlign        : 'center',
-            textTransform    : 'capitalize',
             paddingHorizontal: 16,
         },
         buttonCircle : {

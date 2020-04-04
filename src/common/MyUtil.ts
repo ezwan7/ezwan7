@@ -1,4 +1,5 @@
 import React from "react";
+import {Alert, BackHandler, Linking, PermissionsAndroid, PixelRatio, Text} from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-community/async-storage';
 import * as Keychain from 'react-native-keychain';
@@ -8,14 +9,13 @@ import Geocoder from 'react-native-geocoding';
 import DeviceInfo from 'react-native-device-info';
 import Snackbar from 'react-native-snackbar';
 import Toast from 'react-native-tiny-toast'
-import {Alert, PermissionsAndroid, PixelRatio, Text} from 'react-native';
 import RNBottomActionSheet from 'react-native-bottom-action-sheet';
 import Share from 'react-native-share';
 import ImagePicker from 'react-native-image-picker';
-import Splash from "react-native-splash-screen";
 import Moment from 'moment';
 import NavigationService from "./NavigationService";
-import {DrawerActions} from '@react-navigation/native';
+import {DrawerActions, TabActions, StackActions, CommonActions} from '@react-navigation/native';
+import Splash from "react-native-splash-screen";
 
 // import {firebase} from '@react-native-firebase/messaging';
 
@@ -27,6 +27,10 @@ import MyColor from '../common/MyColor';
 import {MyStyle} from '../common/MyStyle';
 import MyIcon from "../components/MyIcon";
 
+import {store} from "../store/MyStore";
+
+import {MyAlert} from "../components/MyAlert";
+
 import {
     Notification,
     NotificationResponse,
@@ -35,11 +39,11 @@ import {
     RegistrationError
 } from "react-native-notifications";
 import {NotificationCompletion} from "react-native-notifications/lib/dist/interfaces/NotificationCompletion";
-import {MyAlert} from "../components/MyAlert";
 
 
-const CancelToken          = axios.CancelToken;
-let CancelTokenSource: any = null;
+let lastTimeBackPress: number = 0;
+const CancelToken             = axios.CancelToken;
+let CancelTokenSource: any    = null;
 
 const toast: any = {
     loading: null
@@ -72,7 +76,7 @@ const MyUtil = {
         // }
     },
 
-    formProcess: async (e: any, handleSubmit: any, formState: any, errors: any, getValues: any) => {
+    formProcess: async (e: any, getValues: any, handleSubmit: any, formState: any, errors: any) => {
         let response: any = {
             'type'        : MyConstant.RESPONSE.TYPE.error,
             'error'       : null,
@@ -165,7 +169,7 @@ const MyUtil = {
             let index                = 0;
             const errorMessages      = JSON.parse(error.message);
             if (Object.keys(errorMessages).length > 0) { // If Form Input Errors:
-                for (var key of Object.keys(errorMessages)) {
+                for (const key of Object.keys(errorMessages)) {
                     if (errorMessages[key]['message']) { // If Form Input Error have Message:
                         errorMessage += (index > 0 ? '\n' : '') + errorMessages[key]['message'];
                         index++;
@@ -243,15 +247,128 @@ const MyUtil = {
         // return MyImage.defaultAvatar;
     },
 
+    // Hardware Back Button Handler:
+    onBackButtonPress: (navigation: any) => {
+        MyUtil.printConsole(true, 'log', 'LOG: onBackButtonPress: ', {navigation});
+        if (navigation.canGoBack()) {
+            return false;
+        } else {
+            if (new Date().getTime() - lastTimeBackPress < MyConfig.timePeriodToExit) {
+                BackHandler.exitApp();
+                return true;
+            } else {
+                MyUtil.showTinyToast(
+                    MyLANG.ExitAppConfirmation,
+                    MyConstant.TINY_TOAST.SHORT,
+                    MyStyle.TinyToast.BOTTOM,
+                    MyStyle.TinyToast.Black.containerStyle,
+                    MyStyle.TinyToast.Black.textStyle,
+                    MyStyle.TinyToast.Black.textColor,
+                    null,
+                    MyStyle.TinyToast.imageStyleSucess,
+                    false,
+                    false,
+                    false,
+                    0,
+                    MyConstant.TINY_TOAST.HIDE_AND_SHOW,
+                );
 
-    reactNavigate: (routeName: any, params: any, navigationActions: any) => {
-        MyUtil.printConsole(true, 'log', 'LOG: reactNavigate: ', {
+                lastTimeBackPress = new Date().getTime();
+
+                return true;
+            }
+        }
+    },
+
+
+    showLoginRequired: async (showMessage: any, showLoader: any, doReRoute: any, routeTo: any, navigationActions: any) => {
+
+        MyUtil.printConsole(true, 'log', 'LOG: showLoginRequired:', {
+            'showMessage'      : showMessage,
+            'showLoader'       : showLoader,
+            'doReRoute'        : doReRoute,
+            'routeTo'          : routeTo,
+            'navigationActions': navigationActions,
+        });
+
+        MyUtil.showAlert(MyLANG.Attention, MyLANG.LoginRequired, false, [
+            {
+                text   : MyLANG.Cancel,
+                style  : 'cancel',
+                onPress: () => {
+                    MyUtil.printConsole(true, 'log', 'LOG: showAlert: ', 'Cancel');
+                },
+            },
+            {
+                text   : MyLANG.LoginNow,
+                onPress: () => {
+                    MyUtil.printConsole(true, 'log', 'LOG: showAlert: ', 'OK');
+
+                    MyUtil.commonAction(false, null, MyConstant.CommonAction.navigate, MyConfig.routeName.Login, {splash: false}, null);
+                }
+            },
+        ])
+
+        /*MyUtil.showLoginRequired(MyConstant.SHOW_MESSAGE.ALERT,
+                                 MyLANG.PleaseWait + '...',
+                                 true,
+                                 null,
+                                 MyConstant.NAVIGATION_ACTIONS.GO_BACK
+        );*/
+    },
+
+    // COPY IN NAVIGATION ACTION
+    commonAction: (loginRequired: boolean, navigation: any = null, actionType: string, routeName: any, params: any, navigationActions: any) => {
+        MyUtil.printConsole(true, 'log', 'LOG: commonAction: ', {
+            'loginRequired'    : loginRequired,
+            'navigation'       : navigation,
+            'actionType'       : actionType,
             'routeName'        : routeName,
             'params'           : params,
             'navigationActions': navigationActions,
         });
 
-        NavigationService.navigate(routeName, params);
+        if (loginRequired === true) {
+            const user = store.getState().auth.user;
+            MyUtil.printConsole(true, 'log', 'LOG: commonAction: ', {'user': user});
+            if (!user.id) {
+                return MyUtil.showLoginRequired(MyConstant.SHOW_MESSAGE.ALERT,
+                                                MyLANG.PleaseWait + '...',
+                                                true,
+                                                null,
+                                                MyConstant.NAVIGATION_ACTIONS.GO_BACK
+                );
+            }
+        }
+
+        switch (actionType) {
+            case MyConstant.CommonAction.navigate:
+                navigation ?
+                navigation.dispatch(CommonActions.navigate(routeName, params))
+                           :
+                NavigationService.commonAction(loginRequired, actionType, routeName, params);
+                break;
+            case MyConstant.CommonAction.reset:
+                navigation ?
+                navigation.dispatch(CommonActions.reset(routeName)) // state with index
+                           :
+                NavigationService.commonAction(loginRequired, actionType, routeName, params);
+                break;
+            case MyConstant.CommonAction.goBack:
+                navigation ?
+                navigation.dispatch(CommonActions.goBack())
+                           :
+                NavigationService.commonAction(loginRequired, actionType, routeName, params);
+                break;
+            case MyConstant.CommonAction.setParams:
+                navigation ?
+                navigation.dispatch(CommonActions.setParams(params))
+                           :
+                NavigationService.commonAction(loginRequired, actionType, routeName, params);
+                break;
+            default:
+                break;
+        }
 
         switch (navigationActions) {
             case MyConstant.NAVIGATION_ACTIONS.HIDE_SPLASH:
@@ -261,82 +378,157 @@ const MyUtil = {
                 break;
         }
 
-        // MyUtil.reactNavigate(MyConfig.routeName.HomeNavigator, {}, null, null, MyConstant.LOGIN_REDIRECT.ROUTE_TO_HOME);
+        // MyUtil.commonAction(navigation, MyConstant.CommonAction.navigate, routeName, params);
     },
 
-    reactNavigateBack: (params: any, navigationActions: any) => {
-        MyUtil.printConsole(true, 'log', 'LOG: reactNavigateBack: ', {
+    stackAction: (loginRequired: boolean, navigation: any, actionType: string, routeName: any, params: any, navigationActions: any) => {
+        MyUtil.printConsole(true, 'log', 'LOG: stackAction: ', {
+            'loginRequired'    : loginRequired,
+            'navigation'       : navigation,
+            'actionType'       : actionType,
+            'routeName'        : routeName,
             'params'           : params,
             'navigationActions': navigationActions,
         });
-        NavigationService.goBack();
 
-        switch (navigationActions) {
-            default:
-                break;
+        if (loginRequired === true) {
+            const user = store.getState().auth.user;
+            MyUtil.printConsole(true, 'log', 'LOG: stackAction: ', {'user': user});
+            if (!user.id) {
+                return MyUtil.showLoginRequired(MyConstant.SHOW_MESSAGE.ALERT,
+                                                MyLANG.PleaseWait + '...',
+                                                true,
+                                                null,
+                                                MyConstant.NAVIGATION_ACTIONS.GO_BACK
+                );
+            }
         }
-
-        // MyUtil.reactNavigateBack(MyConfig.routeName.HomeNavigator, {}, null, null,
-        // MyConstant.LOGIN_REDIRECT.ROUTE_TO_HOME);
-    },
-
-    reactNavigateReset: (index: any, routes: any, navigationActions: any) => {
-        MyUtil.printConsole(true, 'log', 'LOG: reactNavigateReset: ', {
-            'index'            : index,
-            'routes'           : routes,
-            'navigationActions': navigationActions,
-        });
-        NavigationService.reset(index, routes);
-
-        switch (navigationActions) {
-            default:
-                break;
-        }
-
-        // MyUtil.reactNavigateReset(MyConfig.routeName.HomeNavigator, {}, null, null,
-    },
-
-    reactNavigateSetParams: (params: any, navigationActions: any) => {
-        MyUtil.printConsole(true, 'log', 'LOG: reactNavigateSetParams: ', {
-            'params'           : params,
-            'navigationActions': navigationActions,
-        });
-        NavigationService.setParams(params);
-
-        switch (navigationActions) {
-            default:
-                break;
-        }
-
-        // MyUtil.reactNavigateSetParams(MyConfig.routeName.HomeNavigator, {}, null, null,
-    },
-
-    drawerAction: (actionType: string, navigation: any, routeName: any, params: any) => {
-        MyUtil.printConsole(true, 'log', 'LOG: drawerAction: ', {
-            'actionType': actionType,
-            'routeName' : routeName,
-            'params'    : params,
-        });
 
         switch (actionType) {
-            case MyConstant.DRAWER.OPEN:
-                navigation.dispatch(DrawerActions.openDrawer());
+            case MyConstant.StackAction.replace:
+                navigation ?
+                navigation.dispatch(StackActions.replace(routeName, params))
+                           :
+                NavigationService.stackAction(loginRequired, actionType, routeName, params);
                 break;
-            case MyConstant.DRAWER.CLOSE:
-                navigation.dispatch(DrawerActions.closeDrawer());
+            case MyConstant.StackAction.push:
+                navigation ?
+                navigation.dispatch(StackActions.push(routeName, params))
+                           :
+                NavigationService.stackAction(loginRequired, actionType, routeName, params);
                 break;
-            case MyConstant.DRAWER.TOGGLE:
-                navigation.dispatch(DrawerActions.toggleDrawer());
+            case MyConstant.StackAction.pop:
+                navigation ?
+                navigation.dispatch(StackActions.pop(routeName))
+                           :
+                NavigationService.stackAction(loginRequired, actionType, routeName, params);
                 break;
-            case MyConstant.DRAWER.JUMP_TO:
-                navigation.dispatch(DrawerActions.jumpTo(routeName, params));
+            case MyConstant.StackAction.popToTop:
+                navigation ?
+                navigation.dispatch(StackActions.popToTop())
+                           :
+                NavigationService.stackAction(loginRequired, actionType, routeName, params);
                 break;
             default:
                 break;
         }
+
+        //  MyUtil.stackAction(navigation, MyConstant.StackAction.replace, routeName, params);
     },
 
+    drawerAction: (loginRequired: boolean, navigation: any, actionType: string, routeName: any, params: any, navigationActions: any) => {
+        MyUtil.printConsole(true, 'log', 'LOG: drawerAction: ', {
+            'loginRequired'    : loginRequired,
+            // 'navigation': navigation,
+            'actionType'       : actionType,
+            'routeName'        : routeName,
+            'params'           : params,
+            'navigationActions': navigationActions,
+        });
 
+        if (loginRequired === true) {
+            const user = store.getState().auth.user;
+            MyUtil.printConsole(true, 'log', 'LOG: drawerAction: ', {'user': user});
+            if (!user.id) {
+                return MyUtil.showLoginRequired(MyConstant.SHOW_MESSAGE.ALERT,
+                                                MyLANG.PleaseWait + '...',
+                                                true,
+                                                null,
+                                                MyConstant.NAVIGATION_ACTIONS.GO_BACK
+                );
+            }
+        }
+
+        switch (actionType) {
+            case MyConstant.DrawerAction.openDrawer:
+                navigation ?
+                navigation.dispatch(DrawerActions.openDrawer())
+                           :
+                NavigationService.drawerAction(loginRequired, actionType, routeName, params);
+                break;
+            case MyConstant.DrawerAction.closeDrawer:
+                navigation ?
+                navigation.dispatch(DrawerActions.closeDrawer())
+                           :
+                NavigationService.drawerAction(loginRequired, actionType, routeName, params);
+                break;
+            case MyConstant.DrawerAction.toggleDrawer:
+                navigation ?
+                navigation.dispatch(DrawerActions.toggleDrawer())
+                           :
+                NavigationService.drawerAction(loginRequired, actionType, routeName, params);
+                break;
+            case MyConstant.DrawerAction.jumpTo:
+                navigation ?
+                navigation.dispatch(DrawerActions.jumpTo(routeName, params))
+                           :
+                NavigationService.drawerAction(loginRequired, actionType, routeName, params);
+                break;
+            default:
+                break;
+        }
+
+        //  MyUtil.drawerAction(navigation, MyConstant.DRAWER.JUMP_TO, routeName, params);
+    },
+
+    tabAction: (loginRequired: boolean, navigation: any, actionType: string, routeName: any, params: any, navigationActions: any) => {
+        MyUtil.printConsole(true, 'log', 'LOG: tabAction: ', {
+            'loginRequired'    : loginRequired,
+            // 'navigation': navigation,
+            'actionType'       : actionType,
+            'routeName'        : routeName,
+            'params'           : params,
+            'navigationActions': navigationActions,
+        });
+
+        if (loginRequired === true) {
+            const user = store.getState().auth.user;
+            MyUtil.printConsole(true, 'log', 'LOG: tabAction: ', {'user': user});
+            if (!user.id) {
+                return MyUtil.showLoginRequired(MyConstant.SHOW_MESSAGE.ALERT,
+                                                MyLANG.PleaseWait + '...',
+                                                true,
+                                                null,
+                                                MyConstant.NAVIGATION_ACTIONS.GO_BACK
+                );
+            }
+        }
+
+        switch (actionType) {
+            case MyConstant.TabAction.jumpTo:
+                navigation ?
+                navigation.dispatch(TabActions.jumpTo(routeName, params))
+                           :
+                NavigationService.drawerAction(loginRequired, actionType, routeName, params);
+                break;
+            default:
+                break;
+        }
+
+        // MyUtil.tabAction(navigation, MyConstant.TabAction.jumpTo, routeName, params);
+    },
+
+    //
     firebaseCheckPermission: async () => {
         const hasPermissions: boolean = await Notifications.isRegisteredForRemoteNotifications();
         MyUtil.printConsole(true, 'log', 'LOG: firebaseCheckPermission: ', {
@@ -360,7 +552,7 @@ const MyUtil = {
             const deviceToken = registered.deviceToken;
 
             MyUtil.AsyncStorageSet(MyConfig.AsyncStorage.FIREBASE_TOEKN, deviceToken, MyConstant.SHOW_MESSAGE.TOAST)
-                  .then(result => {
+                  .then((result: any) => {
                       MyUtil.printConsole(true, 'log', 'LOG: AsyncStorageSet: resolve-then: ', {
                           'key' : MyConfig.AsyncStorage.FIREBASE_TOEKN,
                           'data': deviceToken
@@ -369,7 +561,7 @@ const MyUtil = {
                       MyUtil.firebaseNotificationListeners();
 
                   })
-                  .catch(error => {
+                  .catch((error: any) => {
                       MyUtil.printConsole(true, 'log', 'LOG: AsyncStorageSet: reject-catch: ', {
                           'key'  : MyConfig.AsyncStorage.FIREBASE_TOEKN,
                           'error': error
@@ -445,7 +637,7 @@ const MyUtil = {
     },
     firebaseGetToken: async () => {
         /!*MyUtil.AsyncStorageGet(MyConstant.FIREBASE_TOEKN, false)
-         .then(result => {
+         .then((result: any) => {
          MyUtil.printConsole(true, 'log', 'LOG: AsyncStorageGet: resolve-then: ', {'result': result});
 
          // const fcmToken = result;
@@ -458,10 +650,10 @@ const MyUtil = {
 
          if (fcmToken) {
          MyUtil.AsyncStorageSet(MyConstant.FIREBASE_TOEKN, fcmToken, MyConstant.SHOW_MESSAGE.TOAST)
-         .then(result => {
+         .then((result: any) => {
          MyUtil.printConsole(true, 'log', 'LOG: AsyncStorageSet: resolve-then: ', {'result': result});
          })
-         .catch(error => {
+         .catch((error: any) => {
          MyUtil.printConsole(true, 'log', 'LOG: AsyncStorageSet: reject-catch: ', {'error': error});
          });
          }
@@ -552,10 +744,10 @@ const MyUtil = {
     },
 
 
-    GetDeviceInfo: async (getType: any, showError: any) => {
+    GetDeviceInfo: async (getType: any, showMessage: any) => {
         MyUtil.printConsole(true, 'log', 'LOG: GetDeviceInfo:', {
-            'getType'  : getType,
-            'showError': showError,
+            'getType'    : getType,
+            'showMessage': showMessage,
         });
 
         let response: any = {
@@ -572,7 +764,7 @@ const MyUtil = {
                                   .then(data => {
                                       resolve(data);
                                   })
-                                  .catch(error => {
+                                  .catch((error: any) => {
                                       reject(error);
                                   });
                         break;
@@ -589,21 +781,21 @@ const MyUtil = {
             });
 
             await deviceInfo
-                .then(result => {
+                .then((result: any) => {
                     response = {
                         'type' : MyConstant.RESPONSE.TYPE.data,
                         'error': null,
                         'data' : result,
                     }
                 })
-                .catch(error => {
+                .catch((error: any) => {
                     throw error;
                 });
 
         } catch (error) {
             MyUtil.printConsole(true, 'log', 'LOG: GetDeviceInfo: TRY-CATCH: ', {'error': error});
 
-            MyUtil.showMessage(showError, MyLANG.DeviceInfoFailed, false);
+            MyUtil.showMessage(showMessage, MyLANG.DeviceInfoFailed, false);
 
             response = {
                 'type' : MyConstant.RESPONSE.TYPE.error,
@@ -625,10 +817,10 @@ const MyUtil = {
         if (deviceInfo) {}*/
     },
 
-    androidPermissionCheck: async (Permission: any, showError: any) => {
+    androidPermissionCheck: async (Permission: any, showMessage: any) => {
         MyUtil.printConsole(true, 'log', 'LOG: androidPermissionCheck:', {
-            'Permission': Permission,
-            'showError' : showError,
+            'Permission' : Permission,
+            'showMessage': showMessage,
         });
         try {
 
@@ -637,7 +829,7 @@ const MyUtil = {
         } catch (error) {
             MyUtil.printConsole(true, 'log', 'LOG: androidPermissionCheck: TRY-CATCH: ', {'error': error});
 
-            MyUtil.showMessage(showError, MyLANG.AndroidPermissionNotGranted, false);
+            MyUtil.showMessage(showMessage, MyLANG.AndroidPermissionNotGranted, false);
 
             return error;
         }
@@ -650,11 +842,11 @@ const MyUtil = {
         if (permission === true) {}*/
     },
 
-    androidPermissionRequest: async (Permission: any, message: any, showError: any) => {
+    androidPermissionRequest: async (Permission: any, message: any, showMessage: any) => {
         MyUtil.printConsole(true, 'log', 'LOG: requestAndroidPermission:', {
-            'Permission': Permission,
-            'message'   : message,
-            'showError' : showError,
+            'Permission' : Permission,
+            'message'    : message,
+            'showMessage': showMessage,
         });
 
         try {
@@ -681,7 +873,7 @@ const MyUtil = {
         } catch (error) {
             MyUtil.printConsole(true, 'log', 'LOG: androidPermissionRequest: TRY-CATCH: ', {'error': error});
 
-            MyUtil.showMessage(showError, MyLANG.AndroidPermissionDenied, false);
+            MyUtil.showMessage(showMessage, MyLANG.AndroidPermissionDenied, false);
 
             return error;
         }
@@ -703,8 +895,8 @@ const MyUtil = {
     },
 
 
-    GetCurrentPosition: async (options: any, showError: any) => {
-        MyUtil.printConsole(true, 'log', 'LOG: GetCurrentPosition:', {'options': options, 'showError': showError});
+    GetCurrentPosition: async (options: any, showMessage: any) => {
+        MyUtil.printConsole(true, 'log', 'LOG: GetCurrentPosition:', {'options': options, 'showMessage': showMessage});
 
         let response: any = {
             'type' : MyConstant.RESPONSE.TYPE.error,
@@ -721,7 +913,7 @@ const MyUtil = {
                     // @ts-ignore
                     message: MyLANG.Permission.location
                 },
-                showError
+                showMessage
             );
             MyUtil.printConsole(true, 'log', 'LOG: androidPermissionRequest: await-response: ', {
                 'PermissionsAndroid': MyConstant.PermissionsAndroid.ACCESS_FINE_LOCATION,
@@ -744,14 +936,14 @@ const MyUtil = {
                 });
 
                 await currentPosition
-                    .then(result => {
+                    .then((result: any) => {
                         response = {
                             'type' : MyConstant.RESPONSE.TYPE.data,
                             'error': null,
                             'data' : result,
                         }
                     })
-                    .catch(error => {
+                    .catch((error: any) => {
                         throw error;
                     });
 
@@ -759,13 +951,13 @@ const MyUtil = {
 
                 MyUtil.showMessage(MyConstant.SHOW_MESSAGE.ALERT, MyLANG.GPSPermissionRequest, false);
 
-                throw new Error('Location Permission Denied!');
+                throw new Error(MyLANG.LocationPermissionDenied);
             }
 
         } catch (error) {
             MyUtil.printConsole(true, 'log', 'LOG: GeocodePosition: TRY-CATCH: ', {'options': options, 'error': error});
 
-            MyUtil.showMessage(showError, MyLANG.GPSFailed, false);
+            MyUtil.showMessage(showMessage, MyLANG.GPSFailed, false);
 
             response = {
                 'type' : MyConstant.RESPONSE.TYPE.error,
@@ -791,11 +983,11 @@ const MyUtil = {
         if (location && location.data.coords && location.data.coords.latitude && location.data.coords.longitude) {}*/
     },
 
-    GeocodePosition: async (latitude: any, longitude: any, showError: any) => {
+    GeocodePosition: async (latitude: any, longitude: any, showMessage: any) => {
         MyUtil.printConsole(true, 'log', 'LOG: GeocodePosition:', {
-            'latitude' : latitude,
-            'longitude': longitude,
-            'showError': showError,
+            'latitude'   : latitude,
+            'longitude'  : longitude,
+            'showMessage': showMessage,
         });
 
         try {
@@ -818,7 +1010,7 @@ const MyUtil = {
                 'error'    : error
             });
 
-            MyUtil.showMessage(showError, MyLANG.GeocoderFailed, false);
+            MyUtil.showMessage(showMessage, MyLANG.GeocoderFailed, false);
 
             return error;
         }
@@ -830,10 +1022,10 @@ const MyUtil = {
         if (position && position.results && position.results[0] && position.results[0].address_components && position.results[0].address_components[0]) {}*/
     },
 
-    GeocodeAddress: async (address: string, showError: any) => {
+    GeocodeAddress: async (address: string, showMessage: any) => {
         MyUtil.printConsole(true, 'log', 'LOG: GeocodeAddress:', {
-            'address'  : address,
-            'showError': showError,
+            'address'    : address,
+            'showMessage': showMessage,
         });
 
         try {
@@ -850,7 +1042,7 @@ const MyUtil = {
                 'error'  : error
             });
 
-            MyUtil.showMessage(showError, MyLANG.GeocoderFailed, false);
+            MyUtil.showMessage(showMessage, MyLANG.GeocoderFailed, false);
 
             return error;
         }
@@ -863,7 +1055,7 @@ const MyUtil = {
     },
 
 
-    myHTTP: async (loginReq: any, httpMethod: any, apiURL: string, body: any, headers: any, asForm: boolean = false, responseType: any = MyConstant.HTTP_JSON, timeout: number = 0, showLoader: any = false, retry: any = false, cancelPrevious: boolean = true) => {
+    myHTTP: async (loginRequired: any, httpMethod: any, apiURL: string, body: any, headers: any, asForm: boolean = false, responseType: any = MyConstant.HTTP_JSON, timeout: number = 0, showLoader: any = false, retry: any = false, cancelPrevious: boolean = true) => {
 
         let response: any = {
             'type'        : MyConstant.RESPONSE.TYPE.error,
@@ -876,7 +1068,7 @@ const MyUtil = {
         try {
 
             MyUtil.printConsole(true, 'log', 'LOG: myHTTP: ', {
-                'loginReq'         : loginReq,
+                'loginRequired'    : loginRequired,
                 'httpMethod'       : httpMethod,
                 'apiURL'           : apiURL,
                 'body'             : body,
@@ -892,9 +1084,9 @@ const MyUtil = {
                 MyUtil.showTinyToast(showLoader && showLoader.length > 0 ? showLoader : MyLANG.PleaseWait,
                                      false,
                                      MyStyle.TinyToast.CENTER,
-                                     MyStyle.TinyToast.containerStyleDark,
-                                     MyStyle.TinyToast.textStyleWhite,
-                                     MyStyle.TinyToast.textColorWhite,
+                                     MyStyle.TinyToast.Black.containerStyle,
+                                     MyStyle.TinyToast.Black.textStyle,
+                                     MyStyle.TinyToast.Black.textColor,
                                      null,
                                      MyStyle.TinyToast.imageStyleSucess,
                                      false,
@@ -906,17 +1098,18 @@ const MyUtil = {
             }
 
             let authReq: any = false;
-            if (loginReq === true) {
-                /*authReq = await MyUtil.performTimeConsumingTask();
-                if (authReq !== false) {
-                    throw new Error('User Not Logged In.');
-                }*/
+            if (loginRequired === true) {
+                const user = store.getState().auth.user;
+                MyUtil.printConsole(true, 'log', 'LOG: myHTTP: ', {'user': user});
+                if (!user.id) {
+                    throw new Error(MyLANG.PleaseLoginFirst);
+                }
             }
 
 
             const internet: any = await MyUtil.isInternetAvailable(MyConstant.SHOW_MESSAGE.SNACKBAR);
             if (internet !== true) {
-                throw new Error('Internet Connection Not Available.');
+                throw new Error(MyLANG.InternetConnectionNotAvailable);
             }
 
             // Prepare data for API call:
@@ -946,8 +1139,7 @@ const MyUtil = {
             }
 
             if (cancelPrevious === true && CancelTokenSource) {
-                CancelTokenSource.cancel(MyLANG.OperationCanceledByUser); // cancel the request (the message parameter is
-                                                                          // optional);
+                CancelTokenSource.cancel(MyLANG.OperationCanceledByUser); // cancel the request (the message parameter is optional);
             }
 
             // creates a new different token for upcomming request (overwrite the previous one)
@@ -1059,9 +1251,9 @@ const MyUtil = {
                 MyUtil.showTinyToast(showLoader && showLoader.length > 0 ? showLoader : MyLANG.PleaseWait,
                                      false,
                                      MyStyle.TinyToast.CENTER,
-                                     MyStyle.TinyToast.containerStyleDark,
-                                     MyStyle.TinyToast.textStyleWhite,
-                                     MyStyle.TinyToast.textColorWhite,
+                                     MyStyle.TinyToast.Black.containerStyle,
+                                     MyStyle.TinyToast.Black.textStyle,
+                                     MyStyle.TinyToast.Black.textColor,
                                      null,
                                      MyStyle.TinyToast.imageStyleSucess,
                                      false,
@@ -1077,7 +1269,7 @@ const MyUtil = {
         }
 
         /*const response: any = await MyUtil
-            .myHTTP(true, MyConstant.HTTP_POST, MyAPI.LOGIN,
+            .myHTTP(true, MyConstant.HTTP_POST, MyAPI.login,
                 {
                     "app_ver"            : MyConfig.app_version,
                     "app_build_ver"      : MyConfig.app_build_version,
@@ -1090,7 +1282,7 @@ const MyUtil = {
                 }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Short, showLoader, true, false);
 
         MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
-            'apiURL'  : MyAPI.LOGIN,
+            'apiURL'  : MyAPI.login,
             'response': response,
         });
 
@@ -1100,66 +1292,86 @@ const MyUtil = {
             MyAuth.processLogin(username, password, response.data.data.data, false, false);
 
         } else {
-            MyUtil.showMessage(showError, response.errorMessage ? response.errorMessage : MyLANG.UnknownError, false);
+            MyUtil.showMessage(showMessage, response.errorMessage ? response.errorMessage : MyLANG.UnknownError, false);
         }*/
     },
 
 
-    share: async (shareType: string, title: string, message: string, subject: string, urls: any, email: string, social: any) => {
-        MyUtil.printConsole(true, 'log', 'LOG: share:', {
-            'shareType': shareType,
-            'title'    : title,
-            'message'  : message,
-            'subject'  : subject,
-            'urls'     : urls,
-            'email'    : email,
-            'social'   : social,
+    linking: async (shareType: string, url: any, showMessage: any) => {
+        MyUtil.printConsole(true, 'log', 'LOG: linking:', {
+            'shareType'  : shareType,
+            'url'        : url,
+            'showMessage': showMessage,
         });
 
-        // If both message and url are provided, url will be concatenated to the end of message to form the body of the
-        // message. If only one is provided it will be used.
-
-        return new Promise(async (resolve, reject) => {
-            const shareOptions = {
-                title  : title,
-                message: message,
-                subject: subject,
-                urls   : urls,
-                email  : email,
-                // social : social.name,
-                // whatsAppNumber: "9199999999",  // country code + phone number(currently only works on Android)
-                // filename      : 'test', // only for base64 file in Android
-            };
-            Share.open(shareOptions)
-                 .then((res) => {
-                     resolve(res);
-                 })
-                 .catch((err) => {
-                     reject(err);
-                 });
-        })
-
-        /*MyUtil.share(MyConstant.SHARE.TYPE.open, 'Test Share', 'Test Share', 'Test Share', ['https', 'http'], 'test@test.com', {name: MyConstant.SHARE.SOCIAL.WHATSAPP})
-         .then(result => {
-
-         MyUtil.printConsole(true, 'log', 'LOG: share: resolve-then: ', {
-         'result': result,
-         });
-
-         })
-         .catch(error => {
-         MyUtil.printConsole(true, 'log', 'LOG: share: reject-catch: ', {
-         'error': error,
-         });
-         });*/
+        const supported = await Linking.canOpenURL(url);
+        if (supported) {
+            await Linking.openURL(url);
+        } else {
+            MyUtil.showMessage(showMessage, MyLANG.UnableToOpen, false);
+        }
     },
 
-    imagePicker: async (options: any, openType: string, showError: any): Promise<any> => {
+    share: async (shareType: string, options: any, showMessage: any) => {
+        MyUtil.printConsole(true, 'log', 'LOG: share:', {
+            'shareType'  : shareType,
+            'options'    : options,
+            'showMessage': showMessage,
+        });
+
+        // If both message and url are provided, url will be concatenated to the end of message to form the body of the message. If only one is provided it will be used.
+        try {
+            const shareOptions = options;
+            // title  : title,
+            // message: message,
+            // subject: subject,
+            // urls   : urls,
+            // email  : email,
+            // social : social.name,
+            // whatsAppNumber: "9199999999",  // country code + phone number(currently only works on Android)
+            // filename      : 'test', // only for base64 file in Android
+
+            await Share
+                .open(shareOptions)
+                .then((result: any) => {
+                    // MyUtil.printConsole(true, 'log', 'LOG: share: resolve-then: ', {'result': result});
+                })
+                .catch((error: any) => {
+                    throw error;
+                });
+
+        } catch (error) {
+            MyUtil.printConsole(true, 'log', 'LOG: share: TRY-CATCH: ', {'options': options, 'error': error});
+
+            MyUtil.showMessage(showMessage, MyLANG.ShareFailed, false);
+        }
+        /*MyUtil
+            .share(MyConstant.SHARE.TYPE.open,
+                   {
+                       title  : 'Test Share',
+                       message: 'Test Share',
+                       subject: 'Test Share',
+                       urls   : ['https', 'http'],
+                       email  : 'test@test.com',
+                       social : {name: MyConstant.SHARE.SOCIAL.WHATSAPP}
+                   },
+                   MyConstant.SHOW_MESSAGE.TOAST
+            )
+            .then((result: any) => {
+                MyUtil.printConsole(true, 'log', 'LOG: share: resolve-then: ', {'result': result});
+
+            })
+            .catch((error: any) => {
+                MyUtil.printConsole(true, 'log', 'LOG: share: reject-catch: ', {'error': error});
+            })*/
+    },
+
+    imagePicker: async (options: any, openType: string, showMessage: any): Promise<any> => {
 
         MyUtil.printConsole(true, 'log', 'LOG: imagePicker:', {
-            'options'  : options,
-            'openType' : openType,
-            'showError': showError
+            'options'    : options,
+            'openType'   : openType,
+            'showMessage': showMessage
         });
 
         return new Promise(async (resolve, reject) => {
@@ -1169,13 +1381,13 @@ const MyUtil = {
 
                         if (response.didCancel) {
 
-                            MyUtil.showMessage(showError, MyLANG.ImagePickerCanceled, false);
+                            MyUtil.showMessage(showMessage, MyLANG.ImagePickerCanceled, false);
 
                             reject({'didCancel': response.didCancel});
 
                         } else if (response.error) {
 
-                            MyUtil.showMessage(showError, MyLANG.ImagePickerError, false);
+                            MyUtil.showMessage(showMessage, MyLANG.ImagePickerError, false);
 
                             reject({'error': response.error});
 
@@ -1195,13 +1407,13 @@ const MyUtil = {
 
                         if (response.didCancel) {
 
-                            MyUtil.showMessage(showError, MyLANG.ImagePickerCanceled, false);
+                            MyUtil.showMessage(showMessage, MyLANG.ImagePickerCanceled, false);
 
                             reject({'didCancel': response.didCancel});
 
                         } else if (response.error) {
 
-                            MyUtil.showMessage(showError, MyLANG.ImagePickerError, false);
+                            MyUtil.showMessage(showMessage, MyLANG.ImagePickerError, false);
 
                             reject({'error': response.error});
 
@@ -1225,13 +1437,13 @@ const MyUtil = {
 
                         if (response.didCancel) {
 
-                            MyUtil.showMessage(showError, MyLANG.ImagePickerCanceled, false);
+                            MyUtil.showMessage(showMessage, MyLANG.ImagePickerCanceled, false);
 
                             reject({'didCancel': response.didCancel});
 
                         } else if (response.error) {
 
-                            MyUtil.showMessage(showError, MyLANG.ImagePickerError, false);
+                            MyUtil.showMessage(showMessage, MyLANG.ImagePickerError, false);
 
                             reject({'error': response.error});
 
@@ -1249,7 +1461,7 @@ const MyUtil = {
         })
 
         /*MyUtil.imagePicker(MyConfig.DefatulImagePickerOptions, MyConstant.IMAGE_PICKER.OPEN_TYPE.Camera, MyConstant.SHOW_MESSAGE.TOAST)
-            .then(result => {
+            .then((result: any) => {
 
                 MyUtil.printConsole(true, 'log', 'LOG: imagePicker: resolve-then: ', {
                     'result': result,
@@ -1258,7 +1470,7 @@ const MyUtil = {
                 });
 
             })
-            .catch(error => {
+            .catch((error: any) => {
                 MyUtil.printConsole(true, 'log', 'LOG: imagePicker: reject-catch: ', {
                     'error': error,
                 });
@@ -1266,10 +1478,11 @@ const MyUtil = {
     },
 
 
-    showMessage: (showError: any, message: any, retry: boolean = false) => {
-        switch (showError) {
+    showMessage: (showMessage: any, message: any, retry: boolean = false) => {
+        switch (showMessage) {
+
             case MyConstant.SHOW_MESSAGE.ALERT:
-                MyUtil.showAlert(MyLANG.Error, message, true, [
+                MyUtil.showAlert(message?.title ? message.title : MyLANG.Error, message?.message ? message.message : message, true, [
                     {
                         text: MyLANG.Ok,
                         // onPress: () => MyUtil.printConsole(true, 'log', 'LOG: showAlert: ', 'OK');
@@ -1281,12 +1494,12 @@ const MyUtil = {
                 MyUtil.showTinyToast(message,
                                      MyConstant.TINY_TOAST.LONG,
                                      MyStyle.TinyToast.BOTTOM,
-                                     MyStyle.TinyToast.containerStyleDark,
-                                     MyStyle.TinyToast.textStyleWhite,
-                                     MyStyle.TinyToast.textColorWhite,
+                                     MyStyle.TinyToast.White.containerStyle,
+                                     MyStyle.TinyToast.White.textStyle,
+                                     MyStyle.TinyToast.White.textColor,
                                      null,
                                      MyStyle.TinyToast.imageStyleSucess,
-                                     false,
+                                     true,
                                      false,
                                      false,
                                      0,
@@ -1562,14 +1775,14 @@ const MyUtil = {
          MyUtil.showActionSheet(MyConstant.ACTION_SHEET.TYPE.GRID, 'Awesome5!', MyConstant.ACTION_SHEET.THEME.light, items, {
          message: 'Show This',
          })
-         .then(result => {
+         .then((result: any) => {
 
          MyUtil.printConsole(true, 'log', 'LOG: showActionSheet: resolve-then: ', {
          'result': result,
          });
 
          })
-         .catch(error => {
+         .catch((error: any) => {
          MyUtil.printConsole(true, 'log', 'LOG: showActionSheet: reject-catch: ', {
          'error': error,
          });
@@ -1577,11 +1790,11 @@ const MyUtil = {
     },
 
 
-    AsyncStorageSet: async (key: string, data: any, showError: any) => {
+    AsyncStorageSet: async (key: string, data: any, showMessage: any) => {
         MyUtil.printConsole(true, 'log', 'LOG: AsyncStorageSet:', {
-            'key'      : key,
-            'data'     : data,
-            'showError': showError,
+            'key'        : key,
+            'data'       : data,
+            'showMessage': showMessage,
         });
 
         try {
@@ -1596,7 +1809,7 @@ const MyUtil = {
                 'error': error
             });
 
-            MyUtil.showMessage(showError, MyLANG.StorageStoreFailed, false);
+            MyUtil.showMessage(showMessage, MyLANG.StorageStoreFailed, false);
 
             return error;
         }
@@ -1606,8 +1819,8 @@ const MyUtil = {
         if (storage === true) {}*/
     },
 
-    AsyncStorageGet: async (key: string, showError: any) => {
-        MyUtil.printConsole(true, 'log', 'LOG: AsyncStorageGet:', {'key': key, 'showError': showError});
+    AsyncStorageGet: async (key: string, showMessage: any) => {
+        MyUtil.printConsole(true, 'log', 'LOG: AsyncStorageGet:', {'key': key, 'showMessage': showMessage});
 
         try {
             return await AsyncStorage.getItem(key);
@@ -1615,7 +1828,7 @@ const MyUtil = {
         } catch (error) {
             MyUtil.printConsole(true, 'log', 'LOG: AsyncStorageGet: TRY-CATCH: ', {'key': key, 'error': error});
 
-            MyUtil.showMessage(showError, MyLANG.StorageRetriveFailed, false);
+            MyUtil.showMessage(showMessage, MyLANG.StorageRetriveFailed, false);
 
             return error;
         }
@@ -1628,10 +1841,10 @@ const MyUtil = {
         if (storage && storage['key']) {}*/
     },
 
-    AsyncStorageRemove: async (key: string, showError: any) => {
+    AsyncStorageRemove: async (key: string, showMessage: any) => {
         MyUtil.printConsole(true, 'log', 'LOG: AsyncStorageRemove:', {
-            'key'      : key,
-            'showError': showError,
+            'key'        : key,
+            'showMessage': showMessage,
         });
 
         try {
@@ -1642,7 +1855,7 @@ const MyUtil = {
         } catch (error) {
             MyUtil.printConsole(true, 'log', 'LOG: AsyncStorageRemove: TRY-CATCH: ', {'key': key, 'error': error});
 
-            MyUtil.showMessage(showError, MyLANG.StorageRemoveFailed, false);
+            MyUtil.showMessage(showMessage, MyLANG.StorageRemoveFailed, false);
 
             return error;
         }
@@ -1655,9 +1868,9 @@ const MyUtil = {
          if (storage === true) {}*/
     },
 
-    AsyncStorageClear: async (showError: any) => {
+    AsyncStorageClear: async (showMessage: any) => {
         MyUtil.printConsole(true, 'log', 'LOG: AsyncStorageClear:', {
-            'showError': showError,
+            'showMessage': showMessage,
         });
 
         try {
@@ -1668,7 +1881,7 @@ const MyUtil = {
         } catch (error) {
             MyUtil.printConsole(true, 'log', 'LOG: AsyncStorageClear: TRY-CATCH: ', {'error': error});
 
-            MyUtil.showMessage(showError, MyLANG.StorageClearFailed, false);
+            MyUtil.showMessage(showMessage, MyLANG.StorageClearFailed, false);
 
             return error;
         }
@@ -1679,16 +1892,17 @@ const MyUtil = {
     },
 
 
-    keychainSet: async (username: string, password: string, service: string, showError: any) => {
+    keychainSet: async (username: string, password: string, service: string, showMessage: any) => {
         MyUtil.printConsole(true, 'log', 'LOG: KeychainSet:', {
-            'username' : username,
-            'password' : password,
-            'service'  : service,
-            'showError': showError,
+            'username'   : username,
+            'password'   : password,
+            'service'    : service,
+            'showMessage': showMessage,
         });
         try {
-            return await Keychain.setGenericPassword(username, password);
+            await Keychain.setGenericPassword(username, password);
 
+            return true;
         } catch (error) {
             MyUtil.printConsole(true, 'log', 'LOG: keychainSet: TRY-CATCH: ', {
                 'username': username,
@@ -1696,7 +1910,7 @@ const MyUtil = {
                 'error'   : error
             });
 
-            MyUtil.showMessage(showError, MyLANG.KeyChainStoreFailed, false);
+            MyUtil.showMessage(showMessage, MyLANG.KeyChainStoreFailed, false);
 
             return error;
         }
@@ -1709,8 +1923,8 @@ const MyUtil = {
         if (keychain === true) {}*/
     },
 
-    keychainGet: async (showError: any) => {
-        MyUtil.printConsole(true, 'log', 'LOG: keychainGet:', {'showError': showError});
+    keychainGet: async (showMessage: any) => {
+        MyUtil.printConsole(true, 'log', 'LOG: keychainGet:', {'showMessage': showMessage});
 
         try {
             return await Keychain.getGenericPassword();
@@ -1718,7 +1932,7 @@ const MyUtil = {
         } catch (error) {
             MyUtil.printConsole(true, 'log', 'LOG: keychainGet: TRY-CATCH: ', {'error': error});
 
-            MyUtil.showMessage(showError, MyLANG.KeyChainRetriveFailed, false);
+            MyUtil.showMessage(showMessage, MyLANG.KeyChainRetriveFailed, false);
 
             return error;
         }
@@ -1728,9 +1942,9 @@ const MyUtil = {
         // if (keychain && keychain[MyConstant.USERNAME] && keychain[MyConstant.PASSWORD]){}
     },
 
-    keychainReset: async (showError: any) => {
+    keychainReset: async (showMessage: any) => {
 
-        MyUtil.printConsole(true, 'log', 'LOG: keychainReset:', {'showError': showError});
+        MyUtil.printConsole(true, 'log', 'LOG: keychainReset:', {'showMessage': showMessage});
 
         try {
 
@@ -1739,7 +1953,7 @@ const MyUtil = {
         } catch (error) {
             MyUtil.printConsole(true, 'log', 'LOG: keychainReset: TRY-CATCH: ', {'error': error});
 
-            MyUtil.showMessage(showError, MyLANG.KeyChainResetFailed, false);
+            MyUtil.showMessage(showMessage, MyLANG.KeyChainResetFailed, false);
 
             return error;
         }

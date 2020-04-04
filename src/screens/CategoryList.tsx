@@ -18,15 +18,17 @@ import {MyConstant} from '../common/MyConstant';
 import MyIcon from '../components/MyIcon';
 import {
     ActivityIndicatorLarge,
-    ListEmptyView, ListEmptyViewLottie,
+    ListEmptyViewLottie,
     StatusBarDark,
     StatusBarLight
 } from '../components/MyComponent';
 import {
-    ContentLoaderCategoryListItem,
+    CategoryListItemContentLoader,
     ListItemSeparator,
     CategoryListItem,
 } from "../shared/MyContainer";
+import {categorySave} from "../store/CategoryRedux";
+import {useDispatch, useSelector} from "react-redux";
 
 
 let renderCount = 0;
@@ -38,15 +40,18 @@ const CategoryListScreen = ({}) => {
         MyUtil.printConsole(true, 'log', `LOG: ${CategoryListScreen.name}. renderCount: `, renderCount);
     }
 
+    const dispatch = useDispatch();
+
+    const category: any = useSelector((state: any) => state.category);
+
     const [firstLoad, setFirstLoad]                                               = useState(true);
     const [loading, setLoading]                                                   = useState(true);
     const [loadingMore, setLoadingMore]                                           = useState(false);
     const [refreshing, setRefreshing]                                             = useState(false);
     const [onEndReachedCalledDuringMomentum, setOnEndReachedCalledDuringMomentum] = useState(true);
-    const [category, setCategory]                                                 = useState([]);
 
     useEffect(() => {
-        MyUtil.printConsole(true, 'log', `LOG: ${CategoryListScreen.name}. useEffect: `, '');
+        MyUtil.printConsole(true, 'log', `LOG: ${CategoryListScreen.name}. useEffect: `, {category: category});
 
         fetchCategory(category && category.length > 0 ? category.length : 0,
                       MyConfig.ListLimit.categoryList,
@@ -65,8 +70,8 @@ const CategoryListScreen = ({}) => {
         setRefreshing(true);
 
         fetchCategory(0, MyConfig.ListLimit.categoryList, MyLANG.Loading + '...', true, {
-            'showError': MyConstant.SHOW_MESSAGE.TOAST,
-            'message'  : MyLANG.PageRefreshed
+            'showMessage': MyConstant.SHOW_MESSAGE.TOAST,
+            'message'    : MyLANG.PageRefreshed
         }, MyConstant.DataSetType.fresh);
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -87,7 +92,7 @@ const CategoryListScreen = ({}) => {
                           false,
                           true,
                           false,
-                          MyConstant.DataSetType.addToEndnCheck
+                          MyConstant.DataSetType.addToEndUnique
             );
         }
     }
@@ -100,7 +105,7 @@ const CategoryListScreen = ({}) => {
 
         if (firstLoad || (category && category.length > 0)) return null;
 
-        return <ListEmptyViewLottie source = {MyImage.emptyLostLottie}
+        return <ListEmptyViewLottie source = {MyImage.lottie_empty_lost}
                                     message = {MyLANG.NoCategoryFound}
                                     style = {{view: {}, image: {}, text: {}}}/>;
     }
@@ -114,12 +119,12 @@ const CategoryListScreen = ({}) => {
     }
 
     // Refresh All existing on Component Visibile, Show Placeholder on start and loadmore, No Data Found Design
-    const fetchCategory = async (offset: number = 0, limit: number = MyConfig.ListLimit.categoryList, showLoader: any = MyLANG.Loading + '...', setRefresh: boolean = false, showInfoMessage: any = false, DataSetType: string = MyConstant.DataSetType.fresh) => {
+    const fetchCategory = async (skip: number = 0, take: number = MyConfig.ListLimit.categoryList, showLoader: any = MyLANG.Loading + '...', setRefresh: boolean = false, showInfoMessage: any = false, DataSetType: string = MyConstant.DataSetType.fresh) => {
 
         setLoading(true);
 
         const response: any = await MyUtil
-            .myHTTP(true, MyConstant.HTTP_POST, MyAPI.categories,
+            .myHTTP(false, MyConstant.HTTP_POST, MyAPI.categories,
                     {
                         'language_id': MyConfig.LanguageActive,
 
@@ -138,37 +143,7 @@ const CategoryListScreen = ({}) => {
 
             const data = response.data.data.data;
             if (data.length > 0) {
-                switch (DataSetType) {
-                    case MyConstant.DataSetType.addToEnd:
-                        setCategory(category.concat(data));
-                        break;
-                    case MyConstant.DataSetType.addToStart:
-                        setCategory(data.concat(category));
-                        break;
-                    case MyConstant.DataSetType.addToEndnCheck:
-                        // const newData = category.concat(data.filter(({id}: any) => !category.find((f: any) => f.id == id)));
-                        const newData1: any = category;
-                        for (let i = 0; i < data.length; i++) {
-                            if (category.some((item: any) => item.id === data[i]['id']) === false) {
-                                newData1.push(data[i]);
-                            }
-                        }
-                        setCategory(newData1);
-                        break;
-                    case MyConstant.DataSetType.addToStartnCheck:
-                        const newData2: any = category;
-                        for (let i = 0; i < data.length; i++) {
-                            if (category.some((item: any) => item.id === data[i]['id']) === false) {
-                                newData2.unshift(data[i]);
-                            }
-                        }
-                        setCategory(newData2);
-                        break;
-                    case MyConstant.DataSetType.fresh:
-                    default:
-                        setCategory(data);
-                        break;
-                }
+                dispatch(categorySave(data, MyConstant.DataSetType.fresh));
             }
         } else {
             MyUtil.showMessage(MyConstant.SHOW_MESSAGE.ALERT, response.errorMessage ? response.errorMessage : MyLANG.UnknownError, false);
@@ -183,7 +158,7 @@ const CategoryListScreen = ({}) => {
         }
 
         if (showInfoMessage !== false) {
-            MyUtil.showMessage(showInfoMessage.showError, showInfoMessage.message, false);
+            MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message, false);
         }
     }
 
@@ -193,27 +168,35 @@ const CategoryListScreen = ({}) => {
             <StatusBarLight/>
             <SafeAreaView style = {MyStyleSheet.SafeAreaView1}/>
             <SafeAreaView style = {MyStyleSheet.SafeAreaView2}>
-                <View style = {[MyStyleSheet.SafeAreaView3, {}]}>
-                    {/*<StatusBarGradientPrimary/>*/}
+                <View style = {[MyStyleSheet.SafeAreaView3, {backgroundColor: MyColor.Material.WHITE}]}>
+
                     {firstLoad && category && category.length === 0 &&
-                     <ScrollView contentInsetAdjustmentBehavior = "automatic"
-                                 style = {{flexGrow: 1}}>
-                         {ContentLoaderCategoryListItem(4)}
+                     <ScrollView
+                         contentInsetAdjustmentBehavior = "automatic"
+                         contentContainerStyle = {{paddingTop: MyStyle.headerHeightAdjusted, flexGrow: 1}}
+                     >
+                         {CategoryListItemContentLoader(4)}
                      </ScrollView>
                     }
 
                     <FlatList
-                        contentContainerStyle = {{flexGrow: 1}}
+                        contentContainerStyle = {{paddingTop: MyStyle.headerHeightAdjusted, flexGrow: 1}}
                         refreshControl = {
-                            <RefreshControl refreshing = {refreshing}
-                                            onRefresh = {onRefresh}/>
+                            <RefreshControl
+                                refreshing = {refreshing}
+                                onRefresh = {onRefresh}
+                                progressViewOffset = {MyStyle.headerHeightAdjusted}
+                                colors = {[MyColor.Primary.first]}
+                            />
                         }
                         data = {category}
-                        renderItem = {({item, index}) =>
-                            <CategoryListItem item = {item}
-                                                 index = {index}/>
+                        renderItem = {({item, index}: any) =>
+                            <CategoryListItem
+                                item = {item}
+                                index = {index}
+                            />
                         }
-                        keyExtractor = {item => String(item['id'])}
+                        keyExtractor = {(item: any) => String(item?.id)}
                         ListEmptyComponent = {ListEmptyComponent}
                         ListFooterComponent = {ListFooter}
                         onEndReachedThreshold = {0.2}

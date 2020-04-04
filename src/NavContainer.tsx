@@ -1,22 +1,34 @@
 import React from 'react';
 
 import {NavigationContainer} from "@react-navigation/native";
-import {createStackNavigator, TransitionPresets} from '@react-navigation/stack';
+import {createStackNavigator, HeaderBackButton} from '@react-navigation/stack';
 import {createBottomTabNavigator} from "@react-navigation/bottom-tabs";
 import {createDrawerNavigator} from "@react-navigation/drawer";
-import {BackHandler} from 'react-native';
-import {getImage, getMyIcon, HeaderGradientPrimary, HeaderGradientPrimaryLogo} from "./components/MyComponent";
+
+import {HeaderButtonLeft} from "./components/MyButton";
+import {getImage, getMyIcon, HeaderGradientPrimary, HeaderGradientPrimaryLogo, IconWithBadge} from "./components/MyComponent";
+import {CustomDrawerContent} from "./shared/MyContainer";
 
 import SplashScreen from './screens/Splash';
-import LoginScreen from './screens/Login';
-import SignupScreen from './screens/Signup';
-import HomeScreen from './screens/Home';
-import NotificationScreen from './screens/Notification';
-import GoogleMapScreen from './screens/GoogleMap';
-import NotificationViewScreen from './screens/NotificationView';
-import TabRestaurantScreen from "./screens/TabRestaurant";
-import TabFoodItemScreen from "./screens/TabFoodItem";
 import IntroScreen from "./screens/Intro";
+import SigninScreen from './screens/Signin';
+import SignupScreen from './screens/Signup';
+import SignupCompletedScreen from "./screens/SignupCompleted";
+import PasswordForgotScreen from "./screens/PasswordForgot";
+import PasswordResetScreen from "./screens/PasswordReset";
+import HomeScreen from './screens/Home';
+import CategoryListScreen from "./screens/CategoryList";
+import SearchScreen from "./screens/Search";
+import CartScreen from "./screens/Cart";
+import SettingsScreen from "./screens/Settings";
+import ProductListScreen from "./screens/ProductList";
+import ProductDetailsScreen from "./screens/ProductDetails";
+import ProductBuyScreen from "./screens/ProductBuy";
+
+import NotificationScreen from './screens/Notification';
+import NotificationViewScreen from './screens/NotificationView';
+import GoogleMapScreen from './screens/GoogleMap';
+
 
 import MyUtil from "./common/MyUtil";
 import {MyConfig} from "./shared/MyConfig";
@@ -24,23 +36,16 @@ import MyLANG from "./shared/MyLANG";
 import {MyConstant} from "./common/MyConstant";
 import {MyStyle, MyStyleCommon} from "./common/MyStyle";
 import MyColor from "./common/MyColor";
-import {CustomDrawerContent} from "./shared/MyContainer";
 import MyImage from "./shared/MyImage";
-import {HeaderCartButton} from "./components/MyButton";
-import CategoryListScreen from "./screens/CategoryList";
-import ProductListScreen from "./screens/ProductList";
-import SearchScreen from "./screens/Search";
-import CartScreen from "./screens/Cart";
-import SettingsScreen from "./screens/Settings";
+
 
 let lastTimeBackPress: number = 0;
 
+// SPLASH
 const SplashStack       = createStackNavigator();
 const SplashStackScreen = () => {
     return (
-        <SplashStack.Navigator
-            screenOptions = {{}}
-        >
+        <SplashStack.Navigator screenOptions = {MyStyleCommon.StackScreenOptions.SplashStack}>
             <SplashStack.Screen
                 name = {MyConfig.routeName.Splash}
                 component = {SplashScreen}
@@ -49,12 +54,11 @@ const SplashStackScreen = () => {
     );
 }
 
+// INTRO
 const IntroStack       = createStackNavigator();
 const IntroStackScreen = () => {
     return (
-        <IntroStack.Navigator
-            screenOptions = {MyStyleCommon.screenOptions.IntroStack}
-        >
+        <IntroStack.Navigator screenOptions = {MyStyleCommon.StackScreenOptions.IntroStack}>
             <IntroStack.Screen
                 name = {MyConfig.routeName.Intro}
                 component = {IntroScreen}
@@ -63,136 +67,309 @@ const IntroStackScreen = () => {
     );
 }
 
+// LOGIN
 const LoginStack       = createStackNavigator();
+const LoginScreens     = <>
+    <LoginStack.Screen
+        name = {MyConfig.routeName.Login}
+        component = {SigninScreen}
+        options = {{
+            title: "",
+            ...MyStyleCommon.StackOptions.LoginStack,
+        }}
+    />
+    <LoginStack.Screen
+        name = {MyConfig.routeName.Signup}
+        component = {SignupScreen}
+        options = {{
+            title: "",
+            ...MyStyleCommon.StackOptions.LoginStack,
+        }}
+    />
+    <LoginStack.Screen
+        name = {MyConfig.routeName.SignupCompleted}
+        component = {SignupCompletedScreen}
+        options = {{
+            title     : "",
+            headerLeft: () => (
+                <HeaderBackButton
+                    onPress = {() => MyUtil.commonAction(false,
+                                                         null,
+                                                         MyConstant.CommonAction.navigate,
+                                                         MyConfig.routeName.Login,
+                                                         {splash: false},
+                                                         null
+                    )}
+                    tintColor = {MyColor.Material.BLACK}
+                />
+            ),
+            ...MyStyleCommon.StackOptions.LoginStack,
+        }}
+    />
+    <LoginStack.Screen
+        name = {MyConfig.routeName.PasswordForgot}
+        component = {PasswordForgotScreen}
+        options = {{
+            title: "",
+            ...MyStyleCommon.StackOptions.LoginStack,
+        }}
+    />
+    <LoginStack.Screen
+        name = {MyConfig.routeName.PasswordReset}
+        component = {PasswordResetScreen}
+        options = {{
+            title: "",
+            ...MyStyleCommon.StackOptions.LoginStack,
+        }}
+    />
+</>;
 const LoginStackScreen = () => {
     return (
         <LoginStack.Navigator
             initialRouteName = {MyConfig.routeName.Login}
-            screenOptions = {{}}
+            screenOptions = {MyStyleCommon.StackScreenOptions.LoginStack}
         >
-            <LoginStack.Screen
-                name = {MyConfig.routeName.Login}
-                component = {LoginScreen}
-            />
-            <LoginStack.Screen
-                name = {MyConfig.routeName.Signup}
-                component = {SignupScreen}
-            />
+
+            {LoginScreens}
+
         </LoginStack.Navigator>
     );
 }
 
-const Drawer          = createDrawerNavigator();
-const DrawerNavigator = () => {
-    return (
-        <Drawer.Navigator
-            initialRouteName = {MyConfig.routeName.DrawerHome}
-            backBehavior = "history"
-            drawerPosition = "left"
-            drawerType = "front"
-            drawerStyle = {{
-                backgroundColor: MyColor.Material.WHITE,
-            }}
-            drawerContent = {props => <CustomDrawerContent {...props} />}
-            drawerContentOptions = {{
-                activeTintColor      : MyColor.Primary.first,
-                activeBackgroundColor: MyColor.Material.GREY["200"],
-                inactiveTintColor    : MyColor.Material.GREY["700"],
-                itemStyle            : {},
-                labelStyle           : {
-                    fontSize  : 14,
-                    fontFamily: MyStyle.FontFamily.OpenSans.regular,
-                },
-                contentContainerStyle: {},
-                style                : {},
-            }}
-        >
-            <Drawer.Screen
-                name = {MyConfig.routeName.DrawerHome}
-                component = {Tab1StackScreen}
-                options = {{
-                    drawerLabel: MyLANG.Home,
-                    drawerIcon : ({focused: boolean, color: string, size: number}) => getImage(
-                        {
-                            source       : MyImage.customer_service_2,
-                            defaultSource: MyImage.defaultDrawer,
-                            resizeMode   : 'contain',
-                            style        : {
-                                width : 24,
-                                height: 24,
-                            }
-                        }
-                    )
-                }}
-            />
-            <Drawer.Screen
-                name = {MyConfig.routeName.DrawerNotification}
-                component = {HomeScreen}
-                options = {{
-                    drawerLabel: MyLANG.Notifications,
-                    drawerIcon : ({focused: boolean, color: string, size: number}) => getImage(
-                        {
-                            source       : MyImage.customer_service_2,
-                            defaultSource: MyImage.defaultDrawer,
-                            resizeMode   : 'contain',
-                            style        : {
-                                width : 24,
-                                height: 24,
-                            }
-                        }
-                    )
-                }}
-            />
-        </Drawer.Navigator>
-    );
-}
-
 // TAB STACKS:
+const HomeStack   = createStackNavigator();
+const HomeScreens =
+          <>
+              <HomeStack.Screen
+                  name = {MyConfig.routeName.Home}
+                  component = {HomeScreen}
+                  options = {({route, navigation}: any) => ({
+                      title           : "",
+                      headerLeft      : () =>
+                          <HeaderButtonLeft icon = {{name: 'menu'}}
+                                            onPress = {
+                                                () => MyUtil.drawerAction(false,
+                                                                          null,
+                                                                          MyConstant.DrawerAction.toggleDrawer,
+                                                                          null,
+                                                                          null,
+                                                                          null
+                                                )
+                                            }
+                          />,
+                      headerBackground: HeaderGradientPrimaryLogo,
+                      ...MyStyleCommon.StackOptions.BottomTabStack,
+                  })}
+              />
+              <HomeStack.Screen
+                  name = {MyConfig.routeName.CategoryList}
+                  component = {CategoryListScreen}
+                  options = {({route, navigation}: any) => ({
+                      title           : "",
+                      headerLeft      : () =>
+                          <HeaderButtonLeft icon = {{name: 'menu'}}
+                                            onPress = {
+                                                () => MyUtil.drawerAction(false,
+                                                                          null,
+                                                                          MyConstant.DrawerAction.toggleDrawer,
+                                                                          null,
+                                                                          null,
+                                                                          null
+                                                )
+                                            }
+                          />,
+                      headerBackground: HeaderGradientPrimaryLogo,
+                      ...MyStyleCommon.StackOptions.BottomTabStack,
+                  })}
+              />
+              <HomeStack.Screen
+                  name = {MyConfig.routeName.Search}
+                  component = {SearchScreen}
+                  options = {({route, navigation}: any) => ({
+                      title                    : "",
+                      /*header: ({scene, previous, navigation}) => {
+                          const {options} = scene.descriptor;
+                          const title     = "";
+                          return (
+                              <MyHeaderSearch
+                                  title = {title}
+                                  style = {options.headerStyle}
+                              />
+                          );
+                      },*/
+                      ...MyStyleCommon.StackOptions.BottomTabStack,
+                      headerTitleContainerStyle: { // important
+                          // right: 0,
+                      },
+                  })}
+              />
+              <HomeStack.Screen
+                  name = {MyConfig.routeName.Cart}
+                  component = {CartScreen}
+                  options = {({route, navigation}: any) => ({
+                      title           : "",
+                      headerLeft      : (props: any) =>
+                          /* route?.params?.NAVIGATION_PARAMS_ACTION === MyConstant.NAVIGATION_PARAMS_ACTION.NO_HEADER_LEFT_PUSH ?
+                           <HeaderBackButton {...props}/>*/
+                          <HeaderButtonLeft
+                              icon = {{name: 'menu'}}
+                              onPress = {
+                                  () => MyUtil.drawerAction(false,
+                                                            null,
+                                                            MyConstant.DrawerAction.toggleDrawer,
+                                                            null,
+                                                            null,
+                                                            null
+                                  )
+                              }
+                          />,
+                      headerBackground: HeaderGradientPrimaryLogo,
+                      ...MyStyleCommon.StackOptions.BottomTabStack,
+                  })}
+              />
+              <HomeStack.Screen
+                  name = {MyConfig.routeName.Settings}
+                  component = {SettingsScreen}
+                  options = {({route, navigation}: any) => ({
+                      title           : "",
+                      headerLeft      : () =>
+                          <HeaderButtonLeft icon = {{name: 'menu'}}
+                                            onPress = {
+                                                () => MyUtil.drawerAction(false,
+                                                                          null,
+                                                                          MyConstant.DrawerAction.toggleDrawer,
+                                                                          null,
+                                                                          null,
+                                                                          null
+                                                )
+                                            }
+                          />,
+                      headerBackground: HeaderGradientPrimaryLogo,
+                      ...MyStyleCommon.StackOptions.BottomTabStack,
+                  })}
+              />
+
+              <HomeStack.Screen
+                  name = {MyConfig.routeName.ProductList}
+                  component = {ProductListScreen}
+                  options = {{
+                      title           : MyLANG.Product,
+                      headerBackground: HeaderGradientPrimary,
+                      ...MyStyleCommon.StackOptions.BottomTabStack
+                  }}
+              />
+              <HomeStack.Screen
+                  name = {MyConfig.routeName.ProductDetails}
+                  component = {ProductDetailsScreen}
+                  options = {{
+                      title          : "",
+                      // headerBackground: HeaderGradientPrimary,
+                      ...MyStyleCommon.StackOptions.BottomTabStack,
+                      headerTintColor: MyColor.Material.BLACK,
+                  }}
+              />
+              <HomeStack.Screen
+                  name = {MyConfig.routeName.ProductBuy}
+                  component = {ProductBuyScreen}
+                  options = {{
+                      title     : "",
+                      headerLeft: () => {
+                      },
+                      ...MyStyleCommon.StackOptions.BottomTabStack,
+                  }}
+              />
+
+              <HomeStack.Screen
+                  name = {MyConfig.routeName.CartPush}
+                  component = {CartScreen}
+                  options = {{
+                      title           : MyLANG.Cart,
+                      headerBackground: HeaderGradientPrimary,
+                      ...MyStyleCommon.StackOptions.BottomTabStack,
+                  }}
+              />
+
+              <HomeStack.Screen
+                  name = {MyConfig.routeName.EditProfile}
+                  component = {CartScreen}
+                  options = {{
+                      title           : MyLANG.EditProfile,
+                      headerBackground: HeaderGradientPrimary,
+                      ...MyStyleCommon.StackOptions.BottomTabStack,
+                  }}
+              />
+              <HomeStack.Screen
+                  name = {MyConfig.routeName.MyPoints}
+                  component = {CartScreen}
+                  options = {{
+                      title           : MyLANG.MyPoints,
+                      headerBackground: HeaderGradientPrimary,
+                      ...MyStyleCommon.StackOptions.BottomTabStack,
+                  }}
+              />
+              <HomeStack.Screen
+                  name = {MyConfig.routeName.MyOrders}
+                  component = {CartScreen}
+                  options = {{
+                      title           : MyLANG.MyOrders,
+                      headerBackground: HeaderGradientPrimary,
+                      ...MyStyleCommon.StackOptions.BottomTabStack,
+                  }}
+              />
+              <HomeStack.Screen
+                  name = {MyConfig.routeName.MyAddress}
+                  component = {CartScreen}
+                  options = {{
+                      title           : MyLANG.MyAddress,
+                      headerBackground: HeaderGradientPrimary,
+                      ...MyStyleCommon.StackOptions.BottomTabStack,
+                  }}
+              />
+              <HomeStack.Screen
+                  name = {MyConfig.routeName.Notifications}
+                  component = {CartScreen}
+                  options = {{
+                      title           : MyLANG.Notifications,
+                      headerBackground: HeaderGradientPrimary,
+                      ...MyStyleCommon.StackOptions.BottomTabStack,
+                  }}
+              />
+              <HomeStack.Screen
+                  name = {MyConfig.routeName.ContactUs}
+                  component = {CartScreen}
+                  options = {{
+                      title           : MyLANG.ContactUs,
+                      headerBackground: HeaderGradientPrimary,
+                      ...MyStyleCommon.StackOptions.BottomTabStack,
+                  }}
+              />
+              <HomeStack.Screen
+                  name = {MyConfig.routeName.AboutUs}
+                  component = {CartScreen}
+                  options = {{
+                      title           : MyLANG.AboutUs,
+                      headerBackground: HeaderGradientPrimary,
+                      ...MyStyleCommon.StackOptions.BottomTabStack,
+                  }}
+              />
+              <HomeStack.Screen
+                  name = {MyConfig.routeName.TermsAndCondition}
+                  component = {CartScreen}
+                  options = {{
+                      title           : MyLANG.TermsAndCondition,
+                      headerBackground: HeaderGradientPrimary,
+                      ...MyStyleCommon.StackOptions.BottomTabStack,
+                  }}
+              />
+          </>;
+
+// TAB 1-2-3 STACKS:
 const Tab1Stack       = createStackNavigator();
 const Tab1StackScreen = () => {
     return (
-        <Tab1Stack.Navigator
-            screenOptions = {{}}
-            // headerMode = "none"
-        >
-            <Tab1Stack.Screen
-                name = {MyConfig.routeName.Home}
-                component = {HomeScreen}
-                options = {{
-                    title            : "",
-                    // headerShown: false,
-                    headerTintColor  : MyColor.Material.WHITE,
-                    headerTransparent: true,
-                    headerBackground : HeaderGradientPrimaryLogo,
-                    headerStyle      : {
-                        height: MyStyle.HeaderHeight,
-                    },
-                    headerTitleStyle : {
-                        color     : MyColor.Material.WHITE,
-                        fontSize  : 18,
-                        fontFamily: MyStyle.FontFamily.OpenSans.semiBold,
-                    }
-                }}
-            />
-            <Tab2Stack.Screen
-                name = {MyConfig.routeName.ProductList}
-                component = {ProductListScreen}
-                options = {{
-                    title            : MyLANG.Product,
-                    // headerShown: false,
-                    headerTintColor  : MyColor.Material.WHITE,
-                    headerTransparent: true,
-                    headerBackground : HeaderGradientPrimary,
-                    headerStyle      : {
-                        height: MyStyle.HeaderHeight,
-                    },
-                    headerTitleStyle : {
-                        color     : MyColor.Material.WHITE,
-                        fontSize  : 18,
-                        fontFamily: MyStyle.FontFamily.OpenSans.semiBold,
-                    },
-                }}
-            />
+        <Tab1Stack.Navigator initialRouteName = {MyConfig.routeName.Home}>
+            {HomeScreens}
+            {LoginScreens}
         </Tab1Stack.Navigator>
     );
 }
@@ -200,48 +377,9 @@ const Tab1StackScreen = () => {
 const Tab2Stack       = createStackNavigator();
 const Tab2StackScreen = () => {
     return (
-        <Tab2Stack.Navigator
-            screenOptions = {{}}
-            // headerMode = "none"
-        >
-            <Tab2Stack.Screen
-                name = {MyConfig.routeName.CategoryList}
-                component = {CategoryListScreen}
-                options = {{
-                    title            : "",
-                    // headerShown: false,
-                    headerTintColor  : MyColor.Material.WHITE,
-                    headerTransparent: true,
-                    headerBackground : HeaderGradientPrimaryLogo,
-                    headerStyle      : {
-                        height: MyStyle.HeaderHeight,
-                    },
-                    headerTitleStyle : {
-                        color     : MyColor.Material.WHITE,
-                        fontSize  : 18,
-                        fontFamily: MyStyle.FontFamily.OpenSans.semiBold,
-                    }
-                }}
-            />
-            <Tab2Stack.Screen
-                name = {MyConfig.routeName.ProductList}
-                component = {ProductListScreen}
-                options = {{
-                    title            : MyLANG.Product,
-                    // headerShown: false,
-                    headerTintColor  : MyColor.Material.WHITE,
-                    headerTransparent: true,
-                    headerBackground : HeaderGradientPrimary,
-                    headerStyle      : {
-                        height: MyStyle.HeaderHeight,
-                    },
-                    headerTitleStyle : {
-                        color     : MyColor.Material.WHITE,
-                        fontSize  : 18,
-                        fontFamily: MyStyle.FontFamily.OpenSans.semiBold,
-                    },
-                }}
-            />
+        <Tab2Stack.Navigator initialRouteName = {MyConfig.routeName.CategoryList}>
+            {HomeScreens}
+            {LoginScreens}
         </Tab2Stack.Navigator>
     );
 }
@@ -249,29 +387,9 @@ const Tab2StackScreen = () => {
 const Tab3Stack       = createStackNavigator();
 const Tab3StackScreen = () => {
     return (
-        <Tab3Stack.Navigator
-            screenOptions = {{}}
-            // headerMode = "none"
-        >
-            <Tab3Stack.Screen
-                name = {MyConfig.routeName.Search}
-                component = {SearchScreen}
-                options = {{
-                    title            : "",
-                    // headerShown: false,
-                    headerTintColor  : MyColor.Material.WHITE,
-                    headerTransparent: true,
-                    headerBackground : HeaderGradientPrimaryLogo,
-                    headerStyle      : {
-                        height: MyStyle.HeaderHeight,
-                    },
-                    headerTitleStyle : {
-                        color     : MyColor.Material.WHITE,
-                        fontSize  : 18,
-                        fontFamily: MyStyle.FontFamily.OpenSans.semiBold,
-                    }
-                }}
-            />
+        <Tab3Stack.Navigator initialRouteName = {MyConfig.routeName.Search}>
+            {HomeScreens}
+            {LoginScreens}
         </Tab3Stack.Navigator>
     );
 }
@@ -279,29 +397,9 @@ const Tab3StackScreen = () => {
 const Tab4Stack       = createStackNavigator();
 const Tab4StackScreen = () => {
     return (
-        <Tab4Stack.Navigator
-            screenOptions = {{}}
-            // headerMode = "none"
-        >
-            <Tab4Stack.Screen
-                name = {MyConfig.routeName.Cart}
-                component = {CartScreen}
-                options = {{
-                    title            : "",
-                    // headerShown: false,
-                    headerTintColor  : MyColor.Material.WHITE,
-                    headerTransparent: true,
-                    headerBackground : HeaderGradientPrimaryLogo,
-                    headerStyle      : {
-                        height: MyStyle.HeaderHeight,
-                    },
-                    headerTitleStyle : {
-                        color     : MyColor.Material.WHITE,
-                        fontSize  : 18,
-                        fontFamily: MyStyle.FontFamily.OpenSans.semiBold,
-                    }
-                }}
-            />
+        <Tab4Stack.Navigator initialRouteName = {MyConfig.routeName.Cart}>
+            {HomeScreens}
+            {LoginScreens}
         </Tab4Stack.Navigator>
     );
 }
@@ -309,72 +407,60 @@ const Tab4StackScreen = () => {
 const Tab5Stack       = createStackNavigator();
 const Tab5StackScreen = () => {
     return (
-        <Tab5Stack.Navigator
-            screenOptions = {{}}
-            // headerMode = "none"
-        >
-            <Tab5Stack.Screen
-                name = {MyConfig.routeName.Settings}
-                component = {SettingsScreen}
-                options = {{
-                    title            : "",
-                    // headerShown: false,
-                    headerTintColor  : MyColor.Material.WHITE,
-                    headerTransparent: true,
-                    headerBackground : HeaderGradientPrimaryLogo,
-                    headerStyle      : {
-                        height: MyStyle.HeaderHeight,
-                    },
-                    headerTitleStyle : {
-                        color     : MyColor.Material.WHITE,
-                        fontSize  : 18,
-                        fontFamily: MyStyle.FontFamily.OpenSans.semiBold,
-                    }
-                }}
-            />
+        <Tab5Stack.Navigator initialRouteName = {MyConfig.routeName.Settings}>
+            {HomeScreens}
+            {LoginScreens}
         </Tab5Stack.Navigator>
     );
 }
 
-//BOTTOM TAB:
-const HomeBottomTab          = createBottomTabNavigator();
-const HomeBottomTabNavigator = () => {
+// BOTTOM TAB:
+const BottomTab          = createBottomTabNavigator();
+const BottomTabNavigator = () => {
     return (
-        <HomeBottomTab.Navigator
-            initialRouteName = {MyConfig.routeName.Tab1}
+        <BottomTab.Navigator
+            initialRouteName = {MyConfig.routeName.BottomTab1}
             screenOptions = {({route}) => ({
                 tabBarIcon: ({focused, color}) => {
                     let fontFamily = MyConstant.VectorIcon.SimpleLineIcons;
-                    let iconSize   = 22;
-                    let iconName;
+                    let size       = 22;
+                    let name;
 
                     switch (route.name) {
-                        case MyConfig.routeName.Tab1:
-                            iconName = focused ? 'home' : 'home';
+                        case MyConfig.routeName.BottomTab1:
+                            name = focused ? 'home' : 'home';
                             break;
-                        case MyConfig.routeName.Tab2:
-                            iconName = focused ? 'grid' : 'grid';
+                        case MyConfig.routeName.BottomTab2:
+                            name = focused ? 'grid' : 'grid';
                             break;
-                        case MyConfig.routeName.Tab3:
-                            iconName = focused ? 'magnifier' : 'magnifier';
+                        case MyConfig.routeName.BottomTab3:
+                            name = focused ? 'magnifier' : 'magnifier';
                             break;
-                        case MyConfig.routeName.Tab4:
-                            iconName = focused ? 'basket' : 'basket';
-                            break;
-                        case MyConfig.routeName.Tab5:
-                            iconName = focused ? 'user' : 'user';
+                        case MyConfig.routeName.BottomTab4:
+                            name = focused ? 'basket' : 'basket';
+                            return (
+                                <IconWithBadge
+                                    fontFamily = {fontFamily}
+                                    name = {name}
+                                    color = {color}
+                                    size = {size}
+                                    style = {{}}
+                                />
+                            );
+                        case MyConfig.routeName.BottomTab5:
+                            name = focused ? 'user' : 'user';
                             break;
                         default:
-                            iconName = focused ? 'home' : 'home';
+                            name = focused ? 'home' : 'home';
                             break;
                     }
 
                     return getMyIcon(
                         {
                             fontFamily: fontFamily,
-                            name      : iconName,
+                            name      : name,
                             color     : color,
-                            size      : iconSize,
+                            size      : size,
                             style     : {}
                         }
                     );
@@ -388,108 +474,101 @@ const HomeBottomTabNavigator = () => {
                 showIcon         : true,
             }}
         >
-            <HomeBottomTab.Screen
-                name = {MyConfig.routeName.Tab1}
+            <BottomTab.Screen
+                name = {MyConfig.routeName.BottomTab1}
                 component = {Tab1StackScreen}
-                options = {{
-                    tabBarLabel: MyLANG.Home,
-                }}
+                options = {({route}: any) => ({
+                    tabBarLabel  : MyLANG.Home,
+                    tabBarVisible: route?.state?.index > 0 ? false : true,
+                })}
             />
-            <HomeBottomTab.Screen
-                name = {MyConfig.routeName.Tab2}
+            <BottomTab.Screen
+                name = {MyConfig.routeName.BottomTab2}
                 component = {Tab2StackScreen}
-                options = {{
-                    tabBarLabel: MyLANG.Category
-                }}
+                options = {({route}: any) => ({
+                    tabBarLabel  : MyLANG.Category,
+                    tabBarVisible: route?.state?.index > 0 ? false : true,
+                })}
             />
-            <HomeBottomTab.Screen
-                name = {MyConfig.routeName.Tab3}
+            <BottomTab.Screen
+                name = {MyConfig.routeName.BottomTab3}
                 component = {Tab3StackScreen}
-                options = {{
-                    tabBarLabel: MyLANG.Search
-                }}
+                options = {({route}: any) => ({
+                    tabBarLabel  : MyLANG.Search,
+                    tabBarVisible: route?.state?.index > 0 ? false : true,
+                })}
             />
-            <HomeBottomTab.Screen
-                name = {MyConfig.routeName.Tab4}
+            <BottomTab.Screen
+                name = {MyConfig.routeName.BottomTab4}
                 component = {Tab4StackScreen}
-                options = {{
-                    tabBarLabel: MyLANG.Cart
-                }}
+                options = {({route}: any) => ({
+                    tabBarLabel  : MyLANG.Cart,
+                    tabBarVisible: route?.state?.index > 0 ? false : true,
+                })}
             />
-            <HomeBottomTab.Screen
-                name = {MyConfig.routeName.Tab5}
+            <BottomTab.Screen
+                name = {MyConfig.routeName.BottomTab5}
                 component = {Tab5StackScreen}
-                options = {{
-                    tabBarLabel: MyLANG.Settings
-                }}
+                options = {({route}: any) => ({
+                    tabBarLabel  : MyLANG.Settings,
+                    tabBarVisible: route?.state?.index > 0 ? false : true,
+                })}
             />
-        </HomeBottomTab.Navigator>
+        </BottomTab.Navigator>
     );
 }
 
-// Back Button
-/*const router                                         = {
-    type: 'tab',
-    getStateForAction(state: any, action: any) {
-        if (state && state.index === 0 && action.type === MyConstant.NAVIGATION_ACTION.GO_BACK) {
-            MyUtil.printConsole(true, 'log', 'LOG: BackHandler: ', {
-                action: action,
-                state : state,
-            });
+// DRAWER:
+const Drawer          = createDrawerNavigator();
+const DrawerNavigator = () => {
 
-            if (new Date().getTime() - lastTimeBackPress < MyConfig.TimePeriodToExit) {
-                BackHandler.exitApp();
-                return null;
-            } else {
-                MyUtil.showTinyToast(
-                    MyLANG.ExitAppConfirmation,
-                    MyConstant.TINY_TOAST.SHORT,
-                    MyStyle.TinyToast.BOTTOM,
-                    MyStyle.TinyToast.containerStyleDark,
-                    MyStyle.TinyToast.textStyleWhite,
-                    MyStyle.TinyToast.textColorWhite,
-                    null,
-                    MyStyle.TinyToast.imageStyleSucess,
-                    false,
-                    false,
-                    false,
-                    0,
-                    MyConstant.TINY_TOAST.HIDE_AND_SHOW,
-                );
-
-                lastTimeBackPress = new Date().getTime();
-
-                return null;
-            }
-        }
-
-        return BaseRouter.getStateForAction(state, action);
-    }
-}*/
-
-const RootStack       = createStackNavigator();
-const RootStackScreen = () => {
     return (
-        <RootStack.Navigator
-            screenOptions = {{}}
+        <Drawer.Navigator
+            initialRouteName = {MyConfig.routeName.DrawerOne}
+            backBehavior = "history"
+            drawerPosition = "left"
+            drawerType = "front"
+            drawerStyle = {{
+                backgroundColor: MyColor.Material.WHITE,
+            }}
+            drawerContent = {props => <CustomDrawerContent props = {props}/>}
+            drawerContentOptions = {{
+                contentContainerStyle: {backgroundColor: MyColor.Primary.first},
+                style                : {},
+            }}
+            /*drawerContentOptions = {{
+                activeTintColor      : MyColor.Primary.first,
+                activeBackgroundColor: MyColor.Material.GREY["200"],
+                inactiveTintColor    : MyColor.Material.GREY["700"],
+                itemStyle            : {},
+                labelStyle           : {
+                    fontSize  : 14,
+                    fontFamily: MyStyle.FontFamily.OpenSans.regular,
+                },
+                contentContainerStyle: {},
+                style                : {},
+            }}*/
         >
-            <RootStack.Screen
-                name = {MyConfig.routeName.IntroStack}
-                component = {IntroStackScreen}
+            <Drawer.Screen
+                name = {MyConfig.routeName.DrawerOne}
+                component = {BottomTabNavigator}
+                /*options = {{
+                    drawerLabel: MyLANG.Home,
+                    drawerIcon : ({focused: boolean, color: string, size: number}) => getImage(
+                        {
+                            source       : MyImage.customer_service_2,
+                            defaultSource: MyImage.defaultDrawer,
+                            resizeMode   : 'contain',
+                            style        : {
+                                width : 24,
+                                height: 24,
+                            }
+                        }
+                    )
+                }}*/
             />
-            <RootStack.Screen
-                name = {MyConfig.routeName.LoginStack}
-                component = {LoginStackScreen}
-            />
-            <RootStack.Screen
-                name = {MyConfig.routeName.HomeNavigator}
-                component = {HomeBottomTabNavigator}
-            />
-        </RootStack.Navigator>
+        </Drawer.Navigator>
     );
 }
-// if config set login required and not logged in: go to login stack, otherwise go to home stack:
 
-const AppContainer = () => <HomeBottomTabNavigator/>;
-
-export default AppContainer;
+export {SplashStackScreen, IntroStackScreen, LoginStackScreen, DrawerNavigator};

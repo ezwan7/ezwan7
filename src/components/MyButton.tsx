@@ -1,5 +1,5 @@
 import React from "react";
-import {StyleSheet, TouchableNativeFeedback, TouchableOpacity, View, Text, TouchableWithoutFeedback, Image, TouchableHighlight} from "react-native";
+import {StyleSheet, TouchableNativeFeedback, TouchableOpacity, TouchableWithoutFeedback, TouchableHighlight, View, Text, Image} from "react-native";
 
 import MyIcon from "./MyIcon";
 import MyColor from "../common/MyColor";
@@ -10,24 +10,38 @@ import {MyStyle} from "../common/MyStyle";
 import LinearGradient from "react-native-linear-gradient";
 import MyImage from "../shared/MyImage";
 import MyMaterialRipple from "./MyMaterialRipple";
+import {ShadowBox} from "react-native-neomorph-shadows";
 
 let renderCount = 0;
 
-const HeaderCartButton = ({}) => {
+const HeaderButtonLeft = (prop: any) => {
     return (
-        <TouchableNativeFeedback
-            onPress = {() => {
-
-            }}
-            background = {TouchableNativeFeedback.SelectableBackground()}>
-            <View style = {{paddingHorizontal: 7, paddingVertical: 4, borderRadius: 12}}>
-                <MyIcon.FontAwesome
-                    name = "shopping-bag"
-                    size = {20}
-                    color = {MyColor.Material.WHITE}
-                />
-            </View>
-        </TouchableNativeFeedback>
+        <MyMaterialRipple
+            {...MyStyle.MaterialRipple.headerButton}
+            style = {[stylesHeaderButtonLeft.view, prop.view?.style]}
+            onPress = {prop.onPress}
+        >
+            <>
+                {prop.image?.src &&
+                 <Image
+                     source = {prop.image?.src || MyImage.defaultAvatar}
+                     resizeMode = "contain"
+                     style = {[stylesHeaderButtonLeft.image, prop.image?.style]}
+                 />
+                }
+                {
+                    prop.icon?.name &&
+                    getMyIcon(
+                        {
+                            fontFamily: prop.icon?.fontFamily || MyConstant.VectorIcon.Feather,
+                            name      : prop.icon?.name || 'home',
+                            size      : prop.icon?.size || 24,
+                            style     : [stylesHeaderButtonLeft.icon, prop.icon?.style]
+                        }
+                    )
+                }
+            </>
+        </MyMaterialRipple>
     );
 };
 
@@ -35,26 +49,52 @@ const MyButton = (props: any) => {
 
     if (__DEV__) {
         renderCount += 1;
-        console.log(`LOG: ${MyButton.name}. renderCount: `, renderCount);
+        // console.log(`LOG: ${MyButton.name}. renderCount: `, renderCount);
     }
 
-    let LGButton: any = MyStyle.LGButtonPrimary;
+    let LGButton: any = MyStyle.LGButtonPrimaryMyButton;
+
+    const shadowStyles = {
+        shadowOffset : {
+            width : 0,
+            height: props.shadow === "small" && 1 ||
+                    props.shadow === "medium" && 2 ||
+                    props.shadow === "large" && 5
+        },
+        shadowColor  : "#000000",
+        shadowOpacity: props.shadow === "small" && 0.7 ||
+                       props.shadow === "medium" && 0.5 ||
+                       props.shadow === "large" && 0.6,
+        shadowRadius : props.shadow === "small" && 3 ||
+                       props.shadow === "medium" && 5 ||
+                       props.shadow === "large" && 8,
+        borderRadius : props.shape === "square" && MyStyle.borderRadiusButtonSquare ||
+                       props.shape === "outlined" && MyStyle.borderRadiusButtonOutlined ||
+                       props.shape === "rounded" && MyStyle.borderRadiusButtonRounded ||
+                       props.shape === "circular" && MyStyle.borderRadiusButtonCircular,
+        width        : props.display === "inline" && props?.shadowStyle?.width ||
+                       props.display === "block" && props?.shadowStyle?.width ||
+                       props.display === "full" && props?.shadowStyle?.width,
+        height       : props.size === "small" && MyStyle.buttonHeightSmall ||
+                       props.size === "normal" && MyStyle.buttonHeightNormal ||
+                       props.size === "large" && MyStyle.buttonHeightLarge,
+    };
 
     const linearGradientStyles = [
         styles.linearGradient,
 
         props.shape === "square" && {
-            borderRadius: 0,
+            borderRadius: MyStyle.borderRadiusButtonSquare,
         } ||
         props.shape === "outlined" && {
-            borderRadius: 5,
+            borderRadius: MyStyle.borderRadiusButtonOutlined,
         } ||
         props.shape === "rounded" && {
-            borderRadius: 50,
+            borderRadius: MyStyle.borderRadiusButtonRounded,
         } ||
         props.shape === "circular" && {
-            borderRadius: props.buttonStyle?.width > 0 ? (props.buttonStyle?.width / 2) : 100,
-        },
+            borderRadius: props.buttonStyle?.width > 0 ? (props.buttonStyle?.width / 2) : MyStyle.borderRadiusButtonCircular,
+        }, //  display = "inline", buttonViewStyle = {{height: 100, width: 100}}
 
         props.fill === "transparent" && (LGButton.colors = ["transparent", "transparent"]) ||
         props.fill === "outlined" && (LGButton.colors = ["transparent", "transparent"]) && {
@@ -81,9 +121,10 @@ const MyButton = (props: any) => {
         }),
 
         props.display === "inline" && {
-            alignSelf: "center",
+            // alignSelf: "center",
         } ||
         props.display === "block" && {
+            flex     : 1,
             alignSelf: "stretch",
         } ||
         props.display === "full" && props.fill === "outlined" && {
@@ -97,16 +138,16 @@ const MyButton = (props: any) => {
         styles.touchable,
 
         props.shape === "square" && {
-            borderRadius: 0,
+            borderRadius: MyStyle.borderRadiusButtonSquare,
         } ||
         props.shape === "outlined" && {
-            borderRadius: 5,
+            borderRadius: MyStyle.borderRadiusButtonOutlined,
         } ||
         props.shape === "rounded" && {
-            borderRadius: 50,
+            borderRadius: MyStyle.borderRadiusButtonRounded,
         } ||
         props.shape === "circular" && {
-            borderRadius: props.buttonStyle?.width > 0 ? (props.buttonStyle?.width / 2) : 100,
+            borderRadius: props.buttonStyle?.width > 0 ? (props.buttonStyle?.width / 2) : MyStyle.borderRadiusButtonCircular,
         },
 
         props.direction === "vertical" && {
@@ -147,16 +188,16 @@ const MyButton = (props: any) => {
         props.size === "large" && styles.buttonLarge,
 
         props.shape === "square" && {
-            borderRadius: 0,
+            borderRadius: MyStyle.borderRadiusButtonSquare,
         } ||
         props.shape === "outlined" && {
-            borderRadius: 5,
+            borderRadius: MyStyle.borderRadiusButtonOutlined,
         } ||
         props.shape === "rounded" && {
-            borderRadius: 50,
+            borderRadius: MyStyle.borderRadiusButtonRounded,
         } ||
         props.shape === "circular" && {
-            borderRadius: props.buttonStyle?.width > 0 ? (props.buttonStyle?.width / 2) : 100,
+            borderRadius: props.buttonStyle?.width > 0 ? (props.buttonStyle?.width / 2) : MyStyle.borderRadiusButtonCircular,
         },
         props.shape === "rounded" && (props.size === "small" && {paddingHorizontal: 16} ||
                                       props.size === "normal" && {paddingHorizontal: 20} ||
@@ -352,7 +393,7 @@ const MyButton = (props: any) => {
                 props.iconLeft?.name &&
                 getMyIcon(
                     {
-                        fontFamily: props.iconLeft?.fontFamily || MyConstant.VectorIcon.FontAwesome,
+                        fontFamily: props.iconLeft?.fontFamily || MyConstant.VectorIcon.SimpleLineIcons,
                         name      : props.iconLeft?.name,
                         style     : iconLeftStyles
                     }
@@ -381,7 +422,7 @@ const MyButton = (props: any) => {
                 props.iconRight?.name &&
                 getMyIcon(
                     {
-                        fontFamily: props.iconRight?.fontFamily || MyConstant.VectorIcon.FontAwesome,
+                        fontFamily: props.iconRight?.fontFamily || MyConstant.VectorIcon.SimpleLineIcons,
                         name      : props.iconRight?.name,
                         style     : iconRightStyles
                     }
@@ -404,49 +445,57 @@ const MyButton = (props: any) => {
     );
 
     const touchableComponent = () => {
-        console.log(`LOG: ${MyButton.name}. touchableComponent: `);
         switch (props.touch) {
-            case "highlight":
+            case "highlight": // {{underlayColor: 'rgba(0,0,0,0.35)'}}
                 return (
-                    <TouchableHighlight style = {touchableStyles}
-                                        onPress = {props.onPress}
-                                        {...props.touchableProps}
+                    <TouchableHighlight
+                        onPress = {props.onPress}
+                        style = {touchableStyles}
+                        {...props.touchableProps}
                     >
                         {buttonView}
                     </TouchableHighlight>
                 )
-            case "opacity":
+            case "opacity": // touchableProps = {{activeOpacity: 0.7}}
                 return (
-                    <TouchableOpacity style = {touchableStyles}
-                                      onPress = {props.onPress}
-                                      {...props.touchableProps}
+                    <TouchableOpacity
+                        onPress = {props.onPress}
+                        style = {touchableStyles}
+                        {...props.touchableProps}
                     >
                         {buttonView}
                     </TouchableOpacity>
                 )
-            case "ripple":
+            case "ripple": // touchableProps = {{rippleSize: 400, rippleDuration: 1000, rippleContainerBorderRadius: MyStyle.borderRadiusButtonOutlined, rippleCentered: true}}
+                props.touchableProps.rippleContainerBorderRadius = props.shape === "square" && MyStyle.borderRadiusButtonSquare ||
+                                                                   props.shape === "outlined" && MyStyle.borderRadiusButtonOutlined ||
+                                                                   props.shape === "rounded" && MyStyle.borderRadiusButtonRounded ||
+                                                                   props.shape === "circular" && MyStyle.borderRadiusButtonCircular;
                 return (
-                    <MyMaterialRipple style = {touchableStyles}
-                                      onPress = {props.onPress}
-                                      {...props.touchableProps}
+                    <MyMaterialRipple
+                        style = {touchableStyles}
+                        {...props.touchableProps}
+                        onPress = {() => props.onPress()}
                     >
                         {buttonView}
                     </MyMaterialRipple>
                 )
             case "none":
                 return (
-                    <TouchableWithoutFeedback style = {touchableStyles}
-                                              onPress = {props.onPress}
-                                              {...props.touchableProps}
+                    <TouchableWithoutFeedback
+                        onPress = {props.onPress}
+                        style = {touchableStyles}
+                        {...props.touchableProps}
                     >
                         {buttonView}
                     </TouchableWithoutFeedback>
                 )
             default:
                 return (
-                    <TouchableWithoutFeedback style = {touchableStyles}
-                                              onPress = {props.onPress}
-                                              {...props.touchableProps}
+                    <TouchableWithoutFeedback
+                        onPress = {props.onPress}
+                        style = {touchableStyles}
+                        {...props.touchableProps}
                     >
                         {buttonView}
                     </TouchableWithoutFeedback>
@@ -454,18 +503,35 @@ const MyButton = (props: any) => {
         }
     };
 
-    return (
+    const button =
+              props?.shadowStyle?.width ?
+              <ShadowBox
+                  useSvg
+                  style = {shadowStyles}
+              >
+                  <LinearGradient
+                      style = {linearGradientStyles}
+                      start = {LGButton.start}
+                      end = {LGButton.end}
+                      locations = {LGButton.locations}
+                      colors = {LGButton.colors}
+                  >
+                      {touchableComponent()}
+                  </LinearGradient>
+              </ShadowBox>
+                                        :
+              <LinearGradient
+                  style = {linearGradientStyles}
+                  start = {LGButton.start}
+                  end = {LGButton.end}
+                  locations = {LGButton.locations}
+                  colors = {LGButton.colors}
+              >
+                  {touchableComponent()}
+              </LinearGradient>
+    ;
 
-        <LinearGradient
-            style = {linearGradientStyles}
-            start = {LGButton.start}
-            end = {LGButton.end}
-            locations = {LGButton.locations}
-            colors = {LGButton.colors}
-        >
-            {touchableComponent()}
-        </LinearGradient>
-    );
+    return button;
 };
 
 MyButton.propTypes = {
@@ -480,6 +546,7 @@ MyButton.propTypes = {
     touch        : PropTypes.string,
     textTransform: PropTypes.string,
 
+    shadowStyle        : PropTypes.object,
     linearGradientStyle: PropTypes.object,
     touchableStyle     : PropTypes.object,
     touchableProps     : PropTypes.object,
@@ -502,20 +569,26 @@ MyButton.propTypes = {
 }
 
 MyButton.defaultProps = {
-    size         : "small" || "normal" || "large",
-    shape        : "square" || "outlined" || "rounded" || "circular",
-    fill         : "transparent" || "outlined" || "solid" || "gradient", // outlined = color, icon____Style color,
-    color        : MyColor.PrimaryGradient.thrid,
-    shadow       : "none" || "small" || "medium" || "large",
-    display      : "inline" || "block" || "full",
-    direction    : "vertical" || "horizontal",
-    spacing      : "start" || "center" || "end" || "spaceBetween" || "startCenter" || "centerEnd",
-    touch        : "none" || "ripple" || "opacity" || "highlight",
+    size         : "normal" || "small" || "large",
+    shape        : "rounded" || "outlined" || "square" || "circular",
+    fill         : "gradient" || "outlined" || "solid" || "transparent", // outlined = color, icon____Style color,
+    color        : MyStyle.LGButtonPrimary,
+    shadow       : "medium" || "large" || "small" || "none",
+    display      : "block" || "inline" || "full",
+    direction    : "horizontal" || "vertical",
+    spacing      : "center" || "start" || "end" || "spaceBetween" || "startCenter" || "centerEnd",
+    touch        : "ripple" || "opacity" || "highlight" || "none",
     textTransform: "uppercase" || "lowercase" || "capitalize",
 
+    shadowStyle        : null,
     linearGradientStyle: {},
     touchableStyle     : {},
-    touchableProps     : {},
+    touchableProps     : {
+        rippleSize                 : 400,
+        rippleDuration             : 1000,
+        rippleContainerBorderRadius: 0,
+        rippleCentered             : false
+    },
     buttonViewStyle    : {},
     textStyle          : {},
     iconLeft           : null,
@@ -534,38 +607,57 @@ MyButton.defaultProps = {
     // onPress: null,
 }
 
-export {HeaderCartButton, MyButton};
+export {HeaderButtonLeft, MyButton};
+
+const stylesHeaderButtonLeft = StyleSheet.create(
+    {
+        view : {
+            marginLeft       : 2,
+            paddingHorizontal: 6,
+            paddingVertical  : 3,
+            borderRadius     : 6,
+        },
+        icon : {
+            color: MyColor.Material.WHITE,
+        },
+        image: {
+            width : 22,
+            height: 22,
+        },
+    }
+);
 
 const styles = StyleSheet.create(
     {
+        shadowStyle   : {},
         linearGradient: {},
         touchable     : {},
         buttonView    : {},
 
         buttonSmall : {
-            height           : 32,
+            height           : MyStyle.buttonHeightSmall,
             paddingHorizontal: 13,
         },
         buttonNormal: {
-            height           : 46,
+            height           : MyStyle.buttonHeightNormal,
             paddingHorizontal: 20,
         },
         buttonLarge : {
-            height           : 56,
+            height           : MyStyle.buttonHeightLarge,
             paddingHorizontal: 24,
         },
 
         textSmall : {
-            fontSize  : 13,
             fontFamily: MyStyle.FontFamily.OpenSans.regular,
+            fontSize  : 13,
         },
         textNormal: {
-            fontSize  : 15,
             fontFamily: MyStyle.FontFamily.OpenSans.regular,
+            fontSize  : 15,
         },
         textLarge : {
-            fontSize  : 18,
             fontFamily: MyStyle.FontFamily.OpenSans.regular,
+            fontSize  : 18,
         },
 
         iconSmall : {
@@ -619,7 +711,7 @@ const styles = StyleSheet.create(
                 width : 0,
                 height: 2,
             },
-            shadowOpacity: 0.25,
+            shadowOpacity: 0.5,
             shadowRadius : 3.84,
 
             elevation: 5,
@@ -637,16 +729,16 @@ const styles = StyleSheet.create(
         },
 
         text: {
-            color: MyColor.white,
+            color: MyColor.Material.WHITE,
         },
 
         iconLeft : {
             marginRight: 8,
-            color      : MyColor.white,
+            color      : MyColor.Material.WHITE,
         },
         iconRight: {
             marginLeft: 8,
-            color     : MyColor.white,
+            color     : MyColor.Material.WHITE,
         },
 
         imageLeft     : {},
@@ -658,28 +750,37 @@ const styles = StyleSheet.create(
             marginLeft: 8,
         },
     }
-)
+);
 
 /*<MyButton
     size = "normal"
-    shape = "rounded"
+    shape = "outlined"
     fill = "gradient"
     color = {MyStyle.LGButtonPrimary}
     shadow = "medium"
     display = "block"
     direction = "horizontal"
     spacing = "center"
+    touch = "ripple"
     textTransform = "capitalize"
 
-    title = "Submit"
+    title = {MyLANG.OK}
 
-    buttonStyle = {{}}
+    // shadowStyle = {{width: MyStyle.screenWidth - 64}} // width means use library shadow.
+    linearGradientStyle = {{}}
+    touchableStyle = {{}}
+    touchableProps = {{
+        rippleSize                 : 400,
+        rippleDuration             : 1000,
+        rippleContainerBorderRadius: 0,
+        rippleCentered             : false
+    }}
     buttonViewStyle = {{}}
     textStyle = {{}}
 
-    // iconLeft = {{fontFamily: MyConstant.VectorIcon.SimpleLineIcons, name: "home"}}
+    // iconLeft = {{fontFamily: MyConstant.VectorIcon.SimpleLineIcons, name: 'home'}}
     // iconLeftStyle = {{}}
-    // iconRight = {{fontFamily: MyConstant.VectorIcon.SimpleLineIcons, name: "eye"}}
+    // iconRight = {{fontFamily: MyConstant.VectorIcon.SimpleLineIcons, name: 'eye'}}
     // iconRightStyle = {{}}
     // imageLeft = {{name: MyImage.plate}}
     // imageLeftStyle = {{}}
@@ -689,7 +790,8 @@ const styles = StyleSheet.create(
     // imageRightViewStyle = {{}}
 
     onPress = {(e: any) => {
-        formSubmit(e);
+        // formSubmit(e);
     }}
 />*/
+
 // for icon left text center: use imageLeft = {{}} along with spacing=startCenter

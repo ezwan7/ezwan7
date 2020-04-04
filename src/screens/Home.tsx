@@ -1,11 +1,7 @@
 import React, {Fragment, useCallback, useEffect, useLayoutEffect, useState} from 'react';
 
-import {
-    View,
-    SafeAreaView,
-    ScrollView,
-    RefreshControl, Text, ImageBackground,
-} from 'react-native';
+import {View, SafeAreaView, ScrollView, RefreshControl, Text, BackHandler, TouchableOpacity} from 'react-native';
+import {useFocusEffect} from "@react-navigation/native";
 
 import MyUtil from '../common/MyUtil';
 import {MyStyle, MyStyleSheet} from '../common/MyStyle';
@@ -16,49 +12,71 @@ import MyLANG from '../shared/MyLANG';
 import {MyConstant} from '../common/MyConstant';
 import MyIcon from '../components/MyIcon';
 
+import {ListEmptyViewLottie, ListHeaderViewAll, StatusBarLight} from '../components/MyComponent';
 import {
-    ActivityIndicatorLarge,
-    ListEmptyView, ListEmptyViewLottie,
-    StatusBarDark,
-    StatusBarLight
-} from '../components/MyComponent';
-import {
-    BannerHorizontalListItem,
-    CategoryHorizontalListItem, ContentLoaderBannerHorizontalList, ContentLoaderCategoryHorizontalListItem, ContentLoaderProductHorizontalListItem,
-    ContentLoaderProductListItem,
-    ListItemSeparator, ProductHorizontalListItem,
-    ProductListItem,
+    CategoryHorizontalListItem,
+    CategoryHorizontalListItemContentLoader,
+    ImageSliderBanner,
+    ImageSliderBannerContentLoader,
+    ProductHorizontalListItem,
+    ProductHorizontalListItemContentLoader,
 } from "../shared/MyContainer";
-import FastImage from "react-native-fast-image";
+import Splash from "react-native-splash-screen";
+import {useDispatch, useSelector} from "react-redux";
+import {categorySave} from "../store/CategoryRedux";
 
 let renderCount = 0;
 
-const HomeScreen = ({}) => {
+const HomeScreen = ({route, navigation}: any) => {
 
     if (__DEV__) {
         renderCount += 1;
         MyUtil.printConsole(true, 'log', `LOG: ${HomeScreen.name}. renderCount: `, renderCount);
     }
 
+    const dispatch = useDispatch();
+
+    const user: any     = useSelector((state: any) => state.auth.user);
+    const category: any = useSelector((state: any) => state.category);
+
     const [refreshing, setRefreshing] = useState(false);
 
     const [firstLoadCategory, setFirstLoadCategory] = useState(true);
-    const [category, setCategory]                   = useState([]);
+
     const [firstLoadBanner, setFirstLoadBanner]     = useState(true);
-    const [banner, setBanner]                       = useState([]);
+    const [banner, setBanner]: any                  = useState([]);
     const [firstLoadProduct, setFirstLoadProduct]   = useState(true);
-    const [product, setProduct]                     = useState([]);
+    const [product, setProduct]: any                = useState([]);
     const [firstLoadProduct2, setFirstLoadProduct2] = useState(true);
-    const [product2, setProduct2]                   = useState([]);
+    const [product2, setProduct2]: any              = useState([]);
+
+
+    useFocusEffect(
+        useCallback(() => {
+            const onBackPress = () => {
+                return MyUtil.onBackButtonPress(navigation);
+            };
+
+            BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+            return () =>
+                BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, [])
+    );
 
     useEffect(() => {
-        MyUtil.printConsole(true, 'log', `LOG: ${HomeScreen.name}. useEffect: `, '');
+        MyUtil.printConsole(true, 'log', `LOG: ${HomeScreen.name}. useEffect: `, {user: user, category: category});
+
+        if (route?.params?.splash !== false) { // If splash param is not false then hide splash:
+            MyUtil.printConsole(true, 'log', `LOG: ${HomeScreen.name}. route?.params?.splash: `, route?.params?.splash);
+            Splash.hide();
+        }
 
         fetchCategory(false, false, false);
         fetchBanner(false, false, false);
         fetchProduct(false, false, false);
         fetchProduct2(false, false, false);
-
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -68,45 +86,30 @@ const HomeScreen = ({}) => {
         setRefreshing(true);
 
         fetchCategory(false, true, {
-            'showError': MyConstant.SHOW_MESSAGE.TOAST,
-            'message'  : MyLANG.PageRefreshed
+            'showMessage': MyConstant.SHOW_MESSAGE.TOAST,
+            'message'    : MyLANG.PageRefreshed
         });
         fetchBanner(false, true, {
-            'showError': MyConstant.SHOW_MESSAGE.TOAST,
-            'message'  : MyLANG.PageRefreshed
+            'showMessage': MyConstant.SHOW_MESSAGE.TOAST,
+            'message'    : MyLANG.PageRefreshed
         });
         fetchProduct(false, true, {
-            'showError': MyConstant.SHOW_MESSAGE.TOAST,
-            'message'  : MyLANG.PageRefreshed
+            'showMessage': MyConstant.SHOW_MESSAGE.TOAST,
+            'message'    : MyLANG.PageRefreshed
         });
         fetchProduct2(false, true, {
-            'showError': MyConstant.SHOW_MESSAGE.TOAST,
-            'message'  : MyLANG.PageRefreshed
+            'showMessage': MyConstant.SHOW_MESSAGE.TOAST,
+            'message'    : MyLANG.PageRefreshed
         });
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // TODO
-    const ListEmptyComponent = () => {
-        MyUtil.printConsole(true, 'log', 'LOG: ListEmptyComponent: ', {
-            'product.length': category.length,
-            'firstLoad'     : firstLoadCategory,
-        });
-
-        if (firstLoadCategory || (category && category.length > 0)) return null;
-
-        return <ListEmptyViewLottie source = {MyImage.emptyLostLottie}
-                                    message = {MyLANG.NoProductFound}
-                                    style = {{view: {}, image: {}, text: {}}}
-        />;
-    }
-
     // Refresh All existing on Component Visibile, Show Placeholder on start and loadmore, No Data Found Design
     const fetchCategory = async (showLoader: any = MyLANG.Loading + '...', setRefresh: boolean = false, showInfoMessage: any = false) => {
 
         const response: any = await MyUtil
-            .myHTTP(true, MyConstant.HTTP_POST, MyAPI.categories,
+            .myHTTP(false, MyConstant.HTTP_POST, MyAPI.categories,
                     {
                         'language_id': MyConfig.LanguageActive,
 
@@ -124,11 +127,11 @@ const HomeScreen = ({}) => {
         if (response && response.type === MyConstant.RESPONSE.TYPE.data && response.data.status === 200 && response.data.data && response.data.data.data) {
 
             const data = response.data.data.data;
-            if (data.length > 0) {
-                setCategory(data);
+            if (data?.length > 0) {
+                dispatch(categorySave(data, MyConstant.DataSetType.fresh));
             }
         } else {
-            MyUtil.showMessage(showInfoMessage.showError, response.errorMessage ? response.errorMessage : MyLANG.UnknownError, false);
+            MyUtil.showMessage(showInfoMessage.showMessage, response.errorMessage ? response.errorMessage : MyLANG.UnknownError, false);
         }
 
         setFirstLoadCategory(false);
@@ -137,13 +140,13 @@ const HomeScreen = ({}) => {
         }
 
         if (showInfoMessage !== false) {
-            MyUtil.showMessage(showInfoMessage.showError, showInfoMessage.message, false);
+            MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message, false);
         }
     }
     const fetchBanner   = async (showLoader: any = MyLANG.Loading + '...', setRefresh: boolean = false, showInfoMessage: any = false) => {
 
         const response: any = await MyUtil
-            .myHTTP(true, MyConstant.HTTP_POST, MyAPI.banner,
+            .myHTTP(false, MyConstant.HTTP_POST, MyAPI.banner,
                     {
                         'language_id': MyConfig.LanguageActive,
 
@@ -161,11 +164,11 @@ const HomeScreen = ({}) => {
         if (response && response.type === MyConstant.RESPONSE.TYPE.data && response.data.status === 200 && response.data.data && response.data.data.data) {
 
             const data = response.data.data.data;
-            if (data.length > 0) {
+            if (data?.length > 0) {
                 setBanner(data);
             }
         } else {
-            MyUtil.showMessage(showInfoMessage.showError, response.errorMessage ? response.errorMessage : MyLANG.UnknownError, false);
+            MyUtil.showMessage(showInfoMessage.showMessage, response.errorMessage ? response.errorMessage : MyLANG.UnknownError, false);
         }
 
         setFirstLoadBanner(false);
@@ -174,16 +177,16 @@ const HomeScreen = ({}) => {
         }
 
         if (showInfoMessage !== false) {
-            MyUtil.showMessage(showInfoMessage.showError, showInfoMessage.message, false);
+            MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message, false);
         }
     }
     const fetchProduct  = async (showLoader: any = MyLANG.Loading + '...', setRefresh: boolean = false, showInfoMessage: any = false) => {
 
         const response: any = await MyUtil
-            .myHTTP(true, MyConstant.HTTP_POST, MyAPI.product_by_category,
+            .myHTTP(false, MyConstant.HTTP_POST, MyAPI.product_by_category,
                     {
                         'language_id'  : MyConfig.LanguageActive,
-                        'categories_id': 1,
+                        'categories_id': 32,
                         'skip'         : 0,
                         'take'         : MyConfig.ListLimit.productListHorizontal,
 
@@ -200,12 +203,12 @@ const HomeScreen = ({}) => {
 
         if (response && response.type === MyConstant.RESPONSE.TYPE.data && response.data.status === 200 && response.data.data && response.data.data.data) {
 
-            const data = response.data.data.data.product;
-            if (data.length > 0) {
+            const data = response.data.data.data;
+            if (data?.product?.length > 0) {
                 setProduct(data);
             }
         } else {
-            MyUtil.showMessage(showInfoMessage.showError, response.errorMessage ? response.errorMessage : MyLANG.UnknownError, false);
+            MyUtil.showMessage(showInfoMessage.showMessage, response.errorMessage ? response.errorMessage : MyLANG.UnknownError, false);
         }
 
         setFirstLoadProduct(false);
@@ -214,13 +217,13 @@ const HomeScreen = ({}) => {
         }
 
         if (showInfoMessage !== false) {
-            MyUtil.showMessage(showInfoMessage.showError, showInfoMessage.message, false);
+            MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message, false);
         }
     }
     const fetchProduct2 = async (showLoader: any = MyLANG.Loading + '...', setRefresh: boolean = false, showInfoMessage: any = false) => {
 
         const response: any = await MyUtil
-            .myHTTP(true, MyConstant.HTTP_POST, MyAPI.product_by_category,
+            .myHTTP(false, MyConstant.HTTP_POST, MyAPI.product_by_category,
                     {
                         'language_id'  : MyConfig.LanguageActive,
                         'categories_id': 30,
@@ -240,12 +243,12 @@ const HomeScreen = ({}) => {
 
         if (response && response.type === MyConstant.RESPONSE.TYPE.data && response.data.status === 200 && response.data.data && response.data.data.data) {
 
-            const data = response.data.data.data.product;
-            if (data.length > 0) {
+            const data = response.data.data.data;
+            if (data?.product?.length > 0) {
                 setProduct2(data);
             }
         } else {
-            MyUtil.showMessage(showInfoMessage.showError, response.errorMessage ? response.errorMessage : MyLANG.UnknownError, false);
+            MyUtil.showMessage(showInfoMessage.showMessage, response.errorMessage ? response.errorMessage : MyLANG.UnknownError, false);
         }
 
         setFirstLoadProduct2(false);
@@ -254,7 +257,7 @@ const HomeScreen = ({}) => {
         }
 
         if (showInfoMessage !== false) {
-            MyUtil.showMessage(showInfoMessage.showError, showInfoMessage.message, false);
+            MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message, false);
         }
     }
 
@@ -263,68 +266,108 @@ const HomeScreen = ({}) => {
             <StatusBarLight/>
             <SafeAreaView style = {MyStyleSheet.SafeAreaView1}/>
             <SafeAreaView style = {MyStyleSheet.SafeAreaView2}>
-                <View style = {[MyStyleSheet.SafeAreaView3, {marginTop: MyStyle.HeaderHeight}]}>
+                <View style = {[MyStyleSheet.SafeAreaView3, {backgroundColor: MyColor.Material.WHITE}]}>
 
-                    {!firstLoadCategory && !firstLoadBanner && !firstLoadProduct && !firstLoadProduct2 && category && category.length === 0 && banner && banner.length === 0 && product && product.length === 0 && product2 && product2.length === 0 ?
-                     <ListEmptyViewLottie source = {MyImage.emptyLostLottie}
-                                          message = {MyLANG.NoHomeItemsFound}
-                                          style = {{view: {}, image: {}, text: {}}}
-                     /> :
-                     <ScrollView contentInsetAdjustmentBehavior = "automatic"
-                                 refreshControl = {
-                                     <RefreshControl refreshing = {refreshing}
-                                                     onRefresh = {onRefresh}/>
-                                 }
-                                 style = {{paddingTop: 12}}
+                    {!firstLoadCategory && !firstLoadBanner && !firstLoadProduct && !firstLoadProduct2 && category?.length === 0 && banner?.length === 0 && !product?.product && !product2?.product ?
+                     <ListEmptyViewLottie
+                         source = {MyImage.lottie_empty_lost}
+                         message = {MyLANG.NoHomeItemsFound}
+                         style = {{view: {}, image: {}, text: {}}}
+                     />
+                                                                                                                                                                                                    :
+
+                     <ScrollView
+                         contentInsetAdjustmentBehavior = "automatic"
+                         contentContainerStyle = {{paddingTop: MyStyle.headerHeightAdjusted}}
+                         refreshControl = {
+                             <RefreshControl
+                                 refreshing = {refreshing}
+                                 onRefresh = {onRefresh}
+                                 progressViewOffset = {MyStyle.headerHeightAdjusted}
+                                 colors = {[MyColor.Primary.first]}
+                             />
+                         }
                      >
 
-                         <ScrollView horizontal
-                                     showsHorizontalScrollIndicator = {false}
-                                     style = {{flexGrow: 0, marginVertical: 15}}>
-                             {firstLoadCategory && category && category.length === 0 && ContentLoaderCategoryHorizontalListItem(7)}
-                             <CategoryHorizontalListItem item = {category}/>
+                         <ScrollView
+                             style = {{
+                                 marginTop   : MyStyle.marginVerticalList + MyStyle.marginVerticalList,
+                                 marginBottom: MyStyle.marginVerticalList,
+                                 flexGrow    : 0
+                             }}
+                             horizontal
+                             showsHorizontalScrollIndicator = {false}
+                         >
+                             {
+                                 category?.length > 0 ?
+                                 <CategoryHorizontalListItem item = {category}/>
+                                                      :
+                                 CategoryHorizontalListItemContentLoader(7)
+                             }
+
                          </ScrollView>
 
-                         <ScrollView horizontal
-                                     showsHorizontalScrollIndicator = {false}
-                                     decelerationRate = {0}
-                                     snapToInterval = {MyStyle.screenWidth}
-                                     snapToAlignment = "center"
-                                     style = {{flexGrow: 0, marginVertical: 15}}>
-                             {firstLoadBanner && banner && banner.length === 0 && <ContentLoaderBannerHorizontalList/>}
-                             <BannerHorizontalListItem item = {banner}/>
+                         <ScrollView
+                             horizontal = {true}
+                             pagingEnabled = {true}
+                             decelerationRate = "fast"
+                             showsHorizontalScrollIndicator = {false}
+                             style = {{marginVertical: MyStyle.marginVerticalList}}
+                         >
+                             {firstLoadBanner && banner?.length === 0 && <ImageSliderBannerContentLoader/>}
+                             <ImageSliderBanner item = {banner}  style = {{}}/>
                          </ScrollView>
 
-                         <View style = {{marginHorizontal: 12, marginTop: 15}}>
-                             <Text style = {{
-                                 fontFamily: MyStyle.FontFamily.OpenSans.regular,
-                                 fontSize  : 16,
-                                 color     : MyColor.Material.BLACK,
-                             }}>
-                                 {MyLANG.FeaturedProducts}
-                             </Text>
-                         </View>
-                         <ScrollView horizontal
-                                     showsHorizontalScrollIndicator = {false}
-                                     style = {{flexGrow: 0, marginVertical: 15}}>
-                             {firstLoadProduct && product && product.length === 0 && ContentLoaderProductHorizontalListItem(5)}
-                             <ProductHorizontalListItem item = {product}/>
+                         <ListHeaderViewAll
+                             textLeft = {MyLANG.FeaturedProducts}
+                             textRight = {MyLANG.ViewAll}
+                             onPress = {() =>
+                                 MyUtil.commonAction(false,
+                                                     navigation,
+                                                     MyConstant.CommonAction.navigate,
+                                                     MyConfig.routeName.ProductList,
+                                                     {'id': product?.categories_id, 'item': product},
+                                                     null
+                                 )
+                             }
+                         />
+                         <ScrollView
+                             horizontal
+                             showsHorizontalScrollIndicator = {false}
+                             style = {{flexGrow: 0, marginVertical: MyStyle.marginVerticalList}}
+                         >
+                             {
+                                 product?.product?.length > 0 ? <ProductHorizontalListItem item = {product.product}/>
+                                                              :
+                                 firstLoadProduct ? ProductHorizontalListItemContentLoader(5)
+                                                  : null
+                             }
                          </ScrollView>
 
-                         <View style = {{marginHorizontal: 12, marginTop: 15}}>
-                             <Text style = {{
-                                 fontFamily: MyStyle.FontFamily.OpenSans.regular,
-                                 fontSize  : 16,
-                                 color     : MyColor.Material.BLACK,
-                             }}>
-                                 {MyLANG.NewArrivals}
-                             </Text>
-                         </View>
-                         <ScrollView horizontal
-                                     showsHorizontalScrollIndicator = {false}
-                                     style = {{flexGrow: 0, marginVertical: 15}}>
-                             {firstLoadProduct2 && product2 && product2.length === 0 && ContentLoaderProductHorizontalListItem(5)}
-                             <ProductHorizontalListItem item = {product2}/>
+                         <ListHeaderViewAll
+                             textLeft = {MyLANG.NewArrivals}
+                             textRight = {MyLANG.ViewAll}
+                             onPress = {() =>
+                                 MyUtil.commonAction(false,
+                                                     navigation,
+                                                     MyConstant.CommonAction.navigate,
+                                                     MyConfig.routeName.ProductList,
+                                                     {'id': product2?.categories_id, 'item': product2},
+                                                     null
+                                 )
+                             }
+                         />
+                         <ScrollView
+                             horizontal
+                             showsHorizontalScrollIndicator = {false}
+                             style = {{flexGrow: 0, marginVertical: MyStyle.marginVerticalList}}
+                         >
+                             {
+                                 product2?.product?.length > 0 ? <ProductHorizontalListItem item = {product2.product}/>
+                                                               :
+                                 firstLoadProduct2 ? ProductHorizontalListItemContentLoader(5)
+                                                   : null
+                             }
                          </ScrollView>
 
                      </ScrollView>

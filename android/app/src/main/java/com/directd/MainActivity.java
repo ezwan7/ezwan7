@@ -51,6 +51,7 @@ public class MainActivity extends ReactActivity {
         animatedVector.start();*/
 
         SplashScreen.show(this, R.style.SplashScreenTheme);
+
         super.onCreate(savedInstanceState);
     }
 

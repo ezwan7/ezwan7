@@ -18,48 +18,53 @@ let renderCount = 0;
 
 const MyInput = (props: any) => {
 
-    if (__DEV__) {
-        renderCount += 1;
-        console.log(`LOG: ${MyInput.name}. renderCount: `, renderCount, props?.value);
-    }
-
-    // const [value, setValue]                     = useState(props.value);
+    const [value, setValue]                     = useState(props?.value);
     const [secureTextEntry, setSecureTextEntry] = useState(props.inputProps?.secureTextEntry);
     const [isFocused, setIsFocused]             = useState(false);
-    const [_animatedIsFocused]                  = useState(new Animated.Value(props.value ? 1 : 0));
-    const [_helperTextVisible]                  = useState(new Animated.Value(props.helperText?.visible ? 1 : 0));
+    const [_animatedIsFocused]                  = useState(new Animated.Value(value ? 1 : 0));
+    const [_helperTextVisible]                  = useState(new Animated.Value(props.helperText?.message ? 1 : 0));
     const [_placeholderLabelAnimated]           = useState(new Animated.Value(!isFocused ? 1 : 0));
 
-    /*useEffect(() => {
-        setValue(props.value);
-    }, [props.value]);*/
+    if (__DEV__) {
+        renderCount += 1;
+        // console.log(`LOG: ${MyInput.name}. renderCount: `, renderCount, value, props?.value);
+    }
 
     useEffect(() => {
-        // console.log(`LOG: ${MyInput.name}. useEffect: `, isFocused, props.value);
+        // console.log(`LOG: ${MyInput.name}. useEffect: `, 'props.value 0');
+        if (props.value !== value) {
+            // console.log(`LOG: ${MyInput.name}. useEffect: `, 'props.value 1');
+            setValue(props.value);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [props.value]);
+
+    useEffect(() => {
+        // console.log(`LOG: ${MyInput.name}. useEffect: `, isFocused, value);
         Animated.timing(_animatedIsFocused, {
-            toValue : (isFocused || props.value) ? 1 : 0,
+            toValue : (isFocused || value) ? 1 : 0,
             duration: 200,
         }).start();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isFocused, props.value]);
+    }, [isFocused, value]);
 
     useEffect(() => {
-        // console.log(`LOG: ${MyInput.name}. useEffect: `, props.helperText?.visible);
+        // console.log(`LOG: ${MyInput.name}. useEffect: `, props.helperText?.message);
         Animated.timing(_helperTextVisible, {
-            toValue : props.helperText?.visible ? 1 : 0,
+            toValue : props.helperText?.message ? 1 : 0,
             duration: 200,
         }).start();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.helperText?.visible]);
+    }, [props.helperText?.message]);
 
     useEffect(() => {
-        // console.log(`LOG: ${MyInput.name}. useEffect: `, isFocused, props.value);
+        // console.log(`LOG: ${MyInput.name}. useEffect: `, isFocused, value);
         Animated.timing(_placeholderLabelAnimated, {
-            toValue : (!isFocused || props.value) ? 1 : 0,
+            toValue : (!isFocused || value) ? 1 : 0,
             duration: 200,
         }).start();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isFocused, props.value]);
+    }, [isFocused, value]);
 
 
     const viewGroupStyles = [
@@ -87,11 +92,12 @@ const MyInput = (props: any) => {
                                                props.mode === "outlined" && styles.focusedBorderOutlined ||
                                                props.mode === "rounded" && styles.focusedBorderRounded),
         (isFocused && props.focusedBorderColor) &&
-        {borderColor: props.focusedBorderColor.borderColor ? props.focusedBorderColor.borderColor : MyColor.Material.DEEPPRUPLE["A400"]},
+        {borderColor: props.focusedBorderColor.borderColor ? props.focusedBorderColor.borderColor : MyColor.Primary.first},
 
-        props.helperText?.visible && (props.helperText?.type === "success" && styles.viewSuccess ||
+        props.helperText?.message && (props.helperText?.type === "success" && styles.viewSuccess ||
                                       props.helperText?.type === "warning" && styles.viewWarning ||
-                                      props.helperText?.type === "error" && styles.viewError),
+                                      props.helperText?.type === "error" && styles.viewError ||
+                                      styles.viewError),
 
 
         {...props.viewStyle}
@@ -99,17 +105,18 @@ const MyInput = (props: any) => {
 
     const placeholderTextColor = props.placeholderStyle ? props.placeholderStyle?.color : MyColor.Material.GREY["500"];
 
-    const labelTextColorFocused        = ((props.helperText?.visible && (props.helperText?.type === "success" && MyColor.Material.GREEN["900"] ||
-                                                                         props.helperText?.type === "warning" && MyColor.Material.YELLOW["900"] ||
-                                                                         props.helperText?.type === "error" && MyColor.Material.RED["900"])) ||
-                                          (isFocused && (props.focusedBorderColor?.borderColor && props.focusedBorderColor.borderColor || MyColor.Material.DEEPPRUPLE["A400"])) ||
+    const labelTextColorFocused        = ((props.helperText?.message && (props.helperText?.type === "success" && MyColor.sucessDark ||
+                                                                         props.helperText?.type === "warning" && MyColor.warningDark ||
+                                                                         props.helperText?.type === "error" && MyColor.errorDark ||
+                                                                         MyColor.errorDark)) ||
+                                          (isFocused && (props.focusedBorderColor?.borderColor && props.focusedBorderColor.borderColor || MyColor.Primary.first)) ||
                                           (props.mode === "line" && MyColor.Material.GREY["600"] ||
                                           props.mode === "outlined" && MyColor.Material.GREY["800"] ||
                                           props.mode === "rounded" && MyColor.Material.GREY["800"])
     );
-    const labelTextBottomFocused1: any = props.mode === "line" && 3 ||
-                                         props.mode === "outlined" && 3 ||
-                                         props.mode === "rounded" && 3;
+    const labelTextBottomFocused1: any = props.mode === "line" && 4 ||
+                                         props.mode === "outlined" && 4 ||
+                                         props.mode === "rounded" && 4;
     const labelTextBottomFocused2: any = props.mode === "line" && 26 ||
                                          props.mode === "outlined" && 33 ||
                                          props.mode === "rounded" && 30;
@@ -119,11 +126,11 @@ const MyInput = (props: any) => {
 
         props.floatingLabel && {
             position       : "absolute",
-            fontFamily     : isFocused || props.value ? MyStyle.FontFamily.Roboto.medium : MyStyle.FontFamily.Roboto.regular,
-            backgroundColor: isFocused || props.value ? (props.mode === "line" && "transparent" ||
-                                                         props.mode === "outlined" && props.floatingLabelBackground ||
-                                                         props.mode === "rounded" && props.floatingLabelBackground)
-                                                      : "transparent",
+            fontFamily     : isFocused || value ? MyStyle.FontFamily.OpenSans.medium : MyStyle.FontFamily.OpenSans.regular,
+            backgroundColor: isFocused || value ? (props.mode === "line" && "transparent" ||
+                                                   props.mode === "outlined" && props.floatingLabelBackground ||
+                                                   props.mode === "rounded" && props.floatingLabelBackground)
+                                                : "transparent",
             bottom         : _animatedIsFocused.interpolate(
                 {
                     inputRange : [0, 1],
@@ -133,7 +140,7 @@ const MyInput = (props: any) => {
             fontSize       : _animatedIsFocused.interpolate(
                 {
                     inputRange : [0, 1],
-                    outputRange: [16, 12],
+                    outputRange: [MyStyle.FontSize.placeHolder, 12],
                 }
             ),
             color          : _animatedIsFocused.interpolate(
@@ -146,7 +153,7 @@ const MyInput = (props: any) => {
 
         props.floatingLabelFloated && props.floatingLabelFloated === true && {
             position       : "absolute",
-            fontFamily     : MyStyle.FontFamily.Roboto.medium,
+            fontFamily     : MyStyle.FontFamily.OpenSans.medium,
             backgroundColor: (props.mode === "line" && "transparent" ||
                               props.mode === "outlined" && props.floatingLabelBackground ||
                               props.mode === "rounded" && props.floatingLabelBackground),
@@ -177,7 +184,7 @@ const MyInput = (props: any) => {
                 }
             ),
         } || props.floatingLabelFloated === true && {
-            color: props.value ? "transparent" : MyColor.Material.GREY["600"],
+            color: value ? "transparent" : MyColor.Material.GREY["600"],
         },
 
         {...props.placeholderLabelStyle}
@@ -204,12 +211,13 @@ const MyInput = (props: any) => {
         props.mode === "transparent" && styles.iconLeftTransparent,
 
         (isFocused && props.focusedBorderColor) &&
-        {color: props.focusedBorderColor.borderColor ? props.focusedBorderColor.borderColor : MyColor.Material.DEEPPRUPLE["A400"]},
+        {color: props.focusedBorderColor.borderColor ? props.focusedBorderColor.borderColor : MyColor.Primary.first},
 
-        props.helperText?.visible && props.helperText?.colorLeftIcon &&
+        props.helperText?.message && props.helperText?.colorLeftIcon !== false &&
         (props.helperText?.type === "success" && styles.helperTextSuccess ||
          props.helperText?.type === "warning" && styles.helperTextWarning ||
-         props.helperText?.type === "error" && styles.helperTextError),
+         props.helperText?.type === "error" && styles.helperTextError ||
+         styles.helperTextError),
 
         {...props.iconLeftStyle}
     ];
@@ -223,12 +231,13 @@ const MyInput = (props: any) => {
         props.mode === "transparent" && styles.iconRightTransparent,
 
         /*(isFocused && props.focusedBorderColor) &&
-        {color: props.focusedBorderColor.borderColor ? props.focusedBorderColor.borderColor : MyColor.Material.DEEPPRUPLE["A400"]},*/
+        {color: props.focusedBorderColor.borderColor ? props.focusedBorderColor.borderColor : MyColor.Primary.first},*/
 
-        props.helperText?.visible && props.helperText?.colorRightIcon &&
+        props.helperText?.message && props.helperText?.colorRightIcon !== false &&
         (props.helperText?.type === "success" && styles.helperTextSuccess ||
          props.helperText?.type === "warning" && styles.helperTextWarning ||
-         props.helperText?.type === "error" && styles.helperTextError),
+         props.helperText?.type === "error" && styles.helperTextError ||
+         styles.helperTextError),
 
         {...props.iconRightStyle}
     ];
@@ -262,7 +271,8 @@ const MyInput = (props: any) => {
 
         props.helperText?.type === "success" && styles.helperTextSuccess ||
         props.helperText?.type === "warning" && styles.helperTextWarning ||
-        props.helperText?.type === "error" && styles.helperTextError,
+        props.helperText?.type === "error" && styles.helperTextError ||
+        styles.helperTextError,
 
         {
             top    : _helperTextVisible.interpolate(
@@ -283,10 +293,19 @@ const MyInput = (props: any) => {
     ];
 
     const iconRightOnPress = () => {
-        if (props.iconRightOnPress && props.iconRightOnPress?.type === "secureTextEntry") {
+        if (props.iconRightOnPress && props.iconRightOnPress?.type === MyConstant.InputIconRightOnPress.secureTextEntry) {
             setSecureTextEntry(props.inputProps.secureTextEntry = !props.inputProps.secureTextEntry);
-            console.log(`LOG: ${MyInput.name}. iconRightOnPress: `, props.inputProps?.secureTextEntry);
+            // console.log(`LOG: ${MyInput.name}. iconRightOnPress: `, props.inputProps?.secureTextEntry);
         }
+    }
+
+    const onChangeText = (text: any) => {
+        setValue(text);
+        props.onChangeText?.(text);
+
+        /* setTimeout(() => {
+             props.onChangeText?.(text);
+         }, 300);*/
     }
 
     return (
@@ -297,9 +316,9 @@ const MyInput = (props: any) => {
                         props.iconLeft?.name &&
                         getMyIcon(
                             {
-                                fontFamily: props.iconLeft?.fontFamily || MyConstant.VectorIcon.FontAwesome,
+                                fontFamily: props.iconLeft?.fontFamily || MyConstant.VectorIcon.SimpleLineIcons,
                                 name      : props.iconLeft?.name,
-                                color     : props.iconLeft?.color || MyColor.Material.GREY["600"],
+                                color     : props.iconLeft?.color || MyColor.Material.GREY["800"],
                                 style     : iconLeftStyles
                             }
                         )
@@ -322,21 +341,25 @@ const MyInput = (props: any) => {
                         {
                             props.floatingLabel &&
                             <View style = {{alignSelf: "baseline"}}>
-                                <Animated.Text style = {floatingLabelStyles}>
+                                <Animated.Text numberOfLines = {1}
+                                               style = {floatingLabelStyles}
+                                >
                                     {props.floatingLabel || MyLANG.WriteSomethingHere}
                                 </Animated.Text>
                             </View>
                         }
                         {
                             props.inlineLabel &&
-                            <Text style = {inlineLabelStyles}>
+                            <Text numberOfLines = {1}
+                                  style = {inlineLabelStyles}>
                                 {props.inlineLabel || MyLANG.WriteSomethingHere}
                             </Text>
                         }
                         {
                             props.placeholderLabel &&
                             <View style = {{alignSelf: "baseline"}}>
-                                <Animated.Text style = {placeholderLabelStyles}>
+                                <Animated.Text numberOfLines = {1}
+                                               style = {placeholderLabelStyles}>
                                     {props.placeholderLabel || MyLANG.WriteSomethingHere}
                                 </Animated.Text>
                             </View>
@@ -350,9 +373,10 @@ const MyInput = (props: any) => {
                                 style = {inputStyles}
                                 onBlur = {() => setIsFocused(false)}
                                 onFocus = {() => setIsFocused(true)}
-                                // value = {value}
-                                mask = {props.mask}
                                 {...props.inputProps}
+                                onChangeText = {onChangeText}
+                                value = {value}
+                                mask = {props.mask}
                             />
                                        :
                             <TextInput
@@ -362,8 +386,9 @@ const MyInput = (props: any) => {
                                 style = {inputStyles}
                                 onBlur = {() => setIsFocused(false)}
                                 onFocus = {() => setIsFocused(true)}
-                                // value = {value}
                                 {...props.inputProps}
+                                onChangeText = {onChangeText}
+                                value = {value}
                             />
                         }
                     </>
@@ -383,13 +408,14 @@ const MyInput = (props: any) => {
                     }
                     {
                         props.iconRight?.name &&
-                        <TouchableOpacity style = {styles.iconRightTouchable}
+                        <TouchableOpacity activeOpacity = {0.5}
+                                          style = {styles.iconRightTouchable}
                                           onPress = {props.iconRightOnPress?.type ? iconRightOnPress : props.iconRightOnPress}>
                             {getMyIcon(
                                 {
-                                    fontFamily: props.iconRight?.fontFamily || MyConstant.VectorIcon.FontAwesome,
+                                    fontFamily: props.iconRight?.fontFamily || MyConstant.VectorIcon.SimpleLineIcons,
                                     name      : props.iconRight?.name,
-                                    color     : props.iconRight?.color || MyColor.Material.GREY["600"],
+                                    color     : props.iconRight?.color || MyColor.Material.GREY["800"],
                                     style     : iconRightStyles
                                 }
                             )}
@@ -398,8 +424,10 @@ const MyInput = (props: any) => {
                 </View>
             </TouchableWithoutFeedback>
             <View>
-                <Animated.Text style = {helperTextStyles}>
-                    {props.helperText?.visible ? (props.helperText?.message || MyLANG.HelperTextDefault) : ''}
+                <Animated.Text numberOfLines = {1}
+                               style = {helperTextStyles}
+                >
+                    {props.helperText?.message ? props.helperText?.message : ''}
                 </Animated.Text>
             </View>
         </View>
@@ -416,10 +444,11 @@ MyInput.propTypes = {
     floatingLabelFloated   : PropTypes.bool,
     inlineLabel            : PropTypes.string,
     placeholderLabel       : PropTypes.string,
+    mask                   : PropTypes.string,
 
-    value     : PropTypes.any,
-    inputProps: PropTypes.object,
-    mask      : PropTypes.string,
+    inputProps  : PropTypes.object,
+    onChangeText: PropTypes.func,
+    value       : PropTypes.any,
 
     viewGroupStyle       : PropTypes.object,
     viewStyle            : PropTypes.object,
@@ -451,19 +480,20 @@ MyInput.propTypes = {
 }
 
 MyInput.defaultProps = {
-    mode                   : "line" || "outlined" || "rounded" || "transparent",
-    focusedBorder          : false,
-    // focusedBorderColor: {borderColor: MyColor.Material.DEEPPRUPLE["A400"]},
+    mode                   : "rounded" || "line" || "outlined" || "transparent",
+    focusedBorder          : true,
+    focusedBorderColor     : true, // {borderColor: MyColor.Primary.first},
     placeholder            : null,
-    // floatingLabel: "",
-    floatingLabelBackground: "transparent",
+    floatingLabel          : null,
+    floatingLabelBackground: "#f1f1f1",
     floatingLabelFloated   : false,
-    // inlineLabel            : null,
+    inlineLabel            : null,
     placeholderLabel       : null,
+    mask                   : null,
 
-    value     : null,
-    inputProps: {},
-    mask      : null,
+    inputProps  : {},
+    onChangeText: null,
+    value       : null,
 
     viewGroupStyle       : {},
     viewStyle            : {},
@@ -491,7 +521,7 @@ MyInput.defaultProps = {
     helperText     : null,
     helperTextStyle: {},
 
-    // onPress: null,
+    onPress: null,
 };
 
 export {MyInput};
@@ -520,13 +550,13 @@ const styles = StyleSheet.create(
             alignItems    : "center",
         },
         viewSuccess: {
-            borderColor: MyColor.Material.GREEN["900"],
+            borderColor: MyColor.sucessDark,
         },
         viewWarning: {
-            borderColor: MyColor.Material.YELLOW["900"],
+            borderColor: MyColor.warningDark,
         },
         viewError  : {
-            borderColor: MyColor.Material.RED["900"],
+            borderColor: MyColor.errorDark,
         },
 
         iconLeft           : {
@@ -555,13 +585,13 @@ const styles = StyleSheet.create(
         placeholderLabel: {
             position  : "absolute",
             bottom    : 3,
-            fontFamily: MyStyle.FontFamily.Roboto.regular,
-            fontSize  : 16,
+            fontFamily: MyStyle.FontFamily.OpenSans.regular,
+            fontSize  : MyStyle.FontSize.placeHolder,
             color     : MyColor.Material.GREY["600"],
         },
         inlineLabel     : {
-            fontSize  : 16,
-            fontFamily: MyStyle.FontFamily.Roboto.regular,
+            fontSize  : MyStyle.FontSize.placeHolder,
+            fontFamily: MyStyle.FontFamily.OpenSans.regular,
             color     : MyColor.Material.GREY["700"],
 
             paddingRight: 10,
@@ -584,8 +614,8 @@ const styles = StyleSheet.create(
             marginTop    : 0,
             marginBottom : 0,
 
-            fontSize  : 16,
-            fontFamily: MyStyle.FontFamily.Roboto.regular,
+            fontSize  : MyStyle.FontSize.input,
+            fontFamily: MyStyle.FontFamily.Roboto.medium,
             color     : MyColor.Material.BLACK,
 
         },
@@ -625,7 +655,7 @@ const styles = StyleSheet.create(
         outlined        : {
             borderWidth      : 1.0,
             borderRadius     : 4,
-            borderColor      : MyColor.Material.GREY["800"],
+            borderColor      : MyColor.Material.GREY["600"],
             paddingVertical  : 12,
             paddingHorizontal: 14,
         },
@@ -636,7 +666,7 @@ const styles = StyleSheet.create(
         rounded          : {
             borderWidth      : 1.0,
             borderRadius     : 50,
-            borderColor      : MyColor.Material.GREY["800"],
+            borderColor      : MyColor.Material.GREY["600"],
             paddingVertical  : 9,
             paddingHorizontal: 20,
         },
@@ -679,13 +709,13 @@ const styles = StyleSheet.create(
         },
 
         helperTextSuccess: {
-            color: MyColor.Material.GREEN["900"],
+            color: MyColor.sucessDark,
         },
         helperTextWarning: {
-            color: MyColor.Material.YELLOW["900"],
+            color: MyColor.warningDark,
         },
         helperTextError  : {
-            color: MyColor.Material.RED["900"],
+            color: MyColor.errorDark,
         },
 
         imageLeftView : {
@@ -710,24 +740,23 @@ const styles = StyleSheet.create(
 );
 
 /*<MyInput
-    mode = "line"
-    focusedBorder
-    focusedBorderColor
-    // placeholder = "Enter your Passwords"
+    mode = "outlined"
+    focusedBorder={false}
+    focusedBorderColor={false} // {borderColor: MyColor.Primary.first},
+    // placeholder = "Enter your Password"
     floatingLabel = "Enter your Password"
     floatingLabelBackground = "#f1f1f1"
+    floatingLabelFloated = {false}
     // inlineLabel = "Enter your Password"
+    // placeholderLabel = "+1 ([000]) [000] [00] [00]"
+    // mask = {"+1 ([000]) [000] [00] [00]"}
 
-    // onPress = {(e: any) => {
-    //     console.log('onPress: HOME:');
-    // }}
-
-    value = {getValues().username}
     inputProps = {{
         secureTextEntry: false,
         editable       : true,
-        onChangeText   : (text: any) => setValue('username', text, true)
     }}
+    onChangeText = {(text: any) => setValue('password', text, true)}
+    value = {getValues().password}
 
     viewGroupStyle = {{}}
     viewStyle = {{}}
@@ -735,28 +764,32 @@ const styles = StyleSheet.create(
     inlineLabelStyle = {{}}
     inputStyle = {{}}
     placeholderStyle = {{}}
+    placeholderLabelStyle = {{}}
 
-    // iconLeft = {{fontFamily: MyConstant.VectorIcon.SimpleLineIcons, name: 'home'}}
-    // iconLeftStyle = {{}}
-    // iconRight = {{fontFamily: MyConstant.VectorIcon.SimpleLineIcons, name: 'eye'}}
-    // iconRightStyle = {{}}
+    iconLeft = {{fontFamily: MyConstant.VectorIcon.SimpleLineIcons, name: 'home'}}
+    iconLeftStyle = {{}}
+    iconRight = {{fontFamily: MyConstant.VectorIcon.SimpleLineIcons, name: 'arrow-down-circle'}}
+    // iconRightStyle = {{fontSize: 16}}
     // iconRightOnPress = {{type: 'secureTextEntry'}}
     // iconRightOnPress = {(e: any) => {
     //     console.log('iconRightOnPress: HOME');
     // }}
-    imageLeft = {{name: MyImage.plate}}
-    imageLeftStyle = {{}}
-    imageLeftViewStyle = {{}}
-    imageRight = {{name: MyImage.plate}}
-    imageRightStyle = {{}}
-    imageRightViewStyle = {{}}
+    // imageLeft = {{name: MyImage.plate}}
+    // imageLeftStyle = {{}}
+    // imageLeftViewStyle = {{}}
+    // imageRight = {{name: MyImage.plate}}
+    // imageRightStyle = {{}}
+    // imageRightViewStyle = {{}}
 
     helperText = {{
         colorLeftIcon : true,
         colorRightIcon: true,
         type          : "error",
-        visible       : errors.username?.message ? true : false,
-        message       : errors.username?.message ? errors.username.message : '',
+        message       : errors.password?.message ? errors.password.message : '',
     }}
     helperTextStyle = {{}}
+
+    onPress = {(e: any) => {
+        showDatePicker();
+    }}
 />*/

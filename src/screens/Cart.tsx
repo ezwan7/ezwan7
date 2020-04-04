@@ -18,12 +18,12 @@ import {MyConstant} from '../common/MyConstant';
 import MyIcon from '../components/MyIcon';
 import {
     ActivityIndicatorLarge,
-    ListEmptyView, ListEmptyViewLottie,
+    ListEmptyViewLottie,
     StatusBarDark,
     StatusBarLight
 } from '../components/MyComponent';
 import {
-    ContentLoaderCategoryListItem,
+    CategoryListItemContentLoader,
     ListItemSeparator,
     CategoryListItem,
 } from "../shared/MyContainer";
@@ -65,8 +65,8 @@ const CartScreen = ({}) => {
         setRefreshing(true);
 
         fetchCategory(0, MyConfig.ListLimit.categoryList, MyLANG.Loading + '...', true, {
-            'showError': MyConstant.SHOW_MESSAGE.TOAST,
-            'message'  : MyLANG.PageRefreshed
+            'showMessage': MyConstant.SHOW_MESSAGE.TOAST,
+            'message'    : MyLANG.PageRefreshed
         }, MyConstant.DataSetType.fresh);
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -87,7 +87,7 @@ const CartScreen = ({}) => {
                           false,
                           true,
                           false,
-                          MyConstant.DataSetType.addToEndnCheck
+                          MyConstant.DataSetType.addToEndUnique
             );
         }
     }
@@ -100,9 +100,11 @@ const CartScreen = ({}) => {
 
         if (firstLoad || (category && category.length > 0)) return null;
 
-        return <ListEmptyViewLottie source = {MyImage.busLottie}
-                                    message = {MyLANG.ComingSoon}
-                                    style = {{view: {}, image: {width: MyStyle.screenWidth}, text: {}}}/>;
+        return <ListEmptyViewLottie
+            source = {MyImage.lottie_bus}
+            message = {MyLANG.ComingSoon}
+            style = {{view: {}, image: {width: MyStyle.screenWidth}, text: {}}}
+        />;
     }
 
     const ListFooter = () => {
@@ -114,12 +116,12 @@ const CartScreen = ({}) => {
     }
 
     // Refresh All existing on Component Visibile, Show Placeholder on start and loadmore, No Data Found Design
-    const fetchCategory = async (offset: number = 0, limit: number = MyConfig.ListLimit.categoryList, showLoader: any = MyLANG.Loading + '...', setRefresh: boolean = false, showInfoMessage: any = false, DataSetType: string = MyConstant.DataSetType.fresh) => {
+    const fetchCategory = async (skip: number = 0, take: number = MyConfig.ListLimit.categoryList, showLoader: any = MyLANG.Loading + '...', setRefresh: boolean = false, showInfoMessage: any = false, DataSetType: string = MyConstant.DataSetType.fresh) => {
 
         setLoading(true);
 
         const response: any = await MyUtil
-            .myHTTP(true, MyConstant.HTTP_POST, MyAPI.categories + '1',
+            .myHTTP(false, MyConstant.HTTP_POST, MyAPI.categories + '1',
                     {
                         'language_id': MyConfig.LanguageActive,
 
@@ -144,20 +146,20 @@ const CartScreen = ({}) => {
                     case MyConstant.DataSetType.addToStart:
                         setCategory(response.data.data.data.concat(category));
                         break;
-                    case MyConstant.DataSetType.addToEndnCheck:
+                    case MyConstant.DataSetType.addToEndUnique:
                         // const newData = category.concat(response.data.data.data.filter(({id}: any) => !category.find((f: any) => f.id == id)));
                         const newData1: any = category;
                         for (let i = 0; i < response.data.data.data.length; i++) {
-                            if (category.some((item: any) => item.id === response.data.data.data[i]['id']) === false) {
+                            if (category.some((item: any) => item.id === response.data.data.data[i]?.id) === false) {
                                 newData1.push(response.data.data.data[i]);
                             }
                         }
                         setCategory(newData1);
                         break;
-                    case MyConstant.DataSetType.addToStartnCheck:
+                    case MyConstant.DataSetType.addToStartUnique:
                         const newData2: any = category;
                         for (let i = 0; i < response.data.data.data.length; i++) {
-                            if (category.some((item: any) => item.id === response.data.data.data[i]['id']) === false) {
+                            if (category.some((item: any) => item.id === response.data.data.data[i]?.id) === false) {
                                 newData2.unshift(response.data.data.data[i]);
                             }
                         }
@@ -182,7 +184,7 @@ const CartScreen = ({}) => {
         }
 
         if (showInfoMessage !== false) {
-            MyUtil.showMessage(showInfoMessage.showError, showInfoMessage.message, false);
+            MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message, false);
         }
     }
 
@@ -192,27 +194,33 @@ const CartScreen = ({}) => {
             <StatusBarLight/>
             <SafeAreaView style = {MyStyleSheet.SafeAreaView1}/>
             <SafeAreaView style = {MyStyleSheet.SafeAreaView2}>
-                <View style = {[MyStyleSheet.SafeAreaView3, {}]}>
+                <View style = {[MyStyleSheet.SafeAreaView3, {backgroundColor: MyColor.Material.WHITE}]}>
                     {/*<StatusBarGradientPrimary/>*/}
-                    {firstLoad && category && category.length === 0 &&
+                    {/*{firstLoad && category && category.length === 0 &&
                      <ScrollView contentInsetAdjustmentBehavior = "automatic"
-                                 style = {{flexGrow: 1}}>
-                         {ContentLoaderCategoryListItem(4)}
+                                 contentContainerStyle = {{paddingTop: MyStyle.headerHeightAdjusted, flexGrow: 1}}
+                     >
+                         {CategoryListItemContentLoader(4)}
                      </ScrollView>
-                    }
+                    }*/}
 
                     <FlatList
-                        contentContainerStyle = {{flexGrow: 1}}
+                        contentContainerStyle = {{paddingTop: MyStyle.headerHeightAdjusted, flexGrow: 1}}
                         refreshControl = {
-                            <RefreshControl refreshing = {refreshing}
-                                            onRefresh = {onRefresh}/>
+                            <RefreshControl
+                                refreshing = {refreshing}
+                                onRefresh = {onRefresh}
+                                progressViewOffset = {MyStyle.headerHeightAdjusted}
+                                colors = {[MyColor.Primary.first]}
+                            />
                         }
                         data = {category}
-                        renderItem = {({item, index}) =>
-                            <CategoryListItem item = {item}
-                                              index = {index}/>
+                        renderItem = {({item, index}: any) =>
+                            <CategoryListItem
+                                item = {item}
+                                index = {index}/>
                         }
-                        keyExtractor = {item => String(item['id'])}
+                        keyExtractor = {(item: any) => String(item?.id)}
                         ListEmptyComponent = {ListEmptyComponent}
                         ListFooterComponent = {ListFooter}
                         onEndReachedThreshold = {0.2}

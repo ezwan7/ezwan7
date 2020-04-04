@@ -32,27 +32,23 @@ const NotificationScreen = ({}) => {
         <Fragment>
             <StatusBarLight/>
             <SafeAreaView>
-                <LinearGradient start = {MyStyle.LGWhite.start}
-                                end = {MyStyle.LGWhite.end}
-                                locations = {MyStyle.LGWhite.locations}
-                                colors = {MyStyle.LGWhite.colors}>
+                <LinearGradient start = {MyStyle.LGWhitish.start}
+                                end = {MyStyle.LGWhitish.end}
+                                locations = {MyStyle.LGWhitish.locations}
+                                colors = {MyStyle.LGWhitish.colors}>
                     <View style = {MyStyleSheet.layoutView1}>
                         <ScrollView contentInsetAdjustmentBehavior = "automatic">
                             <View style = {MyStyleSheet.layoutView2}>
                                 <View style = {MyStyleSheet.layoutView3}>
 
                                     <View style = {{
-                                        width          : '100%',
-                                        height         : 200,
+                                        width : '100%',
+                                        height: 200,
 
 
                                     }}>
 
-                                        <Text style = {styles.textStyle}
-                                              onPress = {() => MyUtil.reactNavigate(MyConfig.routeName.NotificationView,
-                                                                                    {user: 'test user'},
-                                                                                    null
-                                              )}>
+                                        <Text style = {styles.textStyle}>
                                             Notifications3
                                         </Text>
                                     </View>
