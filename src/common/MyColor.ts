@@ -31,14 +31,17 @@ const MyColor = {
     attentionLight: '#f44336',
 
     textDarkPrimary   : 'rgba(0,0,0,1)',
+    textDarkPrimary2  : '#1c2c3a',
     textDarkSecondary : 'rgba(0,0,0,0.5)',
     textDarkDisable   : 'rgba(0,0,0,0.3)',
     textLightPrimary  : 'rgba(255,255,255,1)',
     textLightSecondary: 'rgba(255,255,255,255.5)',
     textLightDisable  : 'rgba(255,255,255,0.3)',
 
-    lightDivide: 'rgba(255,255,255,0.12)',
-    blackDivide: 'rgba(0,0,0,0.10)',
+    dividerLight: 'rgba(255,255,255,0.12)',
+    dividerDark : 'rgba(0,0,0,0.10)',
+
+    backgroundGrey: '#f5f5f5',
 
     snackbarWhite: {
         background : 'rgba(255,255,255,0.90)',

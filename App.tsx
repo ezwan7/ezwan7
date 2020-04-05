@@ -31,6 +31,9 @@ const App = () => {
 export default App;
 
 
+// TODO: Back button break in jump or other
+
+// TODO: float calc, price header, copy to cart page
 // TODO: signup, signup completed, navigation actions, facebook google, signup pages optimize
 // TODO: white loader, allow style in toast loader,
 // TODO: New Input Design
@@ -49,6 +52,7 @@ export default App;
 // TODO: Custom Header: back button, right button, scroll animation, list header,
 // TODO: Custom Bottom Tabs
 // TODO: blur,
+// TODO: update cart api fetch all product by id, and calculate EVERYTHING,
 
 // No Internet Lottie
 // Validation delay, on type gone

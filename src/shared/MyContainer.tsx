@@ -29,6 +29,9 @@ import MyMaterialRipple from "../components/MyMaterialRipple";
 import {getMyIcon, IconStar} from "../components/MyComponent";
 import {MyFastImage} from "../components/MyFastImage";
 import {store} from "../store/MyStore";
+import {MyButton} from "../components/MyButton";
+import {ShadowBox} from "react-native-neomorph-shadows";
+import NumberFormat from 'react-number-format';
 
 // const MaterialTopTabBarComponent = (props: any) => (<MaterialTopTabBar {...props} />);
 
@@ -84,7 +87,7 @@ const drawerItemOnPress = (loginRequired: boolean, navigation: any, actionType: 
 const CustomDrawerContent = ({props}: any) => {
     // console.log('test', props?.state?.routes[props?.state?.index].name);
     const user = store.getState().auth.user;
-    MyUtil.printConsole(true, 'log', 'LOG: CustomDrawerContent: ', {props, user});
+    // MyUtil.printConsole(true, 'log', 'LOG: CustomDrawerContent: ', {props, user});
 
     let DrawerItem = [];
     if (user.id) {
@@ -105,7 +108,7 @@ const CustomDrawerContent = ({props}: any) => {
                 image         : {src: MyImage.bag},
                 icon          : null,
                 text          : {text: MyLANG.Cart},
-                onPress       : {loginRequired: false, actionType: MyConstant.DrawerOnPress.Navigate, routeName: MyConfig.routeName.CartPush},
+                onPress       : {loginRequired: false, actionType: MyConstant.DrawerOnPress.Navigate, routeName: MyConfig.routeName.ProductBuy},
             },
             {
                 gradient      : MyStyle.LGDrawerItem,
@@ -194,7 +197,7 @@ const CustomDrawerContent = ({props}: any) => {
                 image         : {src: MyImage.bag},
                 icon          : null,
                 text          : {text: MyLANG.Cart},
-                onPress       : {loginRequired: false, actionType: MyConstant.DrawerOnPress.Navigate, routeName: MyConfig.routeName.CartPush},
+                onPress       : {loginRequired: false, actionType: MyConstant.DrawerOnPress.Navigate, routeName: MyConfig.routeName.ProductBuy},
             },
             {
                 gradient      : MyStyle.LGDrawerItem,
@@ -348,6 +351,48 @@ const CustomDrawerContent = ({props}: any) => {
     )
 }
 
+const CartIconWithBadge = (props: any) => {
+    const cartCount = store.getState().cart.count;
+
+    // MyUtil.printConsole(true, 'log', 'LOG: CustomDrawerContent: ', {props, user});
+    return (
+        <View>
+            {getMyIcon(
+                {
+                    fontFamily: props.fontFamily,
+                    name      : props.name,
+                    color     : props.color,
+                    size      : props.size,
+                    style     : {}
+                })
+            }
+            {cartCount > 0 && (
+                <View
+                    style = {{
+                        position       : 'absolute',
+                        right          : -10,
+                        top            : -10,
+                        backgroundColor: MyColor.Material.PINK["500"],
+                        borderRadius   : 8,
+                        width          : 15,
+                        height         : 15,
+                        justifyContent : 'center',
+                        alignItems     : 'center',
+                    }}
+                >
+                    <Text style = {{fontFamily: MyStyle.FontFamily.OpenSans.bold, fontSize: 9, color: MyColor.Material.WHITE}}>
+                        {cartCount}
+                    </Text>
+                </View>
+            )}
+        </View>
+    );
+
+    /*function CartIconWithBadge(props) {
+        // You should pass down the badgeCount in some other ways like React Context API, Redux, MobX or event emitters.
+        return <IconWithBadge {...props} badgeCount = {3}/>;
+    }*/
+}
 
 const ListItemSeparator = () => {
     return (
@@ -488,7 +533,7 @@ const ProductListItem              = ({item, index}: any) => {
                         <Text style = {productList.textStock}>
                             {MyLANG.AvailableStock}&nbsp;
                             <Text style = {{fontFamily: MyStyle.FontFamily.Roboto.regular}}>
-                                {Number(item?.products_quantity) > 0 ? item.products_quantity : '0'}
+                                {Number(item?.products_liked) > 0 ? item.products_liked : '0'}
                             </Text>
                         </Text>
                     </View>
@@ -502,7 +547,7 @@ const ProductListItem              = ({item, index}: any) => {
                         />
                         <Text style = {productList.textPrice}
                               numberOfLines = {1}>
-                            {MyConfig.Currency.MYR.symbol}{item?.products_price}
+                            {MyConfig.Currency.MYR.symbol} {item?.products_price}
                         </Text>
                     </View>
 
@@ -747,7 +792,7 @@ const ProductHorizontalListItem              = ({item, index}: any) => {
                             <Text
                                 numberOfLines = {1}
                                 style = {productHorizontalList.textPrice}>
-                                {MyConfig.Currency.MYR.symbol}{prop?.products_price}
+                                {MyConfig.Currency.MYR.symbol} {prop?.products_price}
                             </Text>
                         </View>
                     </View>
@@ -863,6 +908,367 @@ const ProductDetailsContentLoader = () => {
         </>
     )
 }
+
+// Cart Items:
+const CartListItem   = (props: any) => {
+    // MyUtil.printConsole(true, 'log', 'LOG: CartListItem: ', Object.keys(props?.items).length);
+
+    return (
+        <View style = {{
+            shadowColor  : "#000",
+            shadowOffset : {
+                width : 0,
+                height: 1,
+            },
+            shadowOpacity: 0.22,
+            shadowRadius : 2.22,
+            elevation    : 3,
+
+            backgroundColor: MyColor.Material.WHITE,
+            marginTop      : 1,
+        }}>
+            {(props?.items && Object.keys(props?.items).length > 0 && props?.items.constructor === Object) &&
+             Object.keys(props?.items)
+                   .map((key: string) => (
+                            <View
+                                key = {key}
+                                style = {[cartList.view]}
+                            >
+                                <TouchableOpacity
+                                    activeOpacity = {0.7}
+                                    onPress = {
+                                        () =>
+                                            ''
+                                    }
+                                >
+                                    <MyFastImage
+                                        source = {[{'uri': props.items[key].item?.image}, MyImage.defaultItem]}
+                                        style = {cartList.image}
+                                    />
+                                </TouchableOpacity>
+
+                                <View style = {cartList.textsView}>
+                                    <TouchableOpacity
+                                        activeOpacity = {0.7}
+                                        onPress = {
+                                            () =>
+                                                ''
+                                        }
+                                    >
+                                        <Text
+                                            style = {cartList.textName}
+                                            numberOfLines = {2}>
+                                            {props.items[key].item?.products_name}
+                                        </Text>
+                                        <View style = {cartList.viewPrice}>
+                                            <Text style = {cartList.textPrice}
+                                                  numberOfLines = {1}>
+                                                {MyConfig.Currency.MYR.symbol} {props.items[key].item?.products_price}
+                                            </Text>
+                                        </View>
+                                    </TouchableOpacity>
+
+                                    <View style = {cartList.viewStock}>
+                                        <Text style = {cartList.textStock}>
+                                            {MyLANG.AvailableStock}&nbsp;
+                                            <Text style = {{fontFamily: MyStyle.FontFamily.Roboto.regular}}>
+                                                {Number(props.items[key].item?.products_liked) > 0 ? props.items[key].item.products_liked : '0'}
+                                            </Text>
+                                        </Text>
+                                        <TouchableOpacity
+                                            activeOpacity = {0.5}
+                                            onPress = {() => props.onPressCartItemRemove(key)}
+                                        >
+                                            <MyIcon.SimpleLineIcons
+                                                name = "trash"
+                                                size = {18}
+                                                color = {MyColor.Material.GREY["500"]}
+                                                style = {{paddingHorizontal: 4, paddingVertical: 4}}
+                                            />
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+
+                                <View style = {cartList.viewStepper}>
+                                    <TouchableOpacity
+                                        activeOpacity = {0.5}
+                                        onPress = {() => props.onPressQuantityIncrement(key)}
+                                    >
+                                        <MyIcon.AntDesign
+                                            name = "caretup"
+                                            size = {12}
+                                            color = "#B7C4CC"
+                                            style = {{paddingVertical: 9, paddingHorizontal: 5}}
+                                        />
+                                    </TouchableOpacity>
+
+                                    <Text
+                                        style = {cartList.textQuantity}
+                                    >
+                                        {props.items[key].quantity}
+                                    </Text>
+                                    <TouchableOpacity
+                                        activeOpacity = {0.5}
+
+                                        onPress = {() => props.onPressQuantityDecrement(key)}
+                                    >
+                                        <MyIcon.AntDesign
+                                            name = "caretdown"
+                                            size = {12}
+                                            color = "#B7C4CC"
+                                            style = {{paddingVertical: 9, paddingHorizontal: 5}}
+                                        />
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        )
+                   )
+            }
+        </View>
+    )
+}
+const CartPageHeader = (props: any) => {
+    // MyUtil.printConsole(true, 'log', 'LOG: CartPageHeader: ', props);
+
+    return (
+        <ShadowBox
+            useSvg
+            style = {{
+                shadowOffset : {width: 0, height: 2},
+                shadowOpacity: 0.5,
+                shadowColor  : "#000000",
+                shadowRadius : 5,
+                width        : MyStyle.screenWidth,
+                height       : MyStyle.headerHeight,
+                zIndex       : 1000,
+            }}
+        >
+            <LinearGradient
+                start = {MyStyle.LGHeaderPrimary.start}
+                end = {MyStyle.LGHeaderPrimary.end}
+                locations = {MyStyle.LGHeaderPrimary.locations}
+                colors = {MyStyle.LGHeaderPrimary.colors}
+                style = {{
+                    flex          : 1,
+                    flexDirection : "row",
+                    justifyContent: "center",
+                    alignItems    : "flex-end",
+                }}
+            >
+                <View style = {{
+                    flexGrow      : 1,
+                    display       : "flex",
+                    flexDirection : "row",
+                    justifyContent: "flex-start",
+                    alignItems    : "center",
+
+                    marginHorizontal: MyStyle.marginHorizontalPage,
+                    marginBottom    : 6,
+
+                    // borderWidth      : 1.0,
+                    // borderRadius     : 50,
+                    // borderColor      : MyColor.Primary.transparent40,
+                    // paddingVertical  : 4,
+                    paddingHorizontal: 14,
+                    // backgroundColor  : MyColor.Material.GREY["12"],
+                }}>
+
+                </View>
+            </LinearGradient>
+        </ShadowBox>
+    )
+}
+const CartPageBottom = (props: any) => {
+    // MyUtil.printConsole(true, 'log', 'LOG: CartPageBottom: ', props);
+
+    return (
+        <ShadowBox
+            useSvg
+            style = {{
+                shadowOffset : {width: 0, height: -1},
+                shadowOpacity: 0.2,
+                shadowColor  : "#000000",
+                shadowRadius : 2,
+                height       : 46,
+                width        : MyStyle.screenWidth,
+            }}
+        >
+            <View
+                style = {{
+                    flexDirection  : "row",
+                    justifyContent : "space-between",
+                    alignItems     : "center",
+                    backgroundColor: MyColor.Material.WHITE,
+                }}
+            >
+                {props.textBackButton &&
+                 <MyButton
+                     shape = "square"
+                     fill = "solid"
+                     color = {MyColor.Material.WHITE}
+                     shadow = "none"
+                     title = {props.textBackButton}
+                     textStyle = {{
+                         fontFamily: MyStyle.FontFamily.Roboto.medium,
+                         fontSize  : 14,
+                         color     : MyColor.Material.GREY["900"]
+                     }}
+                     iconLeft = {{
+                         fontFamily: MyConstant.VectorIcon.AntDesign,
+                         name      : 'leftcircleo',
+                     }}
+                     iconLeftStyle = {{color: MyColor.Material.GREY["900"], fontSize: 16}}
+                     onPress = {props.onPressBack}
+                 />
+                }
+                {props.textNextButton &&
+                 <MyButton
+                     shape = "square"
+                     shadow = "none"
+                     title = {props.textNextButton}
+                     textStyle = {{
+                         fontFamily: MyStyle.FontFamily.Roboto.medium,
+                         fontSize  : 14,
+                     }}
+                     onPress = {props.onPressNext}
+                 />
+                }
+            </View>
+        </ShadowBox>
+    )
+}
+const CartPageTotal  = (props: any) => {
+    MyUtil.printConsole(true, 'log', 'LOG: CartPageTotal: ', props);
+
+    return (
+        <View style = {cartPageTotal.view}>
+            <Text style = {[{...MyStyleSheet.headerPage, marginBottom: 8}]}>
+                {MyLANG.PriceBreakdown}
+            </Text>
+            <View style = {cartPageTotal.textsView}>
+                <Text style = {cartPageTotal.textTitleBold2}>
+                    {MyLANG.Subtotal}
+                </Text>
+                <NumberFormat
+                    value = {props?.cart?.subtotal}
+                    defaultValue = {0}
+                    displayType = {'text'}
+                    thousandSeparator = {true}
+                    decimalScale = {2}
+                    fixedDecimalScale = {true}
+                    decimalSeparator = {'.'}
+                    renderText = {
+                        (value: any) => <Text style = {cartPageTotal.textAmountBold2}>{MyConfig.Currency.MYR.symbol} {value}</Text>
+                    }
+                />
+            </View>
+            <View style = {cartPageTotal.textsView}>
+                <Text style = {cartPageTotal.textTitle}>
+                    - {MyLANG.Discount}
+                </Text>
+                <NumberFormat
+                    value = {props?.cart?.discount}
+                    defaultValue = {0}
+                    displayType = {'text'}
+                    thousandSeparator = {true}
+                    decimalScale = {2}
+                    fixedDecimalScale = {true}
+                    decimalSeparator = {'.'}
+                    renderText = {
+                        (value: any) => <Text style = {cartPageTotal.textAmount}>{MyConfig.Currency.MYR.symbol} {value}</Text>
+                    }
+                />
+            </View>
+            <View style = {cartPageTotal.textsView}>
+                <Text style = {cartPageTotal.textTitle}>
+                    - {MyLANG.Voucher}
+                </Text>
+                <NumberFormat
+                    value = {props?.cart?.voucher}
+                    defaultValue = {0}
+                    displayType = {'text'}
+                    thousandSeparator = {true}
+                    decimalScale = {2}
+                    fixedDecimalScale = {true}
+                    decimalSeparator = {'.'}
+                    renderText = {
+                        (value: any) => <Text style = {cartPageTotal.textAmount}>{MyConfig.Currency.MYR.symbol} {value}</Text>
+                    }
+                />
+            </View>
+            <View style = {cartPageTotal.textsView}>
+                <Text style = {cartPageTotal.textTitle}>
+                    + {MyLANG.ServiceCharge}
+                </Text>
+                <NumberFormat
+                    value = {props?.cart?.service_charge}
+                    defaultValue = {0}
+                    displayType = {'text'}
+                    thousandSeparator = {true}
+                    decimalScale = {2}
+                    fixedDecimalScale = {true}
+                    decimalSeparator = {'.'}
+                    renderText = {
+                        (value: any) => <Text style = {cartPageTotal.textAmount}>{MyConfig.Currency.MYR.symbol} {value}</Text>
+                    }
+                />
+            </View>
+            <View style = {cartPageTotal.textsView}>
+                <Text style = {cartPageTotal.textTitle}>
+                    + {MyLANG.DeliveryCharge}
+                </Text>
+                <NumberFormat
+                    value = {props?.cart?.delivery_charge}
+                    defaultValue = {0}
+                    displayType = {'text'}
+                    thousandSeparator = {true}
+                    decimalScale = {2}
+                    fixedDecimalScale = {true}
+                    decimalSeparator = {'.'}
+                    renderText = {
+                        (value: any) => <Text style = {cartPageTotal.textAmount}>{MyConfig.Currency.MYR.symbol} {value}</Text>
+                    }
+                />
+            </View>
+            <View style = {cartPageTotal.textsView}>
+                <Text style = {cartPageTotal.textTitle}>
+                    + {MyLANG.Tax}
+                </Text>
+                <NumberFormat
+                    value = {props?.cart?.tax}
+                    defaultValue = {0}
+                    displayType = {'text'}
+                    thousandSeparator = {true}
+                    decimalScale = {2}
+                    fixedDecimalScale = {true}
+                    decimalSeparator = {'.'}
+                    renderText = {
+                        (value: any) => <Text style = {cartPageTotal.textAmount}>{MyConfig.Currency.MYR.symbol} {value}</Text>
+                    }
+                />
+            </View>
+            <View style = {cartPageTotal.divider}></View>
+            <View style = {cartPageTotal.textsView}>
+                <Text style = {cartPageTotal.textTitleBold}>
+                    {MyLANG.Total}
+                </Text>
+                <NumberFormat
+                    value = {props?.cart?.total}
+                    defaultValue = {0}
+                    displayType = {'text'}
+                    thousandSeparator = {true}
+                    decimalScale = {2}
+                    fixedDecimalScale = {true}
+                    decimalSeparator = {'.'}
+                    renderText = {
+                        (value: any) => <Text style = {cartPageTotal.textAmountBold}>{MyConfig.Currency.MYR.symbol} {value}</Text>
+                    }
+                />
+            </View>
+        </View>
+    )
+}
+
 
 //
 const RestaurantListItem          = ({item}: any) => {
@@ -1034,28 +1440,6 @@ const RestaurantItemContentLoader = (count: any) => {
     // return RestaurantItemContentLoader(MyConfig.ListLimit.RestaurantHome);
 }
 
-
-export {
-    CustomDrawerContent,
-    ListItemSeparator,
-
-    CategoryListItem,
-    CategoryListItemContentLoader,
-    ProductListItem,
-    ProductListItemContentLoader,
-
-    CategoryHorizontalListItem,
-    CategoryHorizontalListItemContentLoader,
-    ProductHorizontalListItem,
-    ProductHorizontalListItemContentLoader,
-    ImageSliderBanner,
-    ImageSliderBannerContentLoader,
-
-    ProductDetailsContentLoader,
-
-    RestaurantListItem,
-    RestaurantItemContentLoader,
-};
 
 const styles = StyleSheet.create(
     {
@@ -1366,6 +1750,149 @@ const productList = StyleSheet.create(
     }
 );
 
+// CART LIST PAGE:
+const cartList      = StyleSheet.create(
+    {
+        touchable: {},
+        view     : {
+            display         : 'flex',
+            flexDirection   : 'row',
+            justifyContent  : 'space-around',
+            marginHorizontal: MyStyle.marginHorizontalList,
+            paddingVertical : MyStyle.paddingVerticalList,
+
+            borderTopWidth: 0.9,
+            borderTopColor: MyColor.dividerDark,
+        },
+        image    : {
+            ...MyStyleSheet.imageList,
+        },
+        textsView: {
+            display       : 'flex',
+            flexDirection : 'column',
+            justifyContent: 'space-between',
+            alignItems    : "flex-start",
+
+            flex: 1,
+
+            marginLeft : MyStyle.marginHorizontalTextsView,
+            marginRight: 20,
+        },
+        textName : {
+            fontFamily: MyStyle.FontFamily.OpenSans.regular,
+            fontSize  : 13,
+            color     : MyColor.Material.BLACK,
+
+            textAlign: "justify"
+        },
+
+        viewPrice: {
+            display       : "flex",
+            flexDirection : "row",
+            justifyContent: "flex-start",
+            alignItems    : "center",
+            marginTop     : 2,
+        },
+        textPrice: {
+            fontFamily: MyStyle.fontFamilyPrice,
+            fontSize  : 17,
+            color     : MyColor.Primary.first,
+        },
+
+        viewStock: {
+            alignSelf     : "stretch",
+            display       : "flex",
+            flexDirection : "row",
+            justifyContent: "space-between",
+            alignItems    : "flex-end",
+        },
+        textStock: {
+            fontFamily: MyStyle.FontFamily.OpenSans.light,
+            fontSize  : 13,
+            color     : MyColor.Material.GREY["700"],
+        },
+
+        viewStepper : {
+            display       : 'flex',
+            flexDirection : 'column',
+            justifyContent: 'space-between',
+            alignItems    : 'center',
+
+            minWidth       : 28,
+            height         : MyStyle.screenWidth * 0.25,
+            backgroundColor: '#F7F8FA',
+            borderWidth    : 1,
+            borderColor    : '#D6DBDF',
+            borderRadius   : 80 / 2,
+        },
+        textQuantity: {
+            fontFamily       : MyStyle.FontFamily.OpenSans.semiBold,
+            fontSize         : 14,
+            color            : MyColor.Material.BLACK,
+            paddingHorizontal: 5,
+        }
+    }
+);
+const cartPageTotal = StyleSheet.create(
+    {
+        view     : {
+            display       : "flex",
+            flexDirection : "column",
+            justifyContent: "flex-start",
+
+            marginHorizontal: MyStyle.marginHorizontalPage,
+            marginVertical  : MyStyle.marginVerticalList,
+        },
+        textsView: {
+            marginVertical: 5,
+            display       : "flex",
+            flexDirection : "row",
+            justifyContent: "space-between",
+            alignItems    : "center",
+        },
+
+        textTitleBold2 : {
+            fontFamily: MyStyle.FontFamily.OpenSans.regular,
+            fontSize  : 16,
+            color     : MyColor.textDarkPrimary,
+        },
+        textAmountBold2: {
+            fontFamily: MyStyle.fontFamilyPrice,
+            fontSize  : 15,
+            color     : MyColor.textDarkPrimary,
+        },
+
+        textTitle : {
+            fontFamily: MyStyle.FontFamily.OpenSans.regular,
+            fontSize  : 13,
+            color     : MyColor.textDarkSecondary,
+        },
+        textAmount: {
+            fontFamily: MyStyle.fontFamilyPrice,
+            fontSize  : 13,
+            color     : MyColor.textDarkSecondary,
+        },
+
+        textTitleBold : {
+            fontFamily: MyStyle.FontFamily.OpenSans.regular,
+            fontSize  : 16,
+            color     : MyColor.textDarkPrimary,
+        },
+        textAmountBold: {
+            fontFamily: MyStyle.fontFamilyPriceBold,
+            fontSize  : 16,
+            color     : MyColor.textDarkPrimary,
+        },
+
+        divider: {
+            marginTop      : 8,
+            marginBottom   : 4,
+            height         : 0.5,
+            backgroundColor: MyColor.Material.GREY["800"]
+        },
+    }
+);
+
 
 //
 const restaurantItem = StyleSheet.create(
@@ -1465,3 +1992,31 @@ const restaurantItem = StyleSheet.create(
         },
     }
 );
+
+export {
+    CustomDrawerContent,
+    CartIconWithBadge,
+
+    ListItemSeparator,
+
+    CategoryListItem,
+    CategoryListItemContentLoader,
+    ProductListItem,
+    ProductListItemContentLoader,
+
+    CategoryHorizontalListItem,
+    CategoryHorizontalListItemContentLoader,
+    ProductHorizontalListItem,
+    ProductHorizontalListItemContentLoader,
+    ImageSliderBanner,
+    ImageSliderBannerContentLoader,
+
+    ProductDetailsContentLoader,
+    CartPageHeader,
+    CartListItem,
+    CartPageBottom,
+    CartPageTotal,
+
+    RestaurantListItem,
+    RestaurantItemContentLoader,
+};

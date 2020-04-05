@@ -25,6 +25,9 @@ import Splash from "react-native-splash-screen";
 import {useDispatch, useSelector} from "react-redux";
 import {categorySave} from "../store/CategoryRedux";
 
+declare var global: { HermesInternal: null | {} };
+const isHermes = () => global.HermesInternal != null;
+
 let renderCount = 0;
 
 const HomeScreen = ({route, navigation}: any) => {
@@ -289,6 +292,8 @@ const HomeScreen = ({route, navigation}: any) => {
                          }
                      >
 
+                         {/* <Text>Engine: {global.HermesInternal}</Text>*/}
+
                          <ScrollView
                              style = {{
                                  marginTop   : MyStyle.marginVerticalList + MyStyle.marginVerticalList,
@@ -315,7 +320,8 @@ const HomeScreen = ({route, navigation}: any) => {
                              style = {{marginVertical: MyStyle.marginVerticalList}}
                          >
                              {firstLoadBanner && banner?.length === 0 && <ImageSliderBannerContentLoader/>}
-                             <ImageSliderBanner item = {banner}  style = {{}}/>
+                             <ImageSliderBanner item = {banner}
+                                                style = {{}}/>
                          </ScrollView>
 
                          <ListHeaderViewAll

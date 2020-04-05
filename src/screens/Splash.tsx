@@ -12,9 +12,6 @@ import {useDispatch} from "react-redux";
 // console.disableYellowBox = true;
 // console.ignoredYellowBox = ['Require cycle: node_modules/react-native-paper'];
 
-// declare var global: { HermesInternal: null | {} };
-// const isHermes = () => global.HermesInternal != null;
-
 // Active Hermes, Uncomment gradle.properties
 
 let renderCount = 0;

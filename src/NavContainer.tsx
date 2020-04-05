@@ -6,8 +6,8 @@ import {createBottomTabNavigator} from "@react-navigation/bottom-tabs";
 import {createDrawerNavigator} from "@react-navigation/drawer";
 
 import {HeaderButtonLeft} from "./components/MyButton";
-import {getImage, getMyIcon, HeaderGradientPrimary, HeaderGradientPrimaryLogo, IconWithBadge} from "./components/MyComponent";
-import {CustomDrawerContent} from "./shared/MyContainer";
+import {getImage, getMyIcon, HeaderGradientPrimary, HeaderGradientPrimaryLogo} from "./components/MyComponent";
+import {CustomDrawerContent, CartIconWithBadge} from "./shared/MyContainer";
 
 import SplashScreen from './screens/Splash';
 import IntroScreen from "./screens/Intro";
@@ -272,26 +272,17 @@ const HomeScreens =
                   name = {MyConfig.routeName.ProductBuy}
                   component = {ProductBuyScreen}
                   options = {{
-                      title     : "",
-                      headerLeft: () => {
-                      },
-                      ...MyStyleCommon.StackOptions.BottomTabStack,
-                  }}
-              />
-
-              <HomeStack.Screen
-                  name = {MyConfig.routeName.CartPush}
-                  component = {CartScreen}
-                  options = {{
                       title           : MyLANG.Cart,
                       headerBackground: HeaderGradientPrimary,
+                      /* headerLeft: () => {
+                       },*/
                       ...MyStyleCommon.StackOptions.BottomTabStack,
                   }}
               />
 
               <HomeStack.Screen
                   name = {MyConfig.routeName.EditProfile}
-                  component = {CartScreen}
+                  component = {NotificationViewScreen}
                   options = {{
                       title           : MyLANG.EditProfile,
                       headerBackground: HeaderGradientPrimary,
@@ -300,7 +291,7 @@ const HomeScreens =
               />
               <HomeStack.Screen
                   name = {MyConfig.routeName.MyPoints}
-                  component = {CartScreen}
+                  component = {NotificationViewScreen}
                   options = {{
                       title           : MyLANG.MyPoints,
                       headerBackground: HeaderGradientPrimary,
@@ -309,7 +300,7 @@ const HomeScreens =
               />
               <HomeStack.Screen
                   name = {MyConfig.routeName.MyOrders}
-                  component = {CartScreen}
+                  component = {NotificationViewScreen}
                   options = {{
                       title           : MyLANG.MyOrders,
                       headerBackground: HeaderGradientPrimary,
@@ -318,7 +309,7 @@ const HomeScreens =
               />
               <HomeStack.Screen
                   name = {MyConfig.routeName.MyAddress}
-                  component = {CartScreen}
+                  component = {NotificationViewScreen}
                   options = {{
                       title           : MyLANG.MyAddress,
                       headerBackground: HeaderGradientPrimary,
@@ -327,7 +318,7 @@ const HomeScreens =
               />
               <HomeStack.Screen
                   name = {MyConfig.routeName.Notifications}
-                  component = {CartScreen}
+                  component = {NotificationViewScreen}
                   options = {{
                       title           : MyLANG.Notifications,
                       headerBackground: HeaderGradientPrimary,
@@ -336,7 +327,7 @@ const HomeScreens =
               />
               <HomeStack.Screen
                   name = {MyConfig.routeName.ContactUs}
-                  component = {CartScreen}
+                  component = {NotificationViewScreen}
                   options = {{
                       title           : MyLANG.ContactUs,
                       headerBackground: HeaderGradientPrimary,
@@ -345,7 +336,7 @@ const HomeScreens =
               />
               <HomeStack.Screen
                   name = {MyConfig.routeName.AboutUs}
-                  component = {CartScreen}
+                  component = {NotificationViewScreen}
                   options = {{
                       title           : MyLANG.AboutUs,
                       headerBackground: HeaderGradientPrimary,
@@ -354,7 +345,7 @@ const HomeScreens =
               />
               <HomeStack.Screen
                   name = {MyConfig.routeName.TermsAndCondition}
-                  component = {CartScreen}
+                  component = {NotificationViewScreen}
                   options = {{
                       title           : MyLANG.TermsAndCondition,
                       headerBackground: HeaderGradientPrimary,
@@ -439,7 +430,7 @@ const BottomTabNavigator = () => {
                         case MyConfig.routeName.BottomTab4:
                             name = focused ? 'basket' : 'basket';
                             return (
-                                <IconWithBadge
+                                <CartIconWithBadge
                                     fontFamily = {fontFamily}
                                     name = {name}
                                     color = {color}

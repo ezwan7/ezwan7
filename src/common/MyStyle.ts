@@ -34,8 +34,10 @@ const MyStyle: any = {
     headerHeightAdjusted: headerHeight - statusBarHeight,
     toolbarHeight       : isIphoneX ? 35 : 0,
 
-    marginHorizontalList: 12,
-    marginVerticalList  : 15,
+    marginHorizontalList : 12,
+    paddingHorizontalList: 12,
+    marginVerticalList   : 15,
+    paddingVerticalList  : 15,
 
     marginHorizontalPage: 24,
     marginVerticalPage  : 24,

@@ -172,6 +172,7 @@ export default new LocalizedStrings(
             NoCategoryFound               : "Seems like no category found in our vault",
             NoProductFound                : "Seems like no product found in our vault",
             NoProductDetailsFound         : "Seems like no product details found",
+            NoItemInYourCart              : "No item in your cart\nLet's add something from from our shop page",
             NoDataFoundInSearch           : "No data found in search query\nPlease try again",
             TypeSomethingToSearch         : "Type something to start searching",
             WeAreSearching                : "We are searching...",
@@ -183,7 +184,6 @@ export default new LocalizedStrings(
             // Cart
             NoText               : "No text",
             NoCartItem           : "There is no product in cart",
-            Total                : "Total",
             EmptyCheckout        : "Sorry, you can't check out an empty cart",
             RemoveCartItemConfirm: "Remove this product from cart?",
             MyCart               : "Cart",
@@ -208,6 +208,7 @@ export default new LocalizedStrings(
             NextStep             : "Next Step",
             ConfirmOrder         : "Confirm Order",
             RequireEnterAllFileds: "Please enter all fields",
+            GoToShop             : "Go to shop",
             Finish               : "Finish",
 
             // Wishlist
@@ -437,10 +438,19 @@ export default new LocalizedStrings(
             errRatingComment: "Please rating to submit",
             send            : "Send",
 
+            Shipping      : "Shipping",
             termsCondition: "Terms & Condition",
+            PriceBreakdown: "Price Breakdown",
+
             Subtotal      : "Subtotal",
             Discount      : "Discount",
-            Shipping      : "Shipping",
+            Voucher       : "Voucher",
+            DeliveryCharge: "Delivery Charge",
+            ServiceCharge : "Service Charge",
+            Tax           : "Tax",
+            Total         : "Total",
+
+
             Recents       : "Recents",
             Filters       : "Filters",
             Princing      : "Pricing",

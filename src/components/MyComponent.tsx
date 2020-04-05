@@ -292,13 +292,15 @@ const ListEmptyView = (props: any) => {
 }
 
 const ListEmptyViewLottie = (props: any) => {
+
     return (
         <View style = {[listEmptyView.view, props.style.view]}>
-            <LottieView source = {props.source || MyImage.lottie_empty_lost}
-                        autoPlay
-                        loop
-                        speed = {props.speed || 1.0}
-                        style = {[listEmptyView.lottieView, props.style.image]}
+            <LottieView
+                source = {props.source || MyImage.lottie_empty_lost}
+                autoPlay = {props.autoPlay === false ? false : true}
+                loop = {props.loop === false ? false : true}
+                speed = {props.speed || 1.0}
+                style = {[listEmptyView.lottieView, props.style.image]}
             />
             {props && props.message && <Text style = {[listEmptyView.message, props.style.text]}>{props.message}</Text>}
         </View>
@@ -435,6 +437,8 @@ const listEmptyView = StyleSheet.create(
             backgroundColor  : MyColor.Material.WHITISH,
             paddingVertical  : MyStyle.screenWidth * 0.12,
             paddingHorizontal: MyStyle.screenWidth * 0.12,
+
+            paddingBottom: MyStyle.screenWidth * 0.33,
         },
         lottieView: {
             width: MyStyle.screenWidth * 0.7,

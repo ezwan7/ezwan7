@@ -382,7 +382,7 @@ const SettingsScreen = ({route, navigation}: any) => {
                                             )
                                         }
                                     >
-                                        <View style = {settingsItem.viewItem}>
+                                        <View style = {[settingsItem.viewItem, {borderBottomWidth: key === (settings.length - 1) ? 0 : 0.9}]}>
                                             <View style = {settingsItem.viewLeftItem}>
                                                 {prop.imageLeft?.src &&
                                                  <Image
@@ -504,7 +504,9 @@ const settingsItem = StyleSheet.create(
             backgroundColor: MyColor.Material.GREY["100"]
         },
 
-        viewSettingsSection : {},
+        viewSettingsSection : {
+            paddingBottom: MyStyle.marginVerticalPage,
+        },
         linearGradientStyles: {},
         materialRipple      : {},
 
@@ -520,8 +522,7 @@ const settingsItem = StyleSheet.create(
             paddingHorizontal: 6,
             paddingVertical  : 21,
 
-            borderBottomWidth: 0.9,
-            borderBottomColor: MyColor.blackDivide,
+            borderBottomColor: MyColor.dividerDark
         },
         viewLeftItem  : {
             display       : "flex",

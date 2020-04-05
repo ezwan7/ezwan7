@@ -110,9 +110,11 @@ const ProductListScreen = ({route, navigation}: any) => {
 
         if (firstLoad || (product && product.length > 0)) return null;
 
-        return <ListEmptyViewLottie source = {MyImage.lottie_empty_lost}
-                                    message = {MyLANG.NoProductFound}
-                                    style = {{view: {}, image: {}, text: {}}}/>;
+        return <ListEmptyViewLottie
+            source = {MyImage.lottie_empty_lost}
+            message = {MyLANG.NoProductFound}
+            style = {{view: {}, image: {}, text: {}}}
+        />;
     }
 
     const ListFooter = () => {

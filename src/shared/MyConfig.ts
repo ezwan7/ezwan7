@@ -97,7 +97,6 @@ const MyConfig: any = {
         ProductList   : 'ProductList',
         ProductDetails: 'ProductDetails',
         ProductBuy    : 'ProductBuy',
-        CartPush      : 'CartPush',
 
         EditProfile      : 'EditProfile',
         MyOrders         : 'MyOrders',

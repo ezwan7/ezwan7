@@ -25,8 +25,10 @@ import {
 import {
     CategoryListItemContentLoader,
     ListItemSeparator,
-    CategoryListItem,
+    CategoryListItem, CartListItem, CartPageTotal, CartPageBottom,
 } from "../shared/MyContainer";
+import {useDispatch, useSelector} from "react-redux";
+import {cartCalculateTotal, cartItemQuantityDecrement, cartItemQuantityIncrement, cartItemRemove} from "../store/CartRedux";
 
 
 let renderCount = 0;
@@ -37,157 +39,134 @@ const CartScreen = ({}) => {
         renderCount += 1;
         MyUtil.printConsole(true, 'log', `LOG: ${CartScreen.name}. renderCount: `, renderCount);
     }
+    const dispatch = useDispatch();
 
-    const [firstLoad, setFirstLoad]                                               = useState(true);
-    const [loading, setLoading]                                                   = useState(true);
-    const [loadingMore, setLoadingMore]                                           = useState(false);
-    const [refreshing, setRefreshing]                                             = useState(false);
-    const [onEndReachedCalledDuringMomentum, setOnEndReachedCalledDuringMomentum] = useState(true);
-    const [category, setCategory]                                                 = useState([]);
+    const cart: any = useSelector((state: any) => state.cart);
+
+    const [refreshing, setRefreshing] = useState(false);
+
+    const [firstLoad, setFirstLoad] = useState(true);
 
     useEffect(() => {
-        MyUtil.printConsole(true, 'log', `LOG: ${CartScreen.name}. useEffect: `, '');
+        MyUtil.printConsole(true, 'log', `LOG: ${CartScreen.name}. useEffect: `, cart);
 
-        fetchCategory(category && category.length > 0 ? category.length : 0,
-                      MyConfig.ListLimit.categoryList,
-                      false,
-                      false,
-                      false,
-                      MyConstant.DataSetType.fresh
-        );
+    }, [cart]);
 
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    const onRefresh = useCallback(() => {
+    const onRefresh = useCallback(async () => {
         MyUtil.printConsole(true, 'log', 'LOG: onRefresh: ', {});
 
         setRefreshing(true);
-
-        fetchCategory(0, MyConfig.ListLimit.categoryList, MyLANG.Loading + '...', true, {
-            'showMessage': MyConstant.SHOW_MESSAGE.TOAST,
-            'message'    : MyLANG.PageRefreshed
-        }, MyConstant.DataSetType.fresh);
+        dispatch(cartCalculateTotal());
+        setRefreshing(false);
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const onEndReached = () => {
-        MyUtil.printConsole(true, 'log', 'LOG: onEndReached: ', {
-            'loadingMore'                     : loadingMore,
-            'onEndReachedCalledDuringMomentum': onEndReachedCalledDuringMomentum
-        });
-
-        if (!loadingMore && !onEndReachedCalledDuringMomentum) {
-
-            setLoadingMore(true);
-
-            fetchCategory(category && category.length > 0 ? category.length : 0,
-                          MyConfig.ListLimit.categoryList,
-                          false,
-                          true,
-                          false,
-                          MyConstant.DataSetType.addToEndUnique
-            );
-        }
+    const onNext = () => {
     }
 
-    const ListEmptyComponent = () => {
-        MyUtil.printConsole(true, 'log', 'LOG: ListEmptyComponent: ', {
-            'category.length': category.length,
-            'firstLoad'      : firstLoad,
-        });
+    const cartItemIncrement = (key: any) => {
+        MyUtil.printConsole(true, 'log', 'LOG: cartItemIncrement: ', {key, cart});
 
-        if (firstLoad || (category && category.length > 0)) return null;
-
-        return <ListEmptyViewLottie
-            source = {MyImage.lottie_bus}
-            message = {MyLANG.ComingSoon}
-            style = {{view: {}, image: {width: MyStyle.screenWidth}, text: {}}}
-        />;
-    }
-
-    const ListFooter = () => {
-        MyUtil.printConsole(true, 'log', 'LOG: ListFooter: ', {'loadingMore': loadingMore});
-
-        if (!loadingMore) return null;
-
-        return <ActivityIndicatorLarge/>;
-    }
-
-    // Refresh All existing on Component Visibile, Show Placeholder on start and loadmore, No Data Found Design
-    const fetchCategory = async (skip: number = 0, take: number = MyConfig.ListLimit.categoryList, showLoader: any = MyLANG.Loading + '...', setRefresh: boolean = false, showInfoMessage: any = false, DataSetType: string = MyConstant.DataSetType.fresh) => {
-
-        setLoading(true);
-
-        const response: any = await MyUtil
-            .myHTTP(false, MyConstant.HTTP_POST, MyAPI.categories + '1',
-                    {
-                        'language_id': MyConfig.LanguageActive,
-
-                        'app_ver'      : MyConfig.app_version,
-                        'app_build_ver': MyConfig.app_build_version,
-                        'platform'     : MyConfig.app_platform,
-                        'device'       : null,
-                    }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Short, showLoader, true, false
-            );
-
-        MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
-            'apiURL': MyAPI.categories, 'response': response
-        });
-
-        if (response && response.type === MyConstant.RESPONSE.TYPE.data && response.data.status === 200 && response.data.data && response.data.data.data) {
-
-            if (response.data.data.data.length > 0) {
-                switch (DataSetType) {
-                    case MyConstant.DataSetType.addToEnd:
-                        setCategory(category.concat(response.data.data.data));
-                        break;
-                    case MyConstant.DataSetType.addToStart:
-                        setCategory(response.data.data.data.concat(category));
-                        break;
-                    case MyConstant.DataSetType.addToEndUnique:
-                        // const newData = category.concat(response.data.data.data.filter(({id}: any) => !category.find((f: any) => f.id == id)));
-                        const newData1: any = category;
-                        for (let i = 0; i < response.data.data.data.length; i++) {
-                            if (category.some((item: any) => item.id === response.data.data.data[i]?.id) === false) {
-                                newData1.push(response.data.data.data[i]);
-                            }
-                        }
-                        setCategory(newData1);
-                        break;
-                    case MyConstant.DataSetType.addToStartUnique:
-                        const newData2: any = category;
-                        for (let i = 0; i < response.data.data.data.length; i++) {
-                            if (category.some((item: any) => item.id === response.data.data.data[i]?.id) === false) {
-                                newData2.unshift(response.data.data.data[i]);
-                            }
-                        }
-                        setCategory(newData2);
-                        break;
-                    case MyConstant.DataSetType.fresh:
-                    default:
-                        setCategory(response.data.data.data);
-                        break;
-                }
-            }
+        if (Number(cart?.items[key]?.item?.products_liked) > Number(cart?.items[key]?.quantity)) {
+            dispatch(cartItemQuantityIncrement(key));
         } else {
-            // MyUtil.showMessage(MyConstant.SHOW_MESSAGE.ALERT, response.errorMessage ? response.errorMessage : MyLANG.UnknownError, false);
-        }
-
-        setFirstLoad(false);
-        setLoading(false);
-        setLoadingMore(false);
-        setOnEndReachedCalledDuringMomentum(true);
-        if (setRefresh === true) {
-            setRefreshing(false);
-        }
-
-        if (showInfoMessage !== false) {
-            MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message, false);
+            MyUtil.showMessage(MyConstant.SHOW_MESSAGE.TOAST, MyLANG.OutOfStock, false);
         }
     }
 
+    /* const cartItemRemove    = (key: any) => {
+         MyUtil.printConsole(true, 'log', 'LOG: cartItemRemove: ', {cart, key});
+
+         const newCartItem: any = cart?.items;
+         if (newCartItem) {
+             delete newCartItem[key];
+
+             const updatedCart = {
+                 ...cart,
+                 items: newCartItem
+             };
+
+             // setCart(updatedCart);
+
+
+         }
+     }
+     const quantityIncrement = (key: any) => {
+         MyUtil.printConsole(true, 'log', 'LOG: quantityIncrement: ', {cart, key});
+
+         let quantity: number = cart?.items[key]?.quantity;
+         if (quantity) {
+             quantity = quantity > 0 ? quantity + 1 : 1;
+
+             const updatedCart = {
+                 ...cart,
+                 items: {
+                     ...cart.items,
+                     [key]: {
+                         ...cart.items[key],
+                         quantity: quantity,
+                     }
+                 }
+             };
+
+             // setCart(updatedCart);
+
+
+         }
+     }
+     const quantityDecrement = (key: any) => {
+         MyUtil.printConsole(true, 'log', 'LOG: quantityIncrement: ', {cart, key});
+
+         let quantity: number = cart?.items[key]?.quantity;
+         if (quantity) {
+             quantity = quantity > 1 ? quantity - 1 : 1;
+
+             const updatedCart = {
+                 ...cart,
+                 items: {
+                     ...cart.items,
+                     [key]: {
+                         ...cart.items[key],
+                         quantity: quantity,
+                     }
+                 }
+             };
+
+             // setCart(updatedCart);
+
+
+         }
+     }
+
+     const cartCalculatePrice = async (updatedCart: any) => {
+         MyUtil.printConsole(true, 'log', 'LOG: cartCalculatePrice: ', {cart, updatedCart});
+
+
+         // setCart(calculatedCart);
+     }*/
+
+    /*const onCartItemRemove        = (key: any) => {
+        MyUtil.printConsole(true, 'log', 'LOG: onCartItemRemove: ', {cart, key});
+
+        dispatch(cartItemRemove(key));
+
+        // setCart(updatedCart);
+    }
+    const onCartQuantityIncrement = (key: any) => {
+        MyUtil.printConsole(true, 'log', 'LOG: onCartQuantityIncrement: ', {cart, key});
+
+        dispatch(cartItemQuantityIncrement(key));
+
+        // setCart(updatedCart);
+    }
+    const onCartQuantityDecrement = (key: any) => {
+        MyUtil.printConsole(true, 'log', 'LOG: onCartQuantityDecrement: ', {cart, key});
+
+        dispatch(cartItemQuantityDecrement(key));
+
+        // setCart(updatedCart);
+    }*/
 
     return (
         <Fragment>
@@ -195,40 +174,68 @@ const CartScreen = ({}) => {
             <SafeAreaView style = {MyStyleSheet.SafeAreaView1}/>
             <SafeAreaView style = {MyStyleSheet.SafeAreaView2}>
                 <View style = {[MyStyleSheet.SafeAreaView3, {backgroundColor: MyColor.Material.WHITE}]}>
-                    {/*<StatusBarGradientPrimary/>*/}
-                    {/*{firstLoad && category && category.length === 0 &&
-                     <ScrollView contentInsetAdjustmentBehavior = "automatic"
-                                 contentContainerStyle = {{paddingTop: MyStyle.headerHeightAdjusted, flexGrow: 1}}
-                     >
-                         {CategoryListItemContentLoader(4)}
-                     </ScrollView>
-                    }*/}
 
-                    <FlatList
-                        contentContainerStyle = {{paddingTop: MyStyle.headerHeightAdjusted, flexGrow: 1}}
-                        refreshControl = {
-                            <RefreshControl
-                                refreshing = {refreshing}
-                                onRefresh = {onRefresh}
-                                progressViewOffset = {MyStyle.headerHeightAdjusted}
-                                colors = {[MyColor.Primary.first]}
+                    {
+                        cart?.items && Object.keys(cart?.items).length > 0 && cart?.items.constructor === Object ?
+                        <>
+                            <ScrollView
+                                contentInsetAdjustmentBehavior = "automatic"
+                                contentContainerStyle = {{paddingTop: MyStyle.headerHeightAdjusted}}
+                                refreshControl = {
+                                    <RefreshControl
+                                        refreshing = {refreshing}
+                                        onRefresh = {onRefresh}
+                                        progressViewOffset = {MyStyle.headerHeightAdjusted}
+                                        colors = {[MyColor.Primary.first]}
+                                    />
+                                }
+                            >
+                                <CartListItem
+                                    items = {cart?.items}
+                                    onPressCartItemRemove = {(key: any) => dispatch(cartItemRemove(key))}
+                                    onPressQuantityIncrement = {(key: any) => cartItemIncrement(key)}
+                                    onPressQuantityDecrement = {(key: any) => dispatch(cartItemQuantityDecrement(key))}
+                                />
+
+                                <View style = {{height: 12, width: MyStyle.screenWidth, backgroundColor: MyColor.backgroundGrey}}></View>
+
+                                <CartPageTotal cart = {cart}/>
+
+                            </ScrollView>
+
+                            <CartPageBottom
+                                // textBackButton = {MyLANG.Back}
+                                textNextButton = {MyLANG.NextStep}
+                                // onPressBack = {onBack}
+                                onPressNext = {onNext}
                             />
-                        }
-                        data = {category}
-                        renderItem = {({item, index}: any) =>
-                            <CategoryListItem
-                                item = {item}
-                                index = {index}/>
-                        }
-                        keyExtractor = {(item: any) => String(item?.id)}
-                        ListEmptyComponent = {ListEmptyComponent}
-                        ListFooterComponent = {ListFooter}
-                        onEndReachedThreshold = {0.2}
-                        onEndReached = {onEndReached}
-                        onMomentumScrollBegin = {() => {
-                            setOnEndReachedCalledDuringMomentum(false);
-                        }}
-                    />
+
+                        </>
+                                                                                                                 :
+                        <>
+                            <ListEmptyViewLottie
+                                source = {MyImage.lottie_box_open}
+                                message = {MyLANG.NoItemInYourCart}
+                                loop = {false}
+                                speed = {0.5}
+                                style = {{view: {}, image: {}, text: {}}}
+                            />
+                            <CartPageBottom
+                                // textBackButton = {MyLANG.Back}
+                                textNextButton = {MyLANG.GoToShop}
+                                // onPressBack = {onBack}
+                                onPressNext = {
+                                    () =>
+                                        MyUtil.commonAction(false,
+                                                            null,
+                                                            MyConstant.CommonAction.navigate,
+                                                            MyConfig.routeName.BottomTab1,
+                                                            null,
+                                                            null
+                                        )}
+                            />
+                        </>
+                    }
 
                 </View>
             </SafeAreaView>

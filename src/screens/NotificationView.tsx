@@ -1,5 +1,5 @@
 import React, {useState, useEffect, Fragment} from 'react';
-import {StatusBarDark, StatusBarLight} from '../components/MyComponent';
+import {ListEmptyViewLottie, StatusBarDark, StatusBarLight} from '../components/MyComponent';
 import LinearGradient from 'react-native-linear-gradient';
 
 import {StyleSheet, View, Text, SafeAreaView, ScrollView, Image} from 'react-native';
@@ -29,24 +29,16 @@ const NotificationViewScreen = ({}) => {
 
     return (
         <Fragment>
-            <StatusBarDark/>
-            <SafeAreaView>
-                <LinearGradient start = {MyStyle.LGWhitish.start}
-                                end = {MyStyle.LGWhitish.end}
-                                locations = {MyStyle.LGWhitish.locations}
-                                colors = {MyStyle.LGWhitish.colors}>
-                    <View style = {MyStyleSheet.layoutView1}>
-                        <ScrollView contentInsetAdjustmentBehavior = "automatic">
-                            <View style = {MyStyleSheet.layoutView2}>
-                                <View style = {MyStyleSheet.layoutView3}>
-                                    <Text style = {styles.textStyle}>
-                                        Notification View
-                                    </Text>
-                                </View>
-                            </View>
-                        </ScrollView>
-                    </View>
-                </LinearGradient>
+            <StatusBarLight/>
+            <SafeAreaView style = {MyStyleSheet.SafeAreaView1}/>
+            <SafeAreaView style = {MyStyleSheet.SafeAreaView2}>
+                <View style = {[MyStyleSheet.SafeAreaView3, {backgroundColor: MyColor.Material.WHITE}]}>
+                    <ListEmptyViewLottie
+                        source = {MyImage.lottie_bus}
+                        message = {MyLANG.ComingSoon}
+                        style = {{view: {}, image: {width: MyStyle.screenWidth}, text: {}}}
+                    />
+                </View>
             </SafeAreaView>
         </Fragment>
     )

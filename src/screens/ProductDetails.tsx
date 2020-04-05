@@ -41,15 +41,11 @@ import ImageViewer from "react-native-image-zoom-viewer";
 import {MyButton} from "../components/MyButton";
 import {ShadowBox} from "react-native-neomorph-shadows";
 
-import {cartAddItem, cartEmpty} from "../store/CartRedux";
+import {cartEmpty, cartItemAdd, cartItemQuantityIncrement} from "../store/CartRedux";
 
 let renderCount = 0;
 
 const ProductDetailsScreen = ({route, navigation}: any) => {
-
-    const dispatch = useDispatch();
-
-    // const cart: any = useSelector((state: any) => state.cart);
     // const addCartItem    = (item: any) => dispatch(addCartItem(item));
 
     if (__DEV__) {
@@ -57,10 +53,13 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
         MyUtil.printConsole(true, 'log', `LOG: ${ProductDetailsScreen.name}. renderCount: `, {renderCount});
     }
 
-    const [refreshing, setRefreshing] = useState(false);
+    const dispatch = useDispatch();
 
-    const [firstLoad, setFirstLoad]  = useState(true);
-    const [product, setProduct]: any = useState([]);
+    const cart: any = useSelector((state: any) => state.cart);
+
+    const [refreshing, setRefreshing] = useState(false);
+    const [firstLoad, setFirstLoad]   = useState(true);
+    const [product, setProduct]: any  = useState([]);
 
     /*useLayoutEffect(() => {
         MyUtil.printConsole(true, 'log', `LOG: ${ProductDetailsScreen.name}. useLayoutEffect: `, '');
@@ -74,7 +73,7 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
     }, [navigation, route]);*/
 
     useEffect(() => {
-        MyUtil.printConsole(true, 'log', `LOG: ${ProductDetailsScreen.name}. useEffect: `, '');
+        MyUtil.printConsole(true, 'log', `LOG: ${ProductDetailsScreen.name}. useEffect: `, cart);
 
         fetchProduct(false, false, false);
 
@@ -135,18 +134,37 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
     }
 
     const onBuyNow = () => {
-        MyUtil.printConsole(true, 'log', 'LOG: onBuyNow: ', product);
+        const itemId: string = '_' + product?.id;
+        // MyUtil.printConsole(true, 'log', 'LOG: onBuyNow: ', {itemId, product});
+        if (cart?.items[itemId]) {
+            if (Number(product?.products_liked) > Number(cart?.items[itemId]?.quantity)) {
+                dispatch(cartItemAdd(product));
+            } else {
+                MyUtil.showMessage(MyConstant.SHOW_MESSAGE.TOAST, MyLANG.OutOfStock, false);
+            }
+            MyUtil.commonAction(false,
+                                navigation,
+                                MyConstant.CommonAction.navigate,
+                                MyConfig.routeName.ProductBuy,
+                                {item: product},
+                                null
+            )
+        } else {
+            if (Number(product?.products_liked) > 0) {
+                dispatch(cartItemAdd(product));
+                MyUtil.commonAction(false,
+                                    navigation,
+                                    MyConstant.CommonAction.navigate,
+                                    MyConfig.routeName.ProductBuy,
+                                    {item: product},
+                                    null
+                )
+            } else {
+                MyUtil.showMessage(MyConstant.SHOW_MESSAGE.TOAST, MyLANG.OutOfStock, false);
+            }
+        }
 
-        // dispatch(cartEmpty(product?.id));
-        // dispatch(cartAddItem(product));
 
-        MyUtil.commonAction(false,
-                            navigation,
-                            MyConstant.CommonAction.navigate,
-                            MyConfig.routeName.ProductBuy,
-                            {item: product},
-                            null
-        )
     }
 
     return (
@@ -160,7 +178,7 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                      <>
                          <ScrollView
                              contentInsetAdjustmentBehavior = "automatic"
-                             contentContainerStyle = {{}}
+                             contentContainerStyle = {{flexGrow: 1}}
                              refreshControl = {
                                  <RefreshControl
                                      refreshing = {refreshing}
@@ -184,7 +202,7 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                                      style = {[MyStyleSheet.titlePage, {
                                          textAlign       : 'center',
                                          marginHorizontal: MyStyle.marginHorizontalPage,
-                                         marginTop       : 20,
+                                         marginTop       : 15,
                                      }]}
                                  >
                                      {product?.products_name}
@@ -201,13 +219,13 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                                       <Text numberOfLines = {1}
                                             style = {[MyStyleSheet.titlePriceDiscountedPage, {marginRight: 5}]}
                                       >
-                                          {MyConfig.Currency.MYR.symbol}{product?.products_price}
+                                          {MyConfig.Currency.MYR.symbol} {product?.products_price}
                                       </Text>
                                      }
                                      <Text numberOfLines = {1}
                                            style = {[MyStyleSheet.titlePricePage, {}]}
                                      >
-                                         {MyConfig.Currency.MYR.symbol}{product?.discount_price ? product?.discount_price : product?.products_price}
+                                         {MyConfig.Currency.MYR.symbol} {product?.discount_price ? product?.discount_price : product?.products_price}
                                      </Text>
                                  </View>
 
@@ -348,7 +366,7 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                                                  MyUtil.commonAction(false,
                                                                      null,
                                                                      MyConstant.CommonAction.navigate,
-                                                                     MyConfig.routeName.CartPush,
+                                                                     MyConfig.routeName.ProductBuy,
                                                                      {},
                                                                      null
                                                  )

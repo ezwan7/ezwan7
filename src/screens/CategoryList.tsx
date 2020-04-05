@@ -105,9 +105,11 @@ const CategoryListScreen = ({}) => {
 
         if (firstLoad || (category && category.length > 0)) return null;
 
-        return <ListEmptyViewLottie source = {MyImage.lottie_empty_lost}
-                                    message = {MyLANG.NoCategoryFound}
-                                    style = {{view: {}, image: {}, text: {}}}/>;
+        return <ListEmptyViewLottie
+            source = {MyImage.lottie_empty_lost}
+            message = {MyLANG.NoCategoryFound}
+            style = {{view: {}, image: {}, text: {}}}
+        />;
     }
 
     const ListFooter = () => {
