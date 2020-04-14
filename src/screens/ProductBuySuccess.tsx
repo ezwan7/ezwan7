@@ -1,8 +1,7 @@
 import React, {useState, useEffect, Fragment, useCallback} from 'react';
-import {useFocusEffect} from '@react-navigation/native';
-import {StyleSheet, View, Text, SafeAreaView, ScrollView, Image, TouchableOpacity, BackHandler} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import LottieView from "lottie-react-native";
+import {StyleSheet, View, Text, SafeAreaView, ScrollView, Image, TouchableOpacity, BackHandler} from 'react-native';
+import {useFocusEffect} from '@react-navigation/native';
 
 import {MyStyle, MyStyleSheet} from '../common/MyStyle';
 import MyColor from '../common/MyColor';
@@ -15,26 +14,26 @@ import MyAuth from '../common/MyAuth';
 
 import {StatusBarDark} from '../components/MyComponent';
 import {MyButton} from "../components/MyButton";
+import LottieView from "lottie-react-native";
 
 let renderCount = 0;
 
-const SignupCompletedScreen = ({route, navigation}: any) => {
-
+const ProductBuySuccess = ({route, navigation}: any) => {
     if (__DEV__) {
         renderCount += 1;
-        MyUtil.printConsole(true, 'log', `LOG: ${SignupCompletedScreen.name}. renderCount: `, renderCount);
+        MyUtil.printConsole(true, 'log', `LOG: ${ProductBuySuccess.name}. renderCount: `, renderCount);
     }
 
     useFocusEffect(
         useCallback(() => {
             const onBackPress = () => {
                 // Go back to Login page:
-                MyUtil.commonAction(false,
-                                    null,
-                                    MyConstant.CommonAction.navigate,
-                                    MyConfig.routeName.Login,
-                                    null,
-                                    null
+                MyUtil.stackAction(false,
+                                   null,
+                                   MyConstant.StackAction.popToTop,
+                                   null,
+                                   null,
+                                   null
                 );
                 return true;
             };
@@ -46,6 +45,10 @@ const SignupCompletedScreen = ({route, navigation}: any) => {
         }, [])
     );
 
+    const formSubmit = async (e: any) => {
+
+    };
+
     return (
         <Fragment>
             <StatusBarDark/>
@@ -55,9 +58,13 @@ const SignupCompletedScreen = ({route, navigation}: any) => {
                                 start = {MyStyle.LGWhitish.start}
                                 end = {MyStyle.LGWhitish.end}
                                 locations = {MyStyle.LGWhitish.locations}
-                                colors = {MyStyle.LGWhitish.colors}>
-                    <ScrollView contentInsetAdjustmentBehavior = "automatic">
-                        <View style = {[MyStyleSheet.mainView, {
+                                colors = {MyStyle.LGWhitish.colors}
+                >
+                    <ScrollView
+                        contentInsetAdjustmentBehavior = "automatic"
+                        contentContainerStyle = {{paddingTop: MyStyle.headerHeightAdjusted, flexGrow: 1}}
+                    >
+                        <View style = {[{
                             alignItems      : "center",
                             marginBottom    : MyStyle.marginVerticalLogin,
                             marginHorizontal: MyStyle.marginHorizontalLogin,
@@ -159,9 +166,9 @@ const SignupCompletedScreen = ({route, navigation}: any) => {
     );
 };
 
-SignupCompletedScreen.navigationOptions = {};
+ProductBuySuccess.navigationOptions = {};
 
-export default SignupCompletedScreen;
+export default ProductBuySuccess;
 
 const styles = StyleSheet.create(
     {

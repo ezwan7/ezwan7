@@ -35,15 +35,19 @@ const MyStyle: any = {
     toolbarHeight       : isIphoneX ? 35 : 0,
 
     marginHorizontalList : 12,
-    paddingHorizontalList: 12,
     marginVerticalList   : 15,
+    paddingHorizontalList: 12,
     paddingVerticalList  : 15,
 
-    marginHorizontalPage: 24,
-    marginVerticalPage  : 24,
+    marginHorizontalPage : 24,
+    marginVerticalPage   : 24,
+    paddingHorizontalPage: 24,
+    paddingVerticalPage  : 15,
 
-    marginHorizontalLogin: 32,
-    marginVerticalLogin  : 32,
+    marginHorizontalLogin : 32,
+    marginVerticalLogin   : 32,
+    paddingHorizontalLogin: 32,
+    paddingVerticalLogin  : 32,
 
     marginHorizontalTextsView: 10,
 
@@ -204,6 +208,10 @@ const MyStyle: any = {
     },
 
     Column            : {},
+    ColumnCenterStart : {
+        justifyContent: "center",
+        alignItems    : "flex-start",
+    },
     ColumnCenter      : {
         justifyContent: "center",
         alignItems    : "center",
@@ -235,6 +243,11 @@ const MyStyle: any = {
                     top: 0,
                 },
             }),
+    },
+    RowStartCenter    : {
+        flexDirection : "row",
+        justifyContent: "flex-start",
+        alignItems    : "center",
     },
     RowCenter         : {
         flexDirection : "row",
@@ -529,7 +542,7 @@ const MyStyleSheet = StyleSheet.create(
         titlePriceDiscountedPage: {
             fontFamily        : MyStyle.fontFamilyPrice,
             fontSize          : 14,
-            color             : MyColor.textDarkSecondary,
+            color             : MyColor.textDarkSecondary2,
             textDecorationLine: "line-through",
         },
         titleAlert              : {
@@ -546,34 +559,52 @@ const MyStyleSheet = StyleSheet.create(
             lineHeight: 18,
         },
 
-        imageListSmall : {
+        imageListExtraSmall: {
+            width          : MyStyle.screenWidth * 0.11,
+            height         : MyStyle.screenWidth * 0.11,
+            borderRadius   : 3,
+            backgroundColor: MyColor.Material.GREY["100"],
+        },
+        imageListSmall     : {
             width          : MyStyle.screenWidth * 0.16,
             height         : MyStyle.screenWidth * 0.16,
             borderRadius   : 3,
             backgroundColor: MyColor.Material.GREY["100"],
         },
-        imageList      : {
+        imageList          : {
             width          : MyStyle.screenWidth * 0.22,
             height         : MyStyle.screenWidth * 0.22,
             borderRadius   : 3,
             backgroundColor: MyColor.Material.GREY["100"],
         },
-        imageListMedium: {
+        imageListMedium    : {
             width          : MyStyle.screenWidth * 0.25,
             height         : MyStyle.screenWidth * 0.25,
             borderRadius   : 4,
             backgroundColor: MyColor.Material.GREY["100"],
         },
-        imageListLarge : {
+        imageListLarge     : {
             width          : MyStyle.screenWidth * 0.35,
             height         : MyStyle.screenWidth * 0.35,
             borderRadius   : 4,
             backgroundColor: MyColor.Material.GREY["100"],
         },
-        imageBackground: {
+        imageBackground    : {
             width          : MyStyle.screenWidth,
             height         : MyStyle.screenWidth / 2,
             backgroundColor: MyColor.Material.GREY["100"],
+        },
+
+        cardViewPage: {
+            display      : "flex",
+            flexDirection: "column",
+
+            paddingHorizontal: MyStyle.paddingHorizontalPage,
+            paddingVertical  : MyStyle.paddingVerticalPage,
+
+            marginBottom: 15,
+
+            backgroundColor: MyColor.Material.WHITE,
         },
     })
 

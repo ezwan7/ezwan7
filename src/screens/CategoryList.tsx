@@ -134,14 +134,14 @@ const CategoryListScreen = ({}) => {
                         'app_build_ver': MyConfig.app_build_version,
                         'platform'     : MyConfig.app_platform,
                         'device'       : null,
-                    }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Short, showLoader, true, false
+                    }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, showLoader, true, false
             );
 
         MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
             'apiURL': MyAPI.categories, 'response': response
         });
 
-        if (response && response.type === MyConstant.RESPONSE.TYPE.data && response.data.status === 200 && response.data.data && response.data.data.data) {
+        if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data.status === 200 && response.data.data && response.data.data.data) {
 
             const data = response.data.data.data;
             if (data.length > 0) {

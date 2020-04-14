@@ -1,22 +1,23 @@
 import React, {Fragment, useCallback, useEffect, useState} from 'react';
+import {StyleSheet, View, Text, Image, SafeAreaView, ImageBackground, BackHandler} from 'react-native';
 import {useFocusEffect} from "@react-navigation/native";
-
 import AppIntroSlider from 'react-native-app-intro-slider';
 import LinearGradient from 'react-native-linear-gradient';
 import Splash from "react-native-splash-screen";
 
-import {StyleSheet, View, Text, Image, SafeAreaView, ImageBackground, BackHandler} from 'react-native';
-import {StatusBarLight} from "../components/MyComponent";
-
 import MyImage from "../shared/MyImage";
 import MyIcon from '../components/MyIcon';
 import MyUtil from "../common/MyUtil";
-import {MyConfig} from "../shared/MyConfig";
+import {MyAPI, MyConfig} from "../shared/MyConfig";
 import {MyConstant} from "../common/MyConstant";
 import MyColor from "../common/MyColor";
 import {MyStyle} from "../common/MyStyle";
 import MyAuth from "../common/MyAuth";
 import MyLANG from "../shared/MyLANG";
+
+import {useSelector} from "react-redux";
+import {MyFastImage} from "../components/MyFastImage";
+import {StatusBarLight} from "../components/MyComponent";
 
 let renderCount = 0;
 
@@ -27,7 +28,7 @@ const IntroScreen = ({route, navigation}: any) => {
         MyUtil.printConsole(true, 'log', `LOG: ${IntroScreen.name}. renderCount: `, renderCount);
     }
 
-    const [slides, setSlides] = useState(MyConfig.Intro);
+    const intro: any = useSelector((state: any) => state.intro);
 
     useFocusEffect(
         useCallback(() => {
@@ -46,10 +47,7 @@ const IntroScreen = ({route, navigation}: any) => {
 
     useEffect(() => {
 
-        MyUtil.printConsole(true, 'log', `LOG: ${IntroScreen.name}. useEffect: `, null);
-
-        // Get from redux and Update Local Intro Data:
-        setSlides(MyConfig.Intro);
+        MyUtil.printConsole(true, 'log', `LOG: ${IntroScreen.name}. useEffect: `, intro);
 
         if (route?.params?.splash !== false) { // If splash param is not false then hide splash:
             MyUtil.printConsole(true, 'log', `LOG: ${IntroScreen.name}. route?.params?.splash: `, route?.params?.splash);
@@ -76,8 +74,8 @@ const IntroScreen = ({route, navigation}: any) => {
             >
                 <ImageBackground
                     source = {MyImage.electronics_pattern}
-                    style = {styles.imgBackground}
                     resizeMode = "repeat"
+                    style = {styles.imgBackground}
                 >
                     {/*<MyIcon.Ionicons
                     style={{backgroundColor: 'transparent'}}
@@ -85,10 +83,10 @@ const IntroScreen = ({route, navigation}: any) => {
                     size={200}
                     color="white"
                 />*/}
-                    <Image source = {item.image}
-                           defaultSource = {MyImage.defaultSource}
-                           style = {styles.image}
-                           resizeMode = "contain"/>
+                    <MyFastImage
+                        source = {[item?.image?.length > 9 ? {'uri': item?.image} : MyImage.logo_white, MyImage.logo_white]}
+                        style = {styles.image}
+                    />
                     <View>
                         <Text style = {styles.title}>{item.title}</Text>
                         <Text style = {styles.text}>{item.text}</Text>
@@ -144,7 +142,7 @@ const IntroScreen = ({route, navigation}: any) => {
 
     return (
         <AppIntroSlider
-            slides = {slides}
+            data = {intro}
             renderItem = {_renderItem}
             renderDoneButton = {_renderDoneButton}
             renderNextButton = {_renderNextButton}

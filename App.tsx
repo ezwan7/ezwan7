@@ -31,17 +31,16 @@ const App = () => {
 export default App;
 
 
+// TODO: Increment/Decrement
+
 // TODO: Back button break in jump or other
 
-// TODO: float calc, price header, copy to cart page
-// TODO: signup, signup completed, navigation actions, facebook google, signup pages optimize
+// TODO: copy to cart page
 // TODO: white loader, allow style in toast loader,
-// TODO: New Input Design
+// TODO: New Input Design, height, size, float background,
 // TODO: FingerPrint, SMS Login
 // TODO: Invoke validation on submit, from utils file, custom validation and message
-// TODO: Login after registration flow
-// TODO: signup already have account
-// TODO: info html page, info+html modal, all modal functions
+// TODO: info+html modal, all modal functions
 // TODO: Input Params default, input clear on page open
 
 
@@ -53,6 +52,7 @@ export default App;
 // TODO: Custom Bottom Tabs
 // TODO: blur,
 // TODO: update cart api fetch all product by id, and calculate EVERYTHING,
+// TODO: Render Optimize Home screen, use event and redux
 
 // No Internet Lottie
 // Validation delay, on type gone

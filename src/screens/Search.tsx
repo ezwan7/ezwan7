@@ -130,7 +130,7 @@ const SearchScreen = ({route, navigation}: any) => {
                         'app_build_ver': MyConfig.app_build_version,
                         'platform'     : MyConfig.app_platform,
                         'device'       : null,
-                    }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Short, showLoader, true, false
+                    }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, showLoader, true, false
             );
 
         MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {

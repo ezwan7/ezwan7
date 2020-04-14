@@ -1,6 +1,6 @@
 import React, {useState, useEffect, Fragment} from 'react';
-import LinearGradient from 'react-native-linear-gradient';
 import {StyleSheet, View, Text, SafeAreaView, ScrollView, Image, TouchableOpacity} from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import {useForm} from 'react-hook-form';
 
 import {MyStyle, MyStyleSheet} from '../common/MyStyle';
@@ -115,13 +115,17 @@ const PasswordForgotScreen = ({}) => {
                             />
 
                             <TouchableOpacity activeOpacity = {0.7}
-                                              onPress = {() => MyUtil.commonAction(false,
-                                                                                   null,
-                                                                                   MyConstant.CommonAction.navigate,
-                                                                                   MyConfig.routeName.PasswordReset,
-                                                                                   null,
-                                                                                   null
-                                              )}>
+                                              onPress = {
+                                                  () =>
+                                                      MyUtil.commonAction(false,
+                                                                          null,
+                                                                          MyConstant.CommonAction.navigate,
+                                                                          MyConfig.routeName.PasswordReset,
+                                                                          null,
+                                                                          null
+                                                      )
+                                              }
+                            >
                                 <View style = {[MyStyle.RowCenter, {marginTop: 44}]}>
                                     <Text style = {styles.textAlreadyHaveCode}>
                                         {MyLANG.AlreadyHaveCode}

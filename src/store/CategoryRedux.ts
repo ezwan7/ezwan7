@@ -16,10 +16,10 @@ export const categorySave = (item: any, dataSetType: string) => {
     }
 }
 
-export const categoryEmpty = (id: string) => {
+export const categoryEmpty = () => {
     return {
         type   : types.EMPTY_CATEGORY,
-        payload: id,
+        payload: null,
     }
 }
 
@@ -27,7 +27,6 @@ const CategoryReducer = (state: any = initialState, action: any) => {
     switch (action.type) {
 
         case types.SAVE_CATEGORY:
-            console.log(`LOG: CategoryReducer: `, {state: state, action: action});
             let data: any = [];
             switch (action.payload.dataSetType) {
                 case MyConstant.DataSetType.addToEnd:

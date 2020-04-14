@@ -1,13 +1,18 @@
 const initialState: any = {
-    items          : {},
-    count          : 0,
-    subtotal       : 0,
-    discount       : 9.5,
-    voucher        : 11.70,
+    items   : {},
+    count   : 0,
+    subtotal: 0,
+
+    discount       : 0,
+    voucher        : {
+        item  : {},
+        amount: 0,
+    },
     delivery_charge: 18.45,
     service_charge : 13.50,
     tax            : 7.8,
-    total          : 0,
+
+    total: 0,
 };
 
 /*const initialState: any = {
@@ -110,19 +115,18 @@ const types = {
     UPDATE_TAX           : "UPDATE_TAX",
 }
 
-export const cartItemAdd    = (product: any) => {
+export const cartItemAdd               = (product: any) => {
     return {
         type   : types.ADD_CART_ITEM,
         payload: product,
     }
 }
-export const cartItemRemove = (key: string) => {
+export const cartItemRemove            = (key: string) => {
     return {
         type   : types.REMOVE_CART_ITEM,
         payload: key,
     }
 }
-
 export const cartItemQuantityIncrement = (key: string) => {
     return {
         type   : types.INCREMENT_CART_ITEM,
@@ -135,8 +139,7 @@ export const cartItemQuantityDecrement = (key: string) => {
         payload: key,
     }
 }
-
-export const cartEmpty = () => {
+export const cartEmpty                 = () => {
     return {
         type   : types.EMPTY_CART,
         payload: '',
@@ -152,13 +155,16 @@ export const cartUpdate = (state: any) => {
         calculatedCart.subtotal = 0;
         for (const key of Object.keys(state.items)) {
             // console.log('LOG: cartCalculatePrice: ', {key, item: state.items[key]});
-            if (Number(state.items[key]?.item?.products_price) > 0 && Number(state.items[key]?.quantity) > 0) {
+
+            const price: number = Number(state.items[key]?.item?.discount_price) > 0 ? Number(state.items[key]?.item?.discount_price) : Number(state.items[key]?.item?.products_price);
+
+            if (price > 0 && Number(state.items[key]?.quantity) > 0) {
                 /*console.log('LOG: cartCalculatePrice: ', {
-                                price   : Number(state.items[key]?.item?.products_price),
+                                price   : price,
                                 quantity: Number(state.items[key]?.quantity)
                             }
                 );*/
-                calculatedCart.items[key].total = Number(state.items[key]?.item?.products_price) * Number(state.items[key]?.quantity);
+                calculatedCart.items[key].total = price * Number(state.items[key]?.quantity);
                 calculatedCart.count            = Number(calculatedCart.count) > 0 ? Number(calculatedCart.count) + 1 : 1;
                 calculatedCart.subtotal         = Number(calculatedCart.subtotal) > 0 ? Number(calculatedCart.subtotal) + Number(
                     calculatedCart.items[key].total) : Number(
@@ -172,7 +178,7 @@ export const cartUpdate = (state: any) => {
                                    -
                                    (
                                    (Number(calculatedCart.discount) > 0 ? Number(calculatedCart.discount) : 0) +
-                                   (Number(calculatedCart.voucher) > 0 ? Number(calculatedCart.voucher) : 0)
+                                   (Number(calculatedCart.voucher?.amount) > 0 ? Number(calculatedCart.voucher?.amount) : 0)
                                    )
                                    +
                                    (
@@ -203,25 +209,25 @@ export const cartUpdateDiscount      = (amount: any) => {
         payload: amount,
     }
 }
-export const cartUpdateVoucher       = (amount: any) => {
+export const cartUpdateVoucher       = (item: any, amount: number) => {
     return {
         type   : types.UPDATE_VOUCHER,
-        payload: amount,
+        payload: {item, amount},
     }
 }
-export const cartUpdateDelivery      = (amount: any) => {
+export const cartUpdateDelivery      = (amount: number) => {
     return {
         type   : types.UPDATE_DELIVERY,
         payload: amount,
     }
 }
-export const cartUpdateServiceCharge = (amount: any) => {
+export const cartUpdateServiceCharge = (amount: number) => {
     return {
         type   : types.UPDATE_SERVICE_CHARGE,
         payload: amount,
     }
 }
-export const cartUpdateTax           = (amount: any) => {
+export const cartUpdateTax           = (amount: number) => {
     return {
         type   : types.UPDATE_TAX,
         payload: amount,
@@ -232,35 +238,57 @@ export const cartUpdateTax           = (amount: any) => {
 // Genral function to Calculate Total, Subtotal, Item Count Only:
 const calculateTotal = (state: any) => {
     console.log('Redux calculateTotal: ', state);
+
     let calculatedCart: any = state;
+
     if (state?.items && Object.keys(state?.items).length > 0 && state?.items?.constructor === Object) {
+
         calculatedCart.count    = 0;
         calculatedCart.subtotal = 0;
+        calculatedCart.discount = 0;
+        calculatedCart.total    = 0;
+
         for (const key of Object.keys(state.items)) {
             // console.log('LOG: cartCalculatePrice: ', {key, item: state.items[key]});
-            if (Number(state.items[key]?.item?.products_price) > 0 && Number(state.items[key]?.quantity) > 0) {
+
+            const quantity: number       = Number(state.items[key]?.quantity) > 0 ? Number(state.items[key]?.quantity) : 0;
+            const discount_price: number = Number(state.items[key]?.item?.discount_price) > 0 ? Number(state.items[key]?.item?.discount_price) : 0;
+            const products_price: number = Number(state.items[key]?.item?.products_price) > 0 ? Number(state.items[key]?.item?.products_price) : 0;
+            const price: number          = discount_price > 0 ? discount_price : products_price;
+
+            if (price > 0 && quantity > 0) {
                 /*console.log('LOG: cartCalculatePrice: ', {
-                                price   : Number(state.items[key]?.item?.products_price),
-                                quantity: Number(state.items[key]?.quantity)
+                                price   : price,
+                                quantity: quantity
                             }
                 );*/
-                calculatedCart.items[key].total = Number(state.items[key]?.item?.products_price) * Number(state.items[key]?.quantity);
-                calculatedCart.count            = Number(calculatedCart.count) > 0 ? Number(calculatedCart.count) + 1 : 1;
-                calculatedCart.subtotal         = Number(calculatedCart.subtotal) > 0 ?
-                                                  Number(calculatedCart.subtotal) +
-                                                  Number(calculatedCart.items[key].total)
-                                                                                      :
-                                                  Number(calculatedCart.items[key].total);
+
+                calculatedCart.items[key].subtotal = products_price * quantity;
+                calculatedCart.items[key].discount = discount_price > 0 ? ((products_price - discount_price) * quantity) : 0;
+                calculatedCart.items[key].total    = price * quantity;
+
+                calculatedCart.count    = Number(calculatedCart.count) > 0 ? Number(calculatedCart.count) + 1 : 1;
+                calculatedCart.subtotal = Number(calculatedCart.subtotal) > 0 ?
+                                          Number(calculatedCart.subtotal) +
+                                          Number(calculatedCart.items[key].total)
+                                                                              :
+                                          Number(calculatedCart.items[key].total);
+                calculatedCart.discount = Number(calculatedCart.discount) > 0 ?
+                                          Number(calculatedCart.discount) +
+                                          Number(calculatedCart.items[key].discount)
+                                                                              :
+                                          Number(calculatedCart.items[key].discount);
 
             }
         }
+
         calculatedCart.total = Number(calculatedCart.subtotal) > 0 ?
                                (
                                    Number(calculatedCart.subtotal)
                                    -
                                    (
                                    (Number(calculatedCart.discount) > 0 ? Number(calculatedCart.discount) : 0) +
-                                   (Number(calculatedCart.voucher) > 0 ? Number(calculatedCart.voucher) : 0)
+                                   (Number(calculatedCart.voucher?.amount) > 0 ? Number(calculatedCart.voucher?.amount) : 0)
                                    )
                                    +
                                    (
@@ -269,15 +297,20 @@ const calculateTotal = (state: any) => {
                                    (Number(calculatedCart.tax) > 0 ? Number(calculatedCart.tax) : 0)
                                    )
                                )
-                                                                   : 0;
+                                                                   :
+                               0
+        ;
 
         return {
             ...state,
             count   : calculatedCart.count,
             subtotal: calculatedCart.subtotal,
+            discount: calculatedCart.discount,
             total   : calculatedCart.total,
         }
+
     } else {
+
         return {
             ...initialState,
             items: {}
@@ -309,11 +342,18 @@ const CartReducer = (state: any = initialState, action: any) => {
                 } else {
 
                     if (Number(action.payload?.products_liked) > 0) {
+
+                        const discount_price: number = Number(action.payload?.discount_price) > 0 ? Number(action.payload?.discount_price) : 0;
+                        const products_price: number = Number(action.payload?.products_price) > 0 ? Number(action.payload?.products_price) : 0;
+                        const price: number          = discount_price > 0 ? discount_price : products_price;
+
                         addCartItem[itemId] = {};
                         addCartItem[itemId] = {
                             item    : action.payload,
                             quantity: 1,
-                            total   : Number(action.payload?.products_price) > 0 ? Number(action.payload?.products_price) : 0,
+                            subtotal: products_price,
+                            discount: discount_price > 0 ? (products_price - discount_price) : 0,
+                            total   : price > 0 ? price : 0,
                         };
                     } else {
                         return state;
@@ -354,7 +394,21 @@ const CartReducer = (state: any = initialState, action: any) => {
             if (quantityIncrement) {
                 quantityIncrement = quantityIncrement > 0 ? quantityIncrement + 1 : 1;
 
+                const items: any                = {...state.items};
+                const itemsIncrement            = items;
+                itemsIncrement[itemIdIncrement] = {
+                    ...state.items[itemIdIncrement],
+                    quantity: quantityIncrement,
+                }
+
                 return calculateTotal(
+                    {
+                        ...state,
+                        items: itemsIncrement
+                    }
+                )
+
+                /*return calculateTotal(
                     {
                         ...state,
                         items: {
@@ -365,7 +419,7 @@ const CartReducer = (state: any = initialState, action: any) => {
                             }
                         }
                     }
-                );
+                );*/
             } else {
                 return state;
             }
@@ -377,7 +431,22 @@ const CartReducer = (state: any = initialState, action: any) => {
                     return state;
                 } else {
                     quantityDecrement = quantityDecrement > 1 ? quantityDecrement - 1 : 1;
+
+                    const items: any                = {...state.items};
+                    const itemsDecrement            = items;
+                    itemsDecrement[itemIdDecrement] = {
+                        ...state.items[itemIdDecrement],
+                        quantity: quantityDecrement,
+                    };
+
                     return calculateTotal(
+                        {
+                            ...state,
+                            items: itemsDecrement
+                        }
+                    );
+
+                    /*return calculateTotal(
                         {
                             ...state,
                             items: {
@@ -388,7 +457,7 @@ const CartReducer = (state: any = initialState, action: any) => {
                                 }
                             }
                         }
-                    );
+                    );*/
                 }
             } else {
                 return state;
@@ -453,16 +522,17 @@ const CartReducer = (state: any = initialState, action: any) => {
                 return state;
             }
         case types.UPDATE_VOUCHER:
-            if (Number(action.payload) >= 0) {
-                return calculateTotal(
-                    {
-                        ...state,
-                        voucher: action.payload
-                    }
-                );
-            } else {
-                return state;
-            }
+            const updateVoucher: any = state?.voucher;
+            updateVoucher.item       = action.payload?.item;
+            updateVoucher.amount     = action.payload?.amount;
+
+            return calculateTotal(
+                {
+                    ...state,
+                    voucher: updateVoucher
+                }
+            );
+
         case types.UPDATE_DELIVERY:
             if (Number(action.payload) >= 0) {
                 return calculateTotal(

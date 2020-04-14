@@ -125,11 +125,13 @@ const MyAuth = {
                         [MyConstant.GOOGLE_ID]  : formParam?.google_id,
                         [MyConstant.EMAIL]      : formParam?.email,
                         [MyConstant.NAME]       : formParam?.name,
+                        [MyConstant.FIRST_NAME] : formParam?.first_name,
+                        [MyConstant.LAST_NAME]  : formParam?.last_name,
                         [MyConstant.PHOTO]      : formParam?.photo,
                         // "role"               : MyConfig.UserRole.customer,
                         // "db_key"             : 'app_build_ver_android',
                         // "device"             : null,
-                    }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Short, showLoader, true, false
+                    }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, showLoader, true, false
             );
 
         MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
@@ -138,10 +140,25 @@ const MyAuth = {
         });
 
         // Login Fully Successful, go for login data process:
-        if (response?.type === MyConstant.RESPONSE.TYPE.data && response?.data?.status === 200 && response?.data?.data?.data[0]?.id > 0) {
+        if (response?.type === MyConstant.RESPONSE.TYPE.data && response?.data?.status === 200 && response?.data?.data?.data?.[0]?.id > 0) {
 
-            const data = response.data.data.data[0];
-            MyAuth.processLogin(formParam, data, false, false, doReRoute, routeTo, navigationActions);
+            const data = response.data.data.data?.[0];
+
+            // If Facebook/Google API called, then check if new account or existing:
+            switch (formParam?.mode) {
+                case MyConstant.LOGIN_MODE.GOOGLE:
+                case MyConstant.LOGIN_MODE.FACEBOOK:
+                    if (response?.data?.data?.api_use_type === 'login') {
+                        MyAuth.processLogin(formParam, data, false, false, doReRoute, routeTo, navigationActions);
+                    } else if (response?.data?.data?.api_use_type === 'registration') {
+                        MyAuth.processSignup(formParam, data, false, false, 'doReRoute', routeTo, navigationActions);
+                    } else {
+                    }
+                    break;
+                default:
+                    MyAuth.processLogin(formParam, data, false, false, doReRoute, routeTo, navigationActions);
+                    break;
+            }
 
         } else {
             MyUtil.showMessage(showMessage, response.errorMessage ? response.errorMessage : MyLANG.UnknownError, false);
@@ -161,7 +178,7 @@ const MyAuth = {
                 'user'             : user,
                 'showMessage'      : showMessage,
                 'showLoader'       : showLoader,
-                'doReRoute'        : doReRoute,
+                doReRoute          : doReRoute,
                 'routeTo'          : routeTo,
                 'navigationActions': navigationActions,
             });
@@ -297,6 +314,8 @@ const MyAuth = {
                     }
                 }
 
+                MyUtil.showMessage(MyConstant.SHOW_MESSAGE.TOAST, MyLANG.LogoutSuccessfully, false);
+
             } else {
 
                 throw new Error('Stored Credential Removal Failed!');
@@ -335,7 +354,7 @@ const MyAuth = {
         }
     },
 
-    //
+
     loginFacebook : async (showMessage: any) => {
         MyUtil.printConsole(true, 'log', 'LOG: loginFacebook:', {
             'showMessage': showMessage,
@@ -360,7 +379,7 @@ const MyAuth = {
                                     accessToken: accessData?.accessToken,
                                     parameters : {
                                         'fields': {
-                                            'string': 'id,name,email,picture.type(large)'
+                                            'string': 'id,name,first_name,last_name,email,picture.type(large)'
                                         }
                                     }
                                 },
@@ -417,7 +436,6 @@ const MyAuth = {
             return response;
         }
     },
-    //
     logoutFacebook: async (showMessage: any, login: boolean) => {
         MyUtil.printConsole(true, 'log', 'LOG: logoutFacebook:', {
             'showMessage': showMessage,
@@ -480,7 +498,6 @@ const MyAuth = {
             return response;
         }
     },
-    //
     loginGoogle   : async (showMessage: any) => {
         MyUtil.printConsole(true, 'log', 'LOG: googlePlusLogin:', {'showMessage': showMessage});
         try {
@@ -533,12 +550,12 @@ const MyAuth = {
     },
 
 
-    //
-    signup: async (formParam: any, showMessage: any, showLoader: any, routeTo: any, navigationActions: any) => {
+    signup: async (formParam: any, showMessage: any, showLoader: any, doReRoute: any, routeTo: any, navigationActions: any) => {
         MyUtil.printConsole(true, 'log', 'LOG: signup:', {
             'formParam'        : formParam,
             'showMessage'      : showMessage,
             'showLoader'       : showLoader,
+            'doReRoute'        : doReRoute,
             'routeTo'          : routeTo,
             'navigationActions': navigationActions,
         });
@@ -572,6 +589,8 @@ const MyAuth = {
                         [MyConstant.GOOGLE_ID]  : formParam?.google_id,
                         [MyConstant.EMAIL]      : formParam?.email,
                         [MyConstant.NAME]       : formParam?.name,
+                        [MyConstant.FIRST_NAME] : formParam?.first_name,
+                        [MyConstant.LAST_NAME]  : formParam?.last_name,
                         [MyConstant.PHOTO]      : formParam?.photo,
 
                         "customers_firstname": formParam?.first_name,
@@ -580,7 +599,7 @@ const MyAuth = {
                         // "role"               : MyConfig.UserRole.customer,
                         // "db_key"             : 'app_build_ver_android',
                         // "device"             : null,
-                    }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Short, showLoader, true, false
+                    }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, showLoader, true, false
             );
 
         MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
@@ -589,40 +608,34 @@ const MyAuth = {
         });
 
         // Signup Fully Successful, go for next data process:
-        if (response?.type === MyConstant.RESPONSE.TYPE.data && response?.data?.status === 200 && response?.data?.data?.data[0]?.id > 0) {
+        if (response?.type === MyConstant.RESPONSE.TYPE.data && response?.data?.status === 200 && response?.data?.data?.data?.[0]?.id > 0) {
 
-            MyUtil.commonAction(false, null, MyConstant.CommonAction.navigate, MyConfig.routeName.SignupCompleted, null, null);
+            const data = response.data.data.data?.[0];
 
-            const data = response.data.data.data[0];
-            //TODO:
-            MyAuth.processSignup(formParam, 'data', false, false, 'doReRoute', routeTo, navigationActions);
-
-            // If registration id done via email:
-            if (formParam.mode === MyConstant.LOGIN_MODE.EMAIL) {
-
+            // If Facebook/Google API called, then check if new account or existing:
+            switch (formParam?.mode) {
+                case MyConstant.LOGIN_MODE.GOOGLE: // If registration is done vai social login:
+                case MyConstant.LOGIN_MODE.FACEBOOK:
+                    if (response?.data?.data?.api_use_type === 'login') { // If social login already exists => auto login and redirect:
+                        MyAuth.processLogin(formParam, data, false, false, doReRoute, routeTo, navigationActions);
+                    } else if (response?.data?.data?.api_use_type === 'registration') { // If social login is new, created new account:
+                        MyAuth.processSignup(formParam, data, false, false, doReRoute, routeTo, navigationActions);
+                    } else {
+                    }
+                    break;
+                default:  // If registration id done via email:
+                    MyAuth.processSignup(formParam, data, false, false, doReRoute, routeTo, navigationActions);
+                    break;
             }
-            // If registration is done vai social login:
-            else {
-                // If social login already exists => auto login and redirect:
-                if (true) {
 
-                }
-                // If social login is new, created new account:
-                else {
-
-                }
-            }
         } else {
 
-            MyUtil.commonAction(false, null, MyConstant.CommonAction.navigate, MyConfig.routeName.SignupCompleted, null, null);
-
-            // MyUtil.showMessage(showMessage, response.errorMessage ? response.errorMessage : MyLANG.UnknownError, false);
+            MyUtil.showMessage(showMessage, response.errorMessage ? response.errorMessage : MyLANG.UnknownError, false);
 
             //TODO: Trigger form validation
         }
     },
 
-    // TODO:
     processSignup: async (formParam: any, user: any, showMessage: any, showLoader: any, doReRoute: any, routeTo: any, navigationActions: any) => {
         try {
             MyUtil.printConsole(true, 'log', 'LOG: processSignup:', {
@@ -637,17 +650,40 @@ const MyAuth = {
 
             switch (MyConfig.registrationAction) {
                 case MyConstant.RegistrationAction.welcome_screen_only:
+                    MyUtil.commonAction(false, null, MyConstant.CommonAction.navigate, MyConfig.routeName.SignupCompleted, null, null);
                     break;
                 case MyConstant.RegistrationAction.verification_needed:
+                    MyUtil.commonAction(false, null, MyConstant.CommonAction.navigate, MyConfig.routeName.SignupCompleted, null, null);
                     break;
                 case MyConstant.RegistrationAction.auto_login:
+                    MyUtil.commonAction(false,
+                                        null,
+                                        MyConstant.CommonAction.navigate,
+                                        MyConfig.routeName.SignupCompleted,
+                                        {
+                                            login: {
+                                                formParam        : formParam,
+                                                user             : user,
+                                                showMessage      : MyConstant.SHOW_MESSAGE.ALERT,
+                                                showLoader       : MyLANG.Login + '...',
+                                                doReRoute        : doReRoute,
+                                                routeTo          : routeTo,
+                                                navigationActions: navigationActions
+                                            }
+                                        },
+                                        null
+                    );
+                    // MyAuth.processLogin(formParam, user, false, false, doReRoute, routeTo, navigationActions);
+                    // MyAuth.login(user, showMessage, showLoader, doReRoute, routeTo, navigationActions);
                     break;
                 default:
                     break;
             }
 
         } catch (error) {
+            MyUtil.printConsole(true, 'log', 'LOG: processSignup: TRY-CATCH: ', {'error': error});
 
+            MyUtil.showMessage(showMessage, MyLANG.RegistrationFailed, false);
         }
     },
 
@@ -669,7 +705,7 @@ const MyAuth = {
                         "app_build_ver"   : MyConfig.app_build_version,
                         "platform"        : MyConfig.app_platform,
                         [MyConstant.EMAIL]: formParam?.email,
-                    }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Short, showLoader, true, false
+                    }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, showLoader, true, false
             );
 
         MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {

@@ -32,6 +32,7 @@ import {store} from "../store/MyStore";
 import {MyButton} from "../components/MyButton";
 import {ShadowBox} from "react-native-neomorph-shadows";
 import NumberFormat from 'react-number-format';
+import {MyImageBackground} from "../components/MyImageBackground";
 
 // const MaterialTopTabBarComponent = (props: any) => (<MaterialTopTabBar {...props} />);
 
@@ -62,6 +63,7 @@ const drawerItemOnPress = (loginRequired: boolean, navigation: any, actionType: 
                 break;
             case MyConstant.DrawerOnPress.ShareApp:
                 MyUtil.share(MyConstant.SHARE.TYPE.open,
+                             false,
                              {
                                  message: MyLANG.ShareUs,
                                  subject: MyLANG.AppShare,
@@ -86,7 +88,8 @@ const drawerItemOnPress = (loginRequired: boolean, navigation: any, actionType: 
 
 const CustomDrawerContent = ({props}: any) => {
     // console.log('test', props?.state?.routes[props?.state?.index].name);
-    const user = store.getState().auth.user;
+    const user     = store.getState().auth.user;
+    const app_data = store.getState().app_data;
     // MyUtil.printConsole(true, 'log', 'LOG: CustomDrawerContent: ', {props, user});
 
     let DrawerItem = [];
@@ -144,7 +147,11 @@ const CustomDrawerContent = ({props}: any) => {
                 image         : {src: MyImage.phone},
                 icon          : null,
                 text          : {text: MyLANG.ContactUs},
-                onPress       : {loginRequired: false, actionType: MyConstant.DrawerOnPress.Navigate, routeName: MyConfig.routeName.ContactUs},
+                onPress       : {
+                    actionType: MyConstant.DrawerOnPress.Navigate,
+                    routeName : MyConfig.routeName.InfoPage,
+                    params    : {title: MyLANG.ContactUs, text: app_data?.contact_us}
+                },
             },
             {
                 gradient      : MyStyle.LGDrawerItem,
@@ -153,7 +160,11 @@ const CustomDrawerContent = ({props}: any) => {
                 image         : {src: MyImage.info},
                 icon          : null,
                 text          : {text: MyLANG.AboutUs},
-                onPress       : {loginRequired: false, actionType: MyConstant.DrawerOnPress.Navigate, routeName: MyConfig.routeName.AboutUs},
+                onPress       : {
+                    actionType: MyConstant.DrawerOnPress.Navigate,
+                    routeName : MyConfig.routeName.InfoPage,
+                    params    : {title: MyLANG.AboutUs, text: app_data?.about_us}
+                },
             },
             {
                 gradient      : MyStyle.LGDrawerItem,
@@ -233,7 +244,11 @@ const CustomDrawerContent = ({props}: any) => {
                 image         : {src: MyImage.phone},
                 icon          : null,
                 text          : {text: MyLANG.ContactUs},
-                onPress       : {loginRequired: false, actionType: MyConstant.DrawerOnPress.Navigate, routeName: MyConfig.routeName.ContactUs},
+                onPress       : {
+                    actionType: MyConstant.DrawerOnPress.Navigate,
+                    routeName : MyConfig.routeName.InfoPage,
+                    params    : {title: MyLANG.ContactUs, text: app_data?.contact_us}
+                },
             },
             {
                 gradient      : MyStyle.LGDrawerItem,
@@ -242,7 +257,12 @@ const CustomDrawerContent = ({props}: any) => {
                 image         : {src: MyImage.info},
                 icon          : null,
                 text          : {text: MyLANG.AboutUs},
-                onPress       : {loginRequired: false, actionType: MyConstant.DrawerOnPress.Navigate, routeName: MyConfig.routeName.AboutUs},
+                onPress       : {
+                    loginRequired: false,
+                    actionType   : MyConstant.DrawerOnPress.Navigate,
+                    routeName    : MyConfig.routeName.InfoPage,
+                    params       : {title: MyLANG.AboutUs, text: app_data?.about_us}
+                },
             },
         ];
     }
@@ -413,7 +433,7 @@ const CategoryListItem              = ({item, index}: any) => {
                                     null,
                                     MyConstant.CommonAction.navigate,
                                     MyConfig.routeName.ProductList,
-                                    {'id': item?.id, 'item': item},
+                                    {'title': item?.categories_name, 'id': item?.id, 'apiURL': MyAPI.product_by_category},
                                     null
                 )
             }
@@ -633,7 +653,7 @@ const CategoryHorizontalListItem              = ({item, index}: any) => {
                                             null,
                                             MyConstant.CommonAction.navigate,
                                             MyConfig.routeName.ProductList,
-                                            {'id': prop?.id, 'item': prop},
+                                            {'title': prop?.categories_name, 'id': prop?.id, 'apiURL': MyAPI.product_by_category},
                                             null
                         )
                     }
@@ -697,8 +717,8 @@ const CategoryHorizontalListItemContentLoader = (count: any) => {
     )
 }
 
-const ImageSliderBanner              = ({item, index, style}: any) => {
-    // MyUtil.printConsole(true, 'log', 'LOG: ImageSliderBanner: ', {item, index, style});
+const ImageSliderProduct             = ({item, style}: any) => {
+    // MyUtil.printConsole(true, 'log', 'LOG: ImageSliderProduct: ', {item, style});
 
     return (
         <>{item
@@ -711,22 +731,66 @@ const ImageSliderBanner              = ({item, index, style}: any) => {
                         ''
                     }
                 >
-                    <ImageBackground
-                        source = {prop?.image ? {'uri': prop.image} : MyImage.defaultItem}
-                        // defaultSource = {MyImage.defaultItem}
-                        resizeMode = "cover"
+                    <MyImageBackground
+                        source = {[{'uri': prop.image}, MyImage.defaultBanner]}
                         style = {[bannerHorizontalList.image, style]}
-                        imageStyle = {{}}
-                    >
-                        {prop?.title &&
-                         <Text
-                             numberOfLines = {3}
-                             style = {bannerHorizontalList.textName}
-                         >
-                             {prop?.title}
-                         </Text>
+                        children = {
+                            prop?.title &&
+                            <Text
+                                numberOfLines = {3}
+                                style = {bannerHorizontalList.textName}
+                            >
+                                {prop?.title}
+                            </Text>
                         }
-                    </ImageBackground>
+                    />
+                </TouchableOpacity>
+            ))}
+        </>
+    )
+}
+const ImageSliderBanner              = ({item, style}: any) => {
+    // MyUtil.printConsole(true, 'log', 'LOG: ImageSliderBanner: ', {item, style});
+
+    return (
+        <>{item
+            .map((prop: any, key: any) => (
+                <TouchableOpacity
+                    key = {key}
+                    activeOpacity = {0.9}
+                    style = {[bannerHorizontalList.touchable, {}]}
+                    onPress = {() =>
+                        prop?.type === 'category' ?
+                        MyUtil.commonAction(false,
+                                            null,
+                                            MyConstant.CommonAction.navigate,
+                                            MyConfig.routeName.ProductList,
+                                            {'title': prop?.title, 'id': Number(prop?.url), 'apiURL': MyAPI.product_by_category},
+                                            null
+                        ) :
+                        prop?.type === 'product' ?
+                        MyUtil.commonAction(false,
+                                            null,
+                                            MyConstant.CommonAction.navigate,
+                                            MyConfig.routeName.ProductDetails,
+                                            {'id': Number(prop?.url), 'item': prop},
+                                            null
+                        ) : null
+                    }
+                >
+                    <MyImageBackground
+                        source = {[{'uri': prop.image}, MyImage.defaultBanner]}
+                        style = {[bannerHorizontalList.image, style]}
+                        children = {
+                            prop?.title &&
+                            <Text
+                                numberOfLines = {3}
+                                style = {bannerHorizontalList.textName}
+                            >
+                                {prop?.title}
+                            </Text>
+                        }
+                    />
                 </TouchableOpacity>
             ))}
         </>
@@ -763,41 +827,46 @@ const ProductHorizontalListItem              = ({item, index}: any) => {
     // MyUtil.printConsole(true, 'log', 'LOG: ProductHorizontalListItem: ', {item});
 
     return (
-        <>{item
-            .map((prop: any, key: any) => (
-                <TouchableOpacity
-                    key = {key}
-                    activeOpacity = {0.7}
-                    style = {[productHorizontalList.touchable, {}]}
-                    onPress = {() => MyUtil.commonAction(false,
-                                                         null,
-                                                         MyConstant.CommonAction.navigate,
-                                                         MyConfig.routeName.ProductDetails,
-                                                         {'id': prop?.id, 'item': prop},
-                                                         null
-                    )}
+        <>{
+            // item
+            //     .map((prop: any, key: any) => (
+            <TouchableOpacity
+                // key = {key}
+                activeOpacity = {0.7}
+                style = {[productHorizontalList.touchable, {}]}
+                onPress = {
+                    () =>
+                        MyUtil.commonAction(false,
+                                            null,
+                                            MyConstant.CommonAction.navigate,
+                                            MyConfig.routeName.ProductDetails,
+                                            {'id': item?.id, 'item': item},
+                                            null
+                        )
+                }
 
-                >
-                    <View style = {productHorizontalList.view}>
-                        <MyFastImage
-                            source = {[{'uri': prop?.image}, MyImage.defaultItem]}
-                            style = {productHorizontalList.image}
-                        />
-                        <View style = {productHorizontalList.textsView}>
-                            <Text
-                                numberOfLines = {2}
-                                style = {productHorizontalList.textName}>
-                                {prop?.products_name}
-                            </Text>
-                            <Text
-                                numberOfLines = {1}
-                                style = {productHorizontalList.textPrice}>
-                                {MyConfig.Currency.MYR.symbol} {prop?.products_price}
-                            </Text>
-                        </View>
+            >
+                <View style = {productHorizontalList.view}>
+                    <MyFastImage
+                        source = {[{'uri': item?.image}, MyImage.defaultItem]}
+                        style = {productHorizontalList.image}
+                    />
+                    <View style = {productHorizontalList.textsView}>
+                        <Text
+                            numberOfLines = {2}
+                            style = {productHorizontalList.textName}>
+                            {item?.products_name}
+                        </Text>
+                        <Text
+                            numberOfLines = {1}
+                            style = {productHorizontalList.textPrice}>
+                            {MyConfig.Currency.MYR.symbol} {item?.products_price}
+                        </Text>
                     </View>
-                </TouchableOpacity>
-            ))}
+                </View>
+            </TouchableOpacity>
+            // ))
+        }
         </>
     )
 }
@@ -910,19 +979,19 @@ const ProductDetailsContentLoader = () => {
 }
 
 // Cart Items:
-const CartListItem   = (props: any) => {
+const CartListItem          = (props: any) => {
     // MyUtil.printConsole(true, 'log', 'LOG: CartListItem: ', Object.keys(props?.items).length);
 
     return (
         <View style = {{
-            shadowColor  : "#000",
+            /*shadowColor  : "#000",
             shadowOffset : {
                 width : 0,
                 height: 1,
             },
             shadowOpacity: 0.22,
             shadowRadius : 2.22,
-            elevation    : 3,
+            elevation    : 3,*/
 
             backgroundColor: MyColor.Material.WHITE,
             marginTop      : 1,
@@ -960,21 +1029,32 @@ const CartListItem   = (props: any) => {
                                             numberOfLines = {2}>
                                             {props.items[key].item?.products_name}
                                         </Text>
-                                        <View style = {cartList.viewPrice}>
-                                            <Text style = {cartList.textPrice}
-                                                  numberOfLines = {1}>
-                                                {MyConfig.Currency.MYR.symbol} {props.items[key].item?.products_price}
-                                            </Text>
-                                        </View>
+
+                                        <Text
+                                            numberOfLines = {1}
+                                            style = {cartList.textPrice}
+                                        >
+                                            {MyConfig.Currency.MYR.symbol} {props.items[key].item?.discount_price ? props.items[key].item?.discount_price : props.items[key].item?.products_price}
+                                        </Text>
+                                        {props.items[key].item?.discount_price &&
+                                         <Text
+                                             numberOfLines = {1}
+                                             style = {cartList.textPriceDiscounted}
+                                         >
+                                             {MyConfig.Currency.MYR.symbol} {props.items[key].item?.products_price}
+                                         </Text>
+                                        }
                                     </TouchableOpacity>
 
                                     <View style = {cartList.viewStock}>
-                                        <Text style = {cartList.textStock}>
-                                            {MyLANG.AvailableStock}&nbsp;
-                                            <Text style = {{fontFamily: MyStyle.FontFamily.Roboto.regular}}>
+                                        <View style = {cartList.viewStockText}>
+                                            <Text style = {cartList.textStock}>
+                                                {MyLANG.AvailableStock}
+                                            </Text>
+                                            <Text style = {cartList.textStockNumber}>
                                                 {Number(props.items[key].item?.products_liked) > 0 ? props.items[key].item.products_liked : '0'}
                                             </Text>
-                                        </Text>
+                                        </View>
                                         <TouchableOpacity
                                             activeOpacity = {0.5}
                                             onPress = {() => props.onPressCartItemRemove(key)}
@@ -1027,7 +1107,7 @@ const CartListItem   = (props: any) => {
         </View>
     )
 }
-const CartPageHeader = (props: any) => {
+const CartPageHeader        = (props: any) => {
     // MyUtil.printConsole(true, 'log', 'LOG: CartPageHeader: ', props);
 
     return (
@@ -1078,8 +1158,8 @@ const CartPageHeader = (props: any) => {
         </ShadowBox>
     )
 }
-const CartPageBottom = (props: any) => {
-    // MyUtil.printConsole(true, 'log', 'LOG: CartPageBottom: ', props);
+const CartPageBottomButtons = (props: any) => {
+    // MyUtil.printConsole(true, 'log', 'LOG: CartPageBottomButtons: ', props);
 
     return (
         <ShadowBox
@@ -1137,138 +1217,235 @@ const CartPageBottom = (props: any) => {
         </ShadowBox>
     )
 }
-const CartPageTotal  = (props: any) => {
+const CartPageTotal         = (props: any) => {
     MyUtil.printConsole(true, 'log', 'LOG: CartPageTotal: ', props);
 
     return (
-        <View style = {cartPageTotal.view}>
+        <View style = {[cartPageTotal.view, props.style]}>
             <Text style = {[{...MyStyleSheet.headerPage, marginBottom: 8}]}>
-                {MyLANG.PriceBreakdown}
+                {props.header || MyLANG.PriceBreakdown}
             </Text>
-            <View style = {cartPageTotal.textsView}>
-                <Text style = {cartPageTotal.textTitleBold2}>
-                    {MyLANG.Subtotal}
-                </Text>
-                <NumberFormat
-                    value = {props?.cart?.subtotal}
-                    defaultValue = {0}
-                    displayType = {'text'}
-                    thousandSeparator = {true}
-                    decimalScale = {2}
-                    fixedDecimalScale = {true}
-                    decimalSeparator = {'.'}
-                    renderText = {
-                        (value: any) => <Text style = {cartPageTotal.textAmountBold2}>{MyConfig.Currency.MYR.symbol} {value}</Text>
-                    }
-                />
-            </View>
-            <View style = {cartPageTotal.textsView}>
-                <Text style = {cartPageTotal.textTitle}>
-                    - {MyLANG.Discount}
-                </Text>
-                <NumberFormat
-                    value = {props?.cart?.discount}
-                    defaultValue = {0}
-                    displayType = {'text'}
-                    thousandSeparator = {true}
-                    decimalScale = {2}
-                    fixedDecimalScale = {true}
-                    decimalSeparator = {'.'}
-                    renderText = {
-                        (value: any) => <Text style = {cartPageTotal.textAmount}>{MyConfig.Currency.MYR.symbol} {value}</Text>
-                    }
-                />
-            </View>
-            <View style = {cartPageTotal.textsView}>
-                <Text style = {cartPageTotal.textTitle}>
-                    - {MyLANG.Voucher}
-                </Text>
-                <NumberFormat
-                    value = {props?.cart?.voucher}
-                    defaultValue = {0}
-                    displayType = {'text'}
-                    thousandSeparator = {true}
-                    decimalScale = {2}
-                    fixedDecimalScale = {true}
-                    decimalSeparator = {'.'}
-                    renderText = {
-                        (value: any) => <Text style = {cartPageTotal.textAmount}>{MyConfig.Currency.MYR.symbol} {value}</Text>
-                    }
-                />
-            </View>
-            <View style = {cartPageTotal.textsView}>
-                <Text style = {cartPageTotal.textTitle}>
-                    + {MyLANG.ServiceCharge}
-                </Text>
-                <NumberFormat
-                    value = {props?.cart?.service_charge}
-                    defaultValue = {0}
-                    displayType = {'text'}
-                    thousandSeparator = {true}
-                    decimalScale = {2}
-                    fixedDecimalScale = {true}
-                    decimalSeparator = {'.'}
-                    renderText = {
-                        (value: any) => <Text style = {cartPageTotal.textAmount}>{MyConfig.Currency.MYR.symbol} {value}</Text>
-                    }
-                />
-            </View>
-            <View style = {cartPageTotal.textsView}>
-                <Text style = {cartPageTotal.textTitle}>
-                    + {MyLANG.DeliveryCharge}
-                </Text>
-                <NumberFormat
-                    value = {props?.cart?.delivery_charge}
-                    defaultValue = {0}
-                    displayType = {'text'}
-                    thousandSeparator = {true}
-                    decimalScale = {2}
-                    fixedDecimalScale = {true}
-                    decimalSeparator = {'.'}
-                    renderText = {
-                        (value: any) => <Text style = {cartPageTotal.textAmount}>{MyConfig.Currency.MYR.symbol} {value}</Text>
-                    }
-                />
-            </View>
-            <View style = {cartPageTotal.textsView}>
-                <Text style = {cartPageTotal.textTitle}>
-                    + {MyLANG.Tax}
-                </Text>
-                <NumberFormat
-                    value = {props?.cart?.tax}
-                    defaultValue = {0}
-                    displayType = {'text'}
-                    thousandSeparator = {true}
-                    decimalScale = {2}
-                    fixedDecimalScale = {true}
-                    decimalSeparator = {'.'}
-                    renderText = {
-                        (value: any) => <Text style = {cartPageTotal.textAmount}>{MyConfig.Currency.MYR.symbol} {value}</Text>
-                    }
-                />
-            </View>
-            <View style = {cartPageTotal.divider}></View>
-            <View style = {cartPageTotal.textsView}>
-                <Text style = {cartPageTotal.textTitleBold}>
-                    {MyLANG.Total}
-                </Text>
-                <NumberFormat
-                    value = {props?.cart?.total}
-                    defaultValue = {0}
-                    displayType = {'text'}
-                    thousandSeparator = {true}
-                    decimalScale = {2}
-                    fixedDecimalScale = {true}
-                    decimalSeparator = {'.'}
-                    renderText = {
-                        (value: any) => <Text style = {cartPageTotal.textAmountBold}>{MyConfig.Currency.MYR.symbol} {value}</Text>
-                    }
-                />
-            </View>
+            {
+                props.subtotal !== false &&
+                <View style = {cartPageTotal.textsView}>
+                    <Text style = {cartPageTotal.textTitleBold2}>
+                        {MyLANG.Subtotal}
+                    </Text>
+                    <NumberFormat
+                        value = {props.subtotal || props?.cart?.subtotal}
+                        defaultValue = {0}
+                        displayType = {'text'}
+                        thousandSeparator = {true}
+                        decimalScale = {2}
+                        fixedDecimalScale = {true}
+                        decimalSeparator = {'.'}
+                        renderText = {
+                            (value: any) => <Text style = {cartPageTotal.textAmountBold2}>{MyConfig.Currency.MYR.symbol} {value}</Text>
+                        }
+                    />
+                </View>
+            }
+            {
+                props.discount !== false &&
+                <View style = {cartPageTotal.textsView}>
+                    <Text style = {cartPageTotal.textTitle}>
+                        - {MyLANG.Discount}
+                    </Text>
+                    <NumberFormat
+                        value = {props.discount || props?.cart?.discount}
+                        defaultValue = {0}
+                        displayType = {'text'}
+                        thousandSeparator = {true}
+                        decimalScale = {2}
+                        fixedDecimalScale = {true}
+                        decimalSeparator = {'.'}
+                        renderText = {
+                            (value: any) => <Text style = {cartPageTotal.textAmount}>{MyConfig.Currency.MYR.symbol} {value}</Text>
+                        }
+                    />
+                </View>
+            }
+            {
+                props.voucher !== false &&
+                <View style = {cartPageTotal.textsView}>
+                    <Text style = {cartPageTotal.textTitle}>
+                        - {MyLANG.Voucher}
+                    </Text>
+                    <NumberFormat
+                        value = {props.voucher || props?.cart?.voucher?.amount}
+                        defaultValue = {0}
+                        displayType = {'text'}
+                        thousandSeparator = {true}
+                        decimalScale = {2}
+                        fixedDecimalScale = {true}
+                        decimalSeparator = {'.'}
+                        renderText = {
+                            (value: any) => <Text style = {cartPageTotal.textAmount}>{MyConfig.Currency.MYR.symbol} {value}</Text>
+                        }
+                    />
+                </View>
+            }
+            {
+                props.service_charge !== false &&
+                <View style = {cartPageTotal.textsView}>
+                    <Text style = {cartPageTotal.textTitle}>
+                        + {MyLANG.ServiceCharge}
+                    </Text>
+                    <NumberFormat
+                        value = {props.service_charge || props?.cart?.service_charge}
+                        defaultValue = {0}
+                        displayType = {'text'}
+                        thousandSeparator = {true}
+                        decimalScale = {2}
+                        fixedDecimalScale = {true}
+                        decimalSeparator = {'.'}
+                        renderText = {
+                            (value: any) => <Text style = {cartPageTotal.textAmount}>{MyConfig.Currency.MYR.symbol} {value}</Text>
+                        }
+                    />
+                </View>
+            }
+            {
+                props.delivery_charge !== false &&
+                <View style = {cartPageTotal.textsView}>
+                    <Text style = {cartPageTotal.textTitle}>
+                        + {MyLANG.DeliveryCharge}
+                    </Text>
+                    <NumberFormat
+                        value = {props.delivery_charge || props?.cart?.delivery_charge}
+                        defaultValue = {0}
+                        displayType = {'text'}
+                        thousandSeparator = {true}
+                        decimalScale = {2}
+                        fixedDecimalScale = {true}
+                        decimalSeparator = {'.'}
+                        renderText = {
+                            (value: any) => <Text style = {cartPageTotal.textAmount}>{MyConfig.Currency.MYR.symbol} {value}</Text>
+                        }
+                    />
+                </View>
+            }
+            {
+                props.tax !== false &&
+                <View style = {cartPageTotal.textsView}>
+                    <Text style = {cartPageTotal.textTitle}>
+                        + {MyLANG.Tax}
+                    </Text>
+                    <NumberFormat
+                        value = {props.tax || props?.cart?.tax}
+                        defaultValue = {0}
+                        displayType = {'text'}
+                        thousandSeparator = {true}
+                        decimalScale = {2}
+                        fixedDecimalScale = {true}
+                        decimalSeparator = {'.'}
+                        renderText = {
+                            (value: any) => <Text style = {cartPageTotal.textAmount}>{MyConfig.Currency.MYR.symbol} {value}</Text>
+                        }
+                    />
+                </View>
+            }
+            {
+                props.total !== false &&
+                <>
+                    <View style = {cartPageTotal.divider}></View>
+                    <View style = {cartPageTotal.textsView}>
+                        <Text style = {cartPageTotal.textTitleBold}>
+                            {MyLANG.Total}
+                        </Text>
+                        <NumberFormat
+                            value = {props.total || props?.cart?.total}
+                            defaultValue = {0}
+                            displayType = {'text'}
+                            thousandSeparator = {true}
+                            decimalScale = {2}
+                            fixedDecimalScale = {true}
+                            decimalSeparator = {'.'}
+                            renderText = {
+                                (value: any) => <Text style = {cartPageTotal.textAmountBold}>{MyConfig.Currency.MYR.symbol} {value}</Text>
+                            }
+                        />
+                    </View>
+                </>
+            }
         </View>
     )
 }
 
+//
+const OrderListItem = (props: any) => {
+    // MyUtil.printConsole(true, 'log', 'LOG: OrderListItem: ', Object.keys(props?.items).length);
+
+    return (
+        <>
+            {
+                (props?.items && Object.keys(props?.items).length > 0 && props?.items.constructor === Object) &&
+                Object.keys(props?.items)
+                      .map((key: string, index: number) => (
+                               <View
+                                   key = {key}
+                                   style = {[orderList.view, {borderBottomWidth: index === (Object.keys(props?.items).length - 1) ? 0 : 0.9}]}
+                               >
+
+                                   <MyFastImage
+                                       source = {[{'uri': props.items[key].item?.image}, MyImage.defaultItem]}
+                                       style = {orderList.image}
+                                   />
+
+                                   <View style = {orderList.textsView}>
+                                       <Text
+                                           style = {orderList.textName}
+                                           numberOfLines = {2}>
+                                           {props.items[key].item?.products_name}
+                                       </Text>
+
+                                       <View style = {orderList.viewPrice}>
+                                           <Text
+                                               style = {orderList.textPrice}
+                                               numberOfLines = {1}
+                                           >
+                                               {MyConfig.Currency.MYR.symbol} {props.items[key].item?.discount_price ? props.items[key].item?.discount_price : props.items[key].item?.products_price}
+                                               &nbsp;
+                                               <Text
+                                                   style = {orderList.textQuantity}
+                                                   numberOfLines = {1}
+                                               >
+                                                   x{props.items[key]?.quantity}
+                                               </Text>
+                                           </Text>
+
+                                           <NumberFormat
+                                               value = {props.items[key]?.total}
+                                               defaultValue = {0}
+                                               displayType = {'text'}
+                                               thousandSeparator = {true}
+                                               decimalScale = {2}
+                                               fixedDecimalScale = {true}
+                                               decimalSeparator = {'.'}
+                                               renderText = {
+                                                   (value: any) => <Text style = {orderList.textPriceTotal}>{MyConfig.Currency.MYR.symbol} {value}</Text>
+                                               }
+                                           />
+                                       </View>
+
+                                       {props.items[key].item?.discount_price &&
+                                        <Text
+                                            style = {orderList.textPriceDiscounted}
+                                            numberOfLines = {1}
+                                        >
+                                            {MyConfig.Currency.MYR.symbol} {props.items[key].item?.products_price}
+                                        </Text>
+                                       }
+
+                                   </View>
+
+                               </View>
+                           )
+                      )
+            }
+        </>
+    )
+}
 
 //
 const RestaurantListItem          = ({item}: any) => {
@@ -1276,8 +1453,10 @@ const RestaurantListItem          = ({item}: any) => {
 
     return (
         <View style = {restaurantItem.view}>
-            <MyFastImage source = {[{'uri': MyAPI.imgRestaurant + item['photo']}, MyImage.defaultItem]}
-                         style = {restaurantItem.image}/>
+            <MyFastImage
+                source = {[{'uri': MyAPI.imgRestaurant + item['photo']}, MyImage.defaultItem]}
+                style = {restaurantItem.image}
+            />
             <View style = {restaurantItem.textsView}>
                 <Text style = {restaurantItem.textName}
                       numberOfLines = {1}>{item['name']}</Text>
@@ -1753,8 +1932,8 @@ const productList = StyleSheet.create(
 // CART LIST PAGE:
 const cartList      = StyleSheet.create(
     {
-        touchable: {},
-        view     : {
+        touchable          : {},
+        view               : {
             display         : 'flex',
             flexDirection   : 'row',
             justifyContent  : 'space-around',
@@ -1764,10 +1943,10 @@ const cartList      = StyleSheet.create(
             borderTopWidth: 0.9,
             borderTopColor: MyColor.dividerDark,
         },
-        image    : {
+        image              : {
             ...MyStyleSheet.imageList,
         },
-        textsView: {
+        textsView          : {
             display       : 'flex',
             flexDirection : 'column',
             justifyContent: 'space-between',
@@ -1778,38 +1957,56 @@ const cartList      = StyleSheet.create(
             marginLeft : MyStyle.marginHorizontalTextsView,
             marginRight: 20,
         },
-        textName : {
+        textName           : {
             fontFamily: MyStyle.FontFamily.OpenSans.regular,
             fontSize  : 13,
             color     : MyColor.Material.BLACK,
 
             textAlign: "justify"
         },
-
-        viewPrice: {
-            display       : "flex",
-            flexDirection : "row",
-            justifyContent: "flex-start",
-            alignItems    : "center",
-            marginTop     : 2,
-        },
-        textPrice: {
+        textPrice          : {
             fontFamily: MyStyle.fontFamilyPrice,
             fontSize  : 17,
             color     : MyColor.Primary.first,
+
+            marginTop: 5,
+        },
+        textPriceDiscounted: {
+            fontFamily        : MyStyle.fontFamilyPrice,
+            fontSize          : 13,
+            color             : MyColor.textDarkSecondary2,
+            textDecorationLine: "line-through",
         },
 
-        viewStock: {
+        viewStock      : {
             alignSelf     : "stretch",
             display       : "flex",
             flexDirection : "row",
             justifyContent: "space-between",
             alignItems    : "flex-end",
+
+            marginTop: 5,
         },
-        textStock: {
+        viewStockText  : {
+            flexDirection  : "row",
+            justifyContent : "flex-start",
+            alignItems     : "center",
+            backgroundColor: MyColor.Material.GREY["100"],
+            paddingLeft    : 6,
+        },
+        textStock      : {
             fontFamily: MyStyle.FontFamily.OpenSans.light,
-            fontSize  : 13,
-            color     : MyColor.Material.GREY["700"],
+            fontSize  : 12,
+            color     : MyColor.Material.GREY["800"],
+        },
+        textStockNumber: {
+            fontFamily       : MyStyle.FontFamily.Roboto.bold,
+            color            : MyColor.Material.GREY["800"],
+            fontSize         : 13,
+            backgroundColor  : MyColor.Material.GREY["200"],
+            paddingVertical  : 2,
+            paddingHorizontal: 6,
+            marginLeft       : 6,
         },
 
         viewStepper : {
@@ -1819,7 +2016,7 @@ const cartList      = StyleSheet.create(
             alignItems    : 'center',
 
             minWidth       : 28,
-            height         : MyStyle.screenWidth * 0.25,
+            minHeight      : MyStyle.screenWidth * 0.25,
             backgroundColor: '#F7F8FA',
             borderWidth    : 1,
             borderColor    : '#D6DBDF',
@@ -1840,8 +2037,8 @@ const cartPageTotal = StyleSheet.create(
             flexDirection : "column",
             justifyContent: "flex-start",
 
-            marginHorizontal: MyStyle.marginHorizontalPage,
-            marginVertical  : MyStyle.marginVerticalList,
+            paddingHorizontal: MyStyle.marginHorizontalPage,
+            paddingVertical  : MyStyle.marginVerticalList,
         },
         textsView: {
             marginVertical: 5,
@@ -1893,6 +2090,69 @@ const cartPageTotal = StyleSheet.create(
     }
 );
 
+const orderList = StyleSheet.create(
+    {
+        view     : {
+            display       : 'flex',
+            flexDirection : 'row',
+            justifyContent: 'space-around',
+            alignItems    : "center",
+
+            paddingVertical: 12,
+
+            borderBottomWidth: 0.9,
+            borderBottomColor: MyColor.dividerDark,
+        },
+        image    : {
+            ...MyStyleSheet.imageListExtraSmall,
+        },
+        textsView: {
+            flex: 1,
+
+            display       : 'flex',
+            flexDirection : 'column',
+            justifyContent: 'space-between',
+
+            marginLeft: MyStyle.marginHorizontalTextsView,
+        },
+        textName : {
+            fontFamily: MyStyle.FontFamily.OpenSans.regular,
+            fontSize  : 13,
+            color     : MyColor.Material.BLACK,
+        },
+
+        viewPrice   : {
+            display       : "flex",
+            flexDirection : "row",
+            justifyContent: "space-between",
+            // alignItems    : "center",
+        },
+        textPrice   : {
+            fontFamily: MyStyle.fontFamilyPrice,
+            fontSize  : 12,
+            color     : MyColor.textDarkSecondary,
+
+            marginTop: 5,
+        },
+        textQuantity: {
+            fontFamily: MyStyle.FontFamily.OpenSans.semiBold,
+            fontSize  : 12,
+            color     : MyColor.Primary.first,
+        },
+
+        textPriceDiscounted: {
+            fontFamily        : MyStyle.fontFamilyPrice,
+            fontSize          : 11,
+            color             : MyColor.textDarkSecondary2,
+            textDecorationLine: "line-through",
+        },
+        textPriceTotal     : {
+            fontFamily: MyStyle.fontFamilyPrice,
+            fontSize  : 13,
+            color     : MyColor.Primary.first,
+        },
+    }
+);
 
 //
 const restaurantItem = StyleSheet.create(
@@ -2008,14 +2268,17 @@ export {
     CategoryHorizontalListItemContentLoader,
     ProductHorizontalListItem,
     ProductHorizontalListItemContentLoader,
+    ImageSliderProduct,
     ImageSliderBanner,
     ImageSliderBannerContentLoader,
 
     ProductDetailsContentLoader,
     CartPageHeader,
     CartListItem,
-    CartPageBottom,
+    CartPageBottomButtons,
     CartPageTotal,
+
+    OrderListItem,
 
     RestaurantListItem,
     RestaurantItemContentLoader,

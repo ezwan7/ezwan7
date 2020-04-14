@@ -10,7 +10,7 @@ export const MyFastImage = (props: any) => {
 
     if (__DEV__) {
         renderCount += 1;
-        // console.log(`LOG: ${MyFastImage.name}. renderCount: `, renderCount);
+        // console.log(`LOG: ${MyFastImage.name}. renderCount: `, {renderCount, props});
     }
 
     const [index, setIndex]: any = useState(0);

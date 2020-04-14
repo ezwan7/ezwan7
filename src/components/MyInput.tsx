@@ -42,8 +42,9 @@ const MyInput = (props: any) => {
     useEffect(() => {
         // console.log(`LOG: ${MyInput.name}. useEffect: `, isFocused, value);
         Animated.timing(_animatedIsFocused, {
-            toValue : (isFocused || value) ? 1 : 0,
-            duration: 200,
+            toValue        : (isFocused || value) ? 1 : 0,
+            duration       : 200,
+            useNativeDriver: false,
         }).start();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isFocused, value]);
@@ -51,8 +52,9 @@ const MyInput = (props: any) => {
     useEffect(() => {
         // console.log(`LOG: ${MyInput.name}. useEffect: `, props.helperText?.message);
         Animated.timing(_helperTextVisible, {
-            toValue : props.helperText?.message ? 1 : 0,
-            duration: 200,
+            toValue        : props.helperText?.message ? 1 : 0,
+            duration       : 200,
+            useNativeDriver: false,
         }).start();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.helperText?.message]);
@@ -60,8 +62,9 @@ const MyInput = (props: any) => {
     useEffect(() => {
         // console.log(`LOG: ${MyInput.name}. useEffect: `, isFocused, value);
         Animated.timing(_placeholderLabelAnimated, {
-            toValue : (!isFocused || value) ? 1 : 0,
-            duration: 200,
+            toValue        : (!isFocused || value) ? 1 : 0,
+            duration       : 200,
+            useNativeDriver: false,
         }).start();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isFocused, value]);
@@ -534,8 +537,8 @@ const styles = StyleSheet.create(
             justifyContent: "center",
             alignItems    : "flex-start",
 
-            paddingTop   : 12,
-            paddingBottom: 20,
+            paddingTop   : 16,
+            paddingBottom: 16,
 
             opacity: 1.00,
         },

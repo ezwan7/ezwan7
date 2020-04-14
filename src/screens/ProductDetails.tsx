@@ -5,7 +5,6 @@ import {
     Text,
     SafeAreaView,
     ScrollView,
-    FlatList,
     RefreshControl,
     Modal,
 } from 'react-native';
@@ -26,14 +25,16 @@ import {
     getMyIcon,
     IconStar,
     ListEmptyViewLottie,
-    StatusBarDark, StatusBarGradientPrimary,
+    StatusBarDark,
+    StatusBarGradientPrimary,
     StatusBarLight
 } from '../components/MyComponent';
 import {
     ImageSliderBanner,
     ProductListItemContentLoader,
     ListItemSeparator,
-    ProductListItem, ProductDetailsContentLoader,
+    ProductListItem,
+    ProductDetailsContentLoader,
 } from "../shared/MyContainer";
 
 import HTML from 'react-native-render-html';
@@ -105,14 +106,14 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                             'app_build_ver': MyConfig.app_build_version,
                             'platform'     : MyConfig.app_platform,
                             'device'       : null,
-                        }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Short, showLoader, true, false
+                        }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, showLoader, true, false
                 );
 
             MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
                 'apiURL': MyAPI.product, 'response': response
             });
 
-            if (response && response.type === MyConstant.RESPONSE.TYPE.data && response.data.status === 200 && response.data.data && response.data.data.product_data && response.data.data.product_data[0]) {
+            if (response.type === MyConstant.RESPONSE.TYPE.data && response.data.status === 200 && response.data?.data?.product_data[0]) {
 
                 const data = response.data.data.product_data[0];
                 if (data.products_id > 0) {
@@ -189,13 +190,20 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                              }
                          >
 
-                             <>
-
-                                 <ImageSliderBanner
-                                     item = {[product]}
-                                     style = {{
-                                         height: MyStyle.screenWidth / 1.5
-                                     }}/>
+                             <View>
+                                 <ScrollView
+                                     horizontal = {true}
+                                     pagingEnabled = {true}
+                                     decelerationRate = "fast"
+                                     snapToInterval = {MyStyle.screenWidth}
+                                     snapToAlignment = "center"
+                                 >
+                                     <ImageSliderBanner
+                                         item = {product?.images?.length > 0 ? product?.images : [{image: product?.image}]}
+                                         style = {{
+                                             height: MyStyle.screenWidth / 1.5,
+                                         }}/>
+                                 </ScrollView>
 
                                  <Text
                                      numberOfLines = {2}
@@ -296,7 +304,7 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                                      </View>
                                  </ScrollView>
 
-                             </>
+                             </View>
                          </ScrollView>
 
                          <ShadowBox
@@ -333,16 +341,16 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                                          shadow = "none"
                                          iconLeft = {{name: 'share'}}
                                          iconLeftStyle = {{color: MyColor.Material.BLACK}}
-                                         onPress = {() =>
-                                             MyUtil.share(MyConstant.SHARE.TYPE.open,
-                                                          {
-                                                              message: product?.products_name,
-                                                              subject: 'DirectD Share Product',
-                                                              email  : 'jakariaamin@gmail.com',
-                                                              url    : 'https://smddeveloper.com/directd_merge/public/api/getallproducts',
-                                                          },
-                                                          false
-                                             )
+                                         onPress = {
+                                             () =>
+                                                 MyUtil.share(MyConstant.SHARE.TYPE.open,
+                                                              product?.image,
+                                                              {
+                                                                  message: `${product?.products_name}\n${product?.image}`,
+                                                                  url    : product?.image,
+                                                              },
+                                                              false
+                                                 )
                                          }
                                      />
                                      <MyButton
@@ -352,7 +360,11 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                                          shadow = "none"
                                          iconLeft = {{name: 'heart'}}
                                          iconLeftStyle = {{color: MyColor.Material.BLACK}}
-                                         onPress = {() => ''}
+                                         onPress = {
+                                             () => {
+
+                                             }
+                                         }
                                      />
                                      <MyButton
                                          shape = "square"

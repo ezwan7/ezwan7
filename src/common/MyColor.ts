@@ -14,6 +14,11 @@ const MyColor = {
         blueish : ['#6271ef', '#1301dc', '#1401eb'],
         facebook: ['#1B3E79', '#1d5391'],
         google  : ['#d34036', '#F14436'],
+        intro   : [
+            ['#0e018d', '#1301d8'],
+            ['#438627', '#65c234'],
+            ['#333333', '#dd1818'],
+        ],
     },
 
     // common
@@ -33,6 +38,7 @@ const MyColor = {
     textDarkPrimary   : 'rgba(0,0,0,1)',
     textDarkPrimary2  : '#1c2c3a',
     textDarkSecondary : 'rgba(0,0,0,0.5)',
+    textDarkSecondary2: 'rgba(0,0,0,0.4)',
     textDarkDisable   : 'rgba(0,0,0,0.3)',
     textLightPrimary  : 'rgba(255,255,255,1)',
     textLightSecondary: 'rgba(255,255,255,255.5)',

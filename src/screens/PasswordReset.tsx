@@ -1,6 +1,6 @@
 import React, {useState, useEffect, Fragment} from 'react';
-import LinearGradient from 'react-native-linear-gradient';
 import {StyleSheet, View, Text, SafeAreaView, ScrollView, Image, TouchableOpacity} from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import {useForm} from 'react-hook-form';
 
 import {MyStyle, MyStyleSheet} from '../common/MyStyle';
@@ -69,6 +69,7 @@ const passwordResetForm: any = {
 };
 
 const PasswordResetScreen = ({route, navigation}: any) => {
+
     if (__DEV__) {
         renderCount += 1;
         MyUtil.printConsole(true, 'log', `LOG: ${PasswordResetScreen.name}. renderCount: `, renderCount);

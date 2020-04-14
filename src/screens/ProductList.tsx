@@ -39,18 +39,18 @@ const ProductListScreen = ({route, navigation}: any) => {
     }
     const [firstLoad, setFirstLoad]                                               = useState(true);
     const [loading, setLoading]                                                   = useState(true);
-    const [loadingMore, setLoadingMore]                                           = useState(false);
     const [refreshing, setRefreshing]                                             = useState(false);
+    const [loadingMore, setLoadingMore]                                           = useState(false);
     const [onEndReachedCalledDuringMomentum, setOnEndReachedCalledDuringMomentum] = useState(true);
     const [product, setProduct]: any                                              = useState([]);
 
     useLayoutEffect(() => {
         MyUtil.printConsole(true, 'log', `LOG: ${ProductListScreen.name}. useLayoutEffect: `, '');
 
-        if (route?.params?.item?.categories_name) {
+        if (route?.params?.title) {
             navigation.setOptions(
                 {
-                    title: route?.params?.item?.categories_name,
+                    title: route.params.title,
                 });
         }
     }, [navigation, route]);
@@ -58,7 +58,7 @@ const ProductListScreen = ({route, navigation}: any) => {
     useEffect(() => {
         MyUtil.printConsole(true, 'log', `LOG: ${ProductListScreen.name}. useEffect: `, '');
 
-        fetchProduct(product && product.length > 0 ? product.length : 0,
+        fetchProduct(product?.length > 0 ? product.length : 0,
                      MyConfig.ListLimit.productList,
                      false,
                      false,
@@ -74,10 +74,16 @@ const ProductListScreen = ({route, navigation}: any) => {
 
         setRefreshing(true);
 
-        fetchProduct(0, MyConfig.ListLimit.productList, MyLANG.Loading + '...', true, {
-            'showMessage': MyConstant.SHOW_MESSAGE.TOAST,
-            'message'    : MyLANG.PageRefreshed
-        }, MyConstant.DataSetType.fresh);
+        fetchProduct(0,
+                     MyConfig.ListLimit.productList,
+                     false,
+                     true,
+                     {
+                         'showMessage': MyConstant.SHOW_MESSAGE.TOAST,
+                         'message'    : MyLANG.PageRefreshed
+                     },
+                     MyConstant.DataSetType.fresh
+        );
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -92,7 +98,7 @@ const ProductListScreen = ({route, navigation}: any) => {
 
             setLoadingMore(true);
 
-            fetchProduct(product && product.length > 0 ? product.length : 0,
+            fetchProduct(product?.length > 0 ? product.length : 0,
                          MyConfig.ListLimit.productList,
                          false,
                          true,
@@ -108,7 +114,7 @@ const ProductListScreen = ({route, navigation}: any) => {
             'firstLoad'     : firstLoad,
         });
 
-        if (firstLoad || (product && product.length > 0)) return null;
+        if (firstLoad || (product?.length > 0)) return null;
 
         return <ListEmptyViewLottie
             source = {MyImage.lottie_empty_lost}
@@ -130,8 +136,9 @@ const ProductListScreen = ({route, navigation}: any) => {
 
         setLoading(true);
 
+        const apiURL        = route?.params?.apiURL ? route?.params?.apiURL : MyAPI.product_by_category;
         const response: any = await MyUtil
-            .myHTTP(false, MyConstant.HTTP_POST, MyAPI.product_by_category,
+            .myHTTP(false, MyConstant.HTTP_POST, apiURL,
                     {
                         'language_id'  : MyConfig.LanguageActive,
                         'categories_id': route?.params?.id,
@@ -142,14 +149,14 @@ const ProductListScreen = ({route, navigation}: any) => {
                         'app_build_ver': MyConfig.app_build_version,
                         'platform'     : MyConfig.app_platform,
                         'device'       : null,
-                    }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Short, showLoader, true, false
+                    }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, showLoader, true, false
             );
 
         MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
-            'apiURL': MyAPI.product_by_category, 'response': response
+            'apiURL': apiURL, 'response': response
         });
 
-        if (response && response.type === MyConstant.RESPONSE.TYPE.data && response.data.status === 200 && response.data.data && response.data.data.data && response.data.data.data.product) {
+        if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data.status === 200 && response.data?.data?.data?.product) {
 
             const data = response.data.data.data.product;
             if (data.length > 0) {

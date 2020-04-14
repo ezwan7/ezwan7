@@ -29,6 +29,8 @@ const MyConstant = {
     GOOGLE_ID  : 'google_id',
     EMAIL      : 'email',
     NAME       : 'name',
+    FIRST_NAME : 'first_name',
+    LAST_NAME  : 'last_name',
     PHOTO      : 'photo',
 
     DataSetType: {
@@ -107,13 +109,15 @@ const MyConstant = {
     },
 
     DrawerOnPress: {
-        Navigate    : 'Navigate',
-        DrawerJump  : 'DrawerJump',
-        TabJump     : 'TabJump',
-        PromptLogout: 'PromptLogout',
-        RateApp     : 'RateApp',
-        ShareApp    : 'ShareApp',
-        ShowAlert   : 'ShowAlert',
+        Navigate      : 'Navigate',
+        DrawerJump    : 'DrawerJump',
+        TabJump       : 'TabJump',
+        PromptLogout  : 'PromptLogout',
+        RateApp       : 'RateApp',
+        ShareApp      : 'ShareApp',
+        ShowAlert     : 'ShowAlert',
+        AppUpdateCheck: 'AppUpdateCheck',
+        ShowModal     : 'ShowModal',
     },
 
     CLEAR_STORAGE: {
@@ -276,7 +280,16 @@ const MyConstant = {
     Validation: {
         email: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i,
         phone: /^(?:[+\d].*\d|\d)$/,
-    }
+    },
+
+    FetchBlobType: {
+        fetch: 'fetch',
+    },
+    FetchFileType: {
+        base64: 'base64',
+        text  : 'text',
+        json  : 'json',
+    },
 }
 
 export {MyConstant};

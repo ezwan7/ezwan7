@@ -7,6 +7,7 @@ export default new LocalizedStrings(
         en: {
             AppName: 'DirectD',
 
+            AppVersion             : "App Version",
             Exit                   : "Exit",
             ExitConfirm            : "Are you sure you want to exit this app",
             YES                    : "YES",
@@ -19,9 +20,11 @@ export default new LocalizedStrings(
             LogginOut              : "Logging Out...",
             Attention              : "Attention",
             Loading                : "Loading",
+            UpdateAlert            : "New version is available at play store.\nWould you like to update now?",
             LoginRequired          : "You need to Login to access this service",
             LogoutConfirmation     : "Are you sure you want to logout",
             LoginSuccessfully      : "Login Successfully",
+            LogoutSuccessfully     : "Logout Successfully",
             UnknownError           : "Unknown Error",
             ResponseNotFound       : "Error response not found",
             OperationCanceledByUser: "Operation canceled by user",
@@ -33,6 +36,7 @@ export default new LocalizedStrings(
             Error                  : "Error",
             Ok                     : "Ok",
             Allow                  : "Allow",
+            Later                  : "Later",
             AskMeLater             : "Ask Me Later",
             AvailableStock         : "Available Stock",
             Permission             : {
@@ -102,6 +106,7 @@ export default new LocalizedStrings(
             About            : "About",
             AboutUs          : "About Us",
             ContactUs        : "Contact Us",
+            RefundPolicy     : "Refund Policy",
             TermsAndCondition: "Terms & Condition",
 
             Facebook: "Facebook",
@@ -118,8 +123,9 @@ export default new LocalizedStrings(
             SelectImage: "Select Image",
 
             // Category
-            ThereIsNoMore: "There is no more product to show",
-            PageRefreshed: "Page Refreshed",
+            ThereIsNoMore    : "There is no more product to show",
+            PageRefreshed    : "Page Refreshed",
+            YourAppIsUptoDate: "Your app is up to date",
 
             // Product
             AddtoCart                     : "Add to Cart",
@@ -140,6 +146,7 @@ export default new LocalizedStrings(
             RequestFailed                 : "HTTP Request Failed",
             ProductRelated                : "You May Also Like",
             FormInvalid                   : "Please Check Your Inputs",
+            CouponCodeInvalid             : "Please enter coupon code",
             KeyChainStoreFailed           : "Unable to Store Sensitive Data",
             KeyChainRetriveFailed         : "Unable to Retrive Sensitive Data",
             KeyChainResetFailed           : "Unable to Reset Sensitive Data",
@@ -153,9 +160,11 @@ export default new LocalizedStrings(
             ImagePickerCanceled           : "Image Picker Canceled",
             ImagePickerError              : "Error in Image Picker",
             LoginFailed                   : "Login Failed, Please Try Again",
+            RegistrationFailed            : "Registration Failed, Please Try Again",
             LogoutFailed                  : "Logout Failed",
             GeocoderFailed                : "Unable to Retrive Geocoder",
             ShareFailed                   : "Unable to share",
+            FileFetchingFailed            : "Unable to fetch file from remote server",
             UnableToOpen                  : "Unable to open",
             GPSFailed                     : "Unable to Retrive Current Location",
             GPSPermissionRequest          : "Permission Denied\nPlease Allow GPS Permission to Allow this App to work properly",
@@ -190,17 +199,19 @@ export default new LocalizedStrings(
             Order                : "Order",
             ShoppingCart         : "Shopping Cart",
             ShoppingCartIsEmpty  : "Your Cart is Empty",
+            DeliveryAddress      : "Delivery Address",
             Delivery             : "Delivery",
             AddProductToCart     : "Add a product to the shopping cart",
-            TotalPrice           : "Total Price:",
+            TotalPrice           : "Total Price",
+            Qty                  : "Qty",
             YourDeliveryInfo     : "Your delivery info:",
             ShopNow              : "Shop Now",
             YourChoice           : "Your wishlist:",
             YourSale             : "Your Sale:",
             SubtotalPrice        : "Subtotal Price:",
             BuyNow               : "Buy Now",
-            Items                : "items",
-            Item                 : "item",
+            Items                : "Items",
+            Item                 : "Item",
             ThankYou             : "Thank you",
             FinishOrderCOD       : "You can use to number of order to track shipping status",
             FinishOrder          :
@@ -247,6 +258,7 @@ export default new LocalizedStrings(
             Submit                 : "Submit",
             Success                : "Success",
             Category               : "Category",
+            Registering            : "Registering",
 
             // Checkout
             Checkout                   : "Checkout",
@@ -256,14 +268,14 @@ export default new LocalizedStrings(
             Paypal                     : "Paypal",
             Stripe                     : "Stripe",
             CreditCard                 : "Credit Card",
-            PaymentMethod              : "Payment Method - Not select",
+            PaymentMethod              : "Payment Method",
             PaymentMethodError         : "Please select your payment method",
             PayWithCoD                 : "Your purchase will be pay when goods were delivered",
             PayWithPayPal              : "Your purchase will be pay with PayPal",
             PayWithStripe              : "Your purchase will be pay with Stripe",
-            ApplyCoupon                : "Apply",
             CouponPlaceholder          : "COUPON CODE",
-            APPLY                      : "APPLY",
+            Apply                      : "Apply",
+            Remove                     : "Remove",
             CardNamePlaceholder        : "Name written on card",
             BackToHome                 : "Back to Home",
             OrderCompleted             : "Your order was completed",
@@ -296,21 +308,21 @@ export default new LocalizedStrings(
             EditProfile                : "Edit Profile",
 
             // myorder
-            OrderId        : "Order ID",
-            MyOrder        : "My Orders",
-            NoOrder        : "You don't have any orders",
-            OrderDate      : "Order Date: ",
-            OrderStatus    : "Status: ",
-            OrderPayment   : "Payment method: ",
-            OrderTotal     : "Total: ",
-            OrderDetails   : "Show detail",
-            ShippingAddress: "Shipping Address:",
-            Refund         : "Refund",
+            OrderId     : "Order ID",
+            MyOrder     : "My Orders",
+            NoOrder     : "You don't have any orders",
+            OrderDate   : "Order Date: ",
+            OrderStatus : "Status: ",
+            OrderPayment: "Payment method: ",
+            OrderTotal  : "Total: ",
+            OrderDetails: "Show detail",
+            Refund      : "Refund",
 
             // settings
             BASICSETTINGS: "BASIC SETTINGS",
             Language     : "Language",
             INFO         : "INFO",
+            Information  : "Information",
             changeRTL    : "Switch RTL",
 
             // language
@@ -376,14 +388,24 @@ export default new LocalizedStrings(
             welcomeBack: "Welcome back ",
             seeAll     : "Show All",
 
+            Coupon             : "Coupon",
+            CouponCode         : "Coupon Code",
+            YouHaveGotCoupon   : "You have got coupon",
+            ApplyCoupon        : "Apply Coupon",
             couponCodeIsExpired: "This coupon code is expired",
             invalidCouponCode  : "This coupon code is invalid",
             remove             : "Remove",
             reload             : "Reload",
             applyCouponSuccess : "Congratulations Coupon code applied successfully ",
 
-            OutOfStock  : "OUT OF STOCK",
-            ShippingType: "Shipping method",
+            CouponApplied   : "Coupon applied\nRM",
+            CouponNotWorking: "Coupon not working",
+            OutOfStock      : "OUT OF STOCK",
+            NoMoreInStock   : "No more in stock",
+            ShippingType    : "Shipping type",
+            ShippingMethod  : "Shipping method",
+            ShippingAddress : "Shipping address",
+            BillingAddress  : "Billing Address",
 
             // Place holder
             TypeFirstName       : "Type your first name",
@@ -418,10 +440,11 @@ export default new LocalizedStrings(
             DontHaveAccount: "Don't have an account?",
 
             // Modal
-            Select  : "Select",
-            Cancel  : "Cancel",
-            LoginNow: "Login Now",
-            Guest   : "Guest",
+            Select   : "Select",
+            Cancel   : "Cancel",
+            LoginNow : "Login Now",
+            UpdateNow: "Update Now",
+            Guest    : "Guest",
 
             LanguageName: "English",
 
@@ -439,11 +462,13 @@ export default new LocalizedStrings(
             send            : "Send",
 
             Shipping      : "Shipping",
-            termsCondition: "Terms & Condition",
+            TermsCondition: "Terms & Condition",
             PriceBreakdown: "Price Breakdown",
+            CartItems     : "Cart Items",
 
             Subtotal      : "Subtotal",
             Discount      : "Discount",
+            Discounted    : "Discounted",
             Voucher       : "Voucher",
             DeliveryCharge: "Delivery Charge",
             ServiceCharge : "Service Charge",

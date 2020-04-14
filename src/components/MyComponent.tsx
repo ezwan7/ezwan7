@@ -4,7 +4,6 @@ import {ActivityIndicator, Image, StatusBar, StyleSheet, Text, TextInput, Toucha
 import FastImage from "react-native-fast-image";
 import LinearGradient from "react-native-linear-gradient";
 import LottieView from 'lottie-react-native';
-import ParallaxScrollView from 'react-native-parallax-scroll-view';
 
 import {MyStyle, MyStyleSheet} from "../common/MyStyle";
 import MyColor from "../common/MyColor";
@@ -141,7 +140,7 @@ const HeaderGradientPrimaryLogo = (props: any) => {
                 }}
             >
                 <Image
-                    source = {MyImage.logoWhite}
+                    source = {MyImage.logo_white}
                     style = {{
                         height      : MyStyle.headerHeight / 2,
                         width       : MyStyle.screenWidth * 0.3,
@@ -271,10 +270,13 @@ const Separator = () => {
     )
 }
 
-const ActivityIndicatorLarge = () => {
+const ActivityIndicatorLarge = (props: any) => {
     return (
-        <ActivityIndicator size = "large"
-                           color = {MyColor.Primary.first}/>
+        <ActivityIndicator
+            size = "large"
+            color = {MyColor.Primary.first}
+            style = {[props?.style]}
+        />
     )
 }
 

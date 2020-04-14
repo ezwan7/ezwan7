@@ -1,6 +1,6 @@
 import React, {Fragment, useCallback, useEffect, useLayoutEffect, useState} from 'react';
 
-import {View, SafeAreaView, ScrollView, RefreshControl, Text, BackHandler, TouchableOpacity} from 'react-native';
+import {View, SafeAreaView, ScrollView, RefreshControl, Text, BackHandler, TouchableOpacity, FlatList} from 'react-native';
 import {useFocusEffect} from "@react-navigation/native";
 
 import MyUtil from '../common/MyUtil';
@@ -12,7 +12,7 @@ import MyLANG from '../shared/MyLANG';
 import {MyConstant} from '../common/MyConstant';
 import MyIcon from '../components/MyIcon';
 
-import {ListEmptyViewLottie, ListHeaderViewAll, StatusBarLight} from '../components/MyComponent';
+import {ActivityIndicatorLarge, ListEmptyViewLottie, ListHeaderViewAll, StatusBarLight} from '../components/MyComponent';
 import {
     CategoryHorizontalListItem,
     CategoryHorizontalListItemContentLoader,
@@ -23,10 +23,12 @@ import {
 } from "../shared/MyContainer";
 import Splash from "react-native-splash-screen";
 import {useDispatch, useSelector} from "react-redux";
-import {categorySave} from "../store/CategoryRedux";
+import {categoryEmpty, categorySave} from "../store/CategoryRedux";
+import {Colors} from "react-native/Libraries/NewAppScreen";
+import MyFunction from "../shared/MyFunction";
 
 declare var global: { HermesInternal: null | {} };
-const isHermes = () => global.HermesInternal != null;
+// const isHermes = () => global.HermesInternal != null;
 
 let renderCount = 0;
 
@@ -46,12 +48,18 @@ const HomeScreen = ({route, navigation}: any) => {
 
     const [firstLoadCategory, setFirstLoadCategory] = useState(true);
 
-    const [firstLoadBanner, setFirstLoadBanner]     = useState(true);
-    const [banner, setBanner]: any                  = useState([]);
-    const [firstLoadProduct, setFirstLoadProduct]   = useState(true);
-    const [product, setProduct]: any                = useState([]);
-    const [firstLoadProduct2, setFirstLoadProduct2] = useState(true);
-    const [product2, setProduct2]: any              = useState([]);
+    const [firstLoadBanner, setFirstLoadBanner] = useState(true);
+    const [banner, setBanner]: any              = useState([]);
+
+    const [firstLoadFeatured, setFirstLoadFeatured]                                               = useState(true);
+    const [featured, setFeatured]: any                                                            = useState([]);
+    const [loadingMoreFeatured, setLoadingMoreFeatured]                                           = useState(false);
+    const [onEndReachedCalledDuringMomentumFeatured, setOnEndReachedCalledDuringMomentumFeatured] = useState(true);
+
+    const [firstLoadNewArrival, setFirstLoadNewArrival]                                               = useState(true);
+    const [newArrival, setNewArrival]: any                                                            = useState([]);
+    const [loadingMoreNewArrival, setLoadingMoreNewArrival]                                           = useState(false);
+    const [onEndReachedCalledDuringMomentumNewArrival, setOnEndReachedCalledDuringMomentumNewArrival] = useState(true);
 
 
     useFocusEffect(
@@ -78,8 +86,23 @@ const HomeScreen = ({route, navigation}: any) => {
 
         fetchCategory(false, false, false);
         fetchBanner(false, false, false);
-        fetchProduct(false, false, false);
-        fetchProduct2(false, false, false);
+        fetchFeatured(featured?.length > 0 ? featured.length : 0,
+                      MyConfig.ListLimit.productListHorizontal,
+                      false,
+                      false,
+                      false,
+                      MyConstant.DataSetType.fresh
+        );
+        fetchNewArrival(newArrival?.length > 0 ? newArrival.length : 0,
+                        MyConfig.ListLimit.productListHorizontal,
+                        false,
+                        false,
+                        false,
+                        MyConstant.DataSetType.fresh
+        );
+
+        MyFunction.appUpdateCheck();
+
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -96,20 +119,86 @@ const HomeScreen = ({route, navigation}: any) => {
             'showMessage': MyConstant.SHOW_MESSAGE.TOAST,
             'message'    : MyLANG.PageRefreshed
         });
-        fetchProduct(false, true, {
-            'showMessage': MyConstant.SHOW_MESSAGE.TOAST,
-            'message'    : MyLANG.PageRefreshed
-        });
-        fetchProduct2(false, true, {
-            'showMessage': MyConstant.SHOW_MESSAGE.TOAST,
-            'message'    : MyLANG.PageRefreshed
-        });
+        fetchFeatured(0,
+                      MyConfig.ListLimit.productListHorizontal,
+                      false,
+                      true,
+                      {
+                          'showMessage': MyConstant.SHOW_MESSAGE.TOAST,
+                          'message'    : MyLANG.PageRefreshed
+                      },
+                      MyConstant.DataSetType.fresh
+        );
+        fetchNewArrival(0,
+                        MyConfig.ListLimit.productListHorizontal,
+                        false,
+                        true,
+                        {
+                            'showMessage': MyConstant.SHOW_MESSAGE.TOAST,
+                            'message'    : MyLANG.PageRefreshed
+                        },
+                        MyConstant.DataSetType.fresh
+        );
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    const onEndReachedFeatured = () => {
+        MyUtil.printConsole(true, 'log', 'LOG: onEndReachedFeatured: ', {
+            'loadingMoreFeatured'                     : loadingMoreFeatured,
+            'onEndReachedCalledDuringMomentumFeatured': onEndReachedCalledDuringMomentumFeatured
+        });
+
+        if (!loadingMoreFeatured && !onEndReachedCalledDuringMomentumFeatured) {
+
+            setLoadingMoreFeatured(true);
+
+            fetchFeatured(featured?.length > 0 ? featured.length : 0,
+                          MyConfig.ListLimit.productListHorizontal,
+                          false,
+                          true,
+                          false,
+                          MyConstant.DataSetType.addToEndUnique
+            );
+        }
+    }
+    const ListFooterFeatured   = () => {
+        MyUtil.printConsole(true, 'log', 'LOG: ListFooterFeatured: ', {'loadingMoreFeatured': loadingMoreFeatured});
+
+        if (!loadingMoreFeatured) return null;
+
+        return <ActivityIndicatorLarge style = {{flex: 1}}/>;
+    }
+
+    const onEndReachedNewArrival = () => {
+        MyUtil.printConsole(true, 'log', 'LOG: onEndReachedNewArrival: ', {
+            'loadingMoreNewArrival'                     : loadingMoreNewArrival,
+            'onEndReachedCalledDuringMomentumNewArrival': onEndReachedCalledDuringMomentumNewArrival
+        });
+
+        if (!loadingMoreNewArrival && !onEndReachedCalledDuringMomentumNewArrival) {
+
+            setLoadingMoreNewArrival(true);
+
+            fetchNewArrival(newArrival?.length > 0 ? newArrival.length : 0,
+                            MyConfig.ListLimit.productListHorizontal,
+                            false,
+                            true,
+                            false,
+                            MyConstant.DataSetType.addToEndUnique
+            );
+        }
+    }
+    const ListFooterNewArrival   = () => {
+        MyUtil.printConsole(true, 'log', 'LOG: ListFooterNewArrival: ', {'loadingMoreNewArrival': loadingMoreNewArrival});
+
+        if (!loadingMoreNewArrival) return null;
+
+        return <ActivityIndicatorLarge style = {{flex: 1}}/>;
+    }
+
     // Refresh All existing on Component Visibile, Show Placeholder on start and loadmore, No Data Found Design
-    const fetchCategory = async (showLoader: any = MyLANG.Loading + '...', setRefresh: boolean = false, showInfoMessage: any = false) => {
+    const fetchCategory   = async (showLoader: any = MyLANG.Loading + '...', setRefresh: boolean = false, showInfoMessage: any = false) => {
 
         const response: any = await MyUtil
             .myHTTP(false, MyConstant.HTTP_POST, MyAPI.categories,
@@ -120,20 +209,23 @@ const HomeScreen = ({route, navigation}: any) => {
                         'app_build_ver': MyConfig.app_build_version,
                         'platform'     : MyConfig.app_platform,
                         'device'       : null,
-                    }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Short, showLoader, true, false
+                    }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, showLoader, true, false
             );
 
         MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
             'apiURL': MyAPI.categories, 'response': response
         });
 
-        if (response && response.type === MyConstant.RESPONSE.TYPE.data && response.data.status === 200 && response.data.data && response.data.data.data) {
+        if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data.status === 200 && response.data.data && response.data.data.data) {
 
             const data = response.data.data.data;
             if (data?.length > 0) {
                 dispatch(categorySave(data, MyConstant.DataSetType.fresh));
+            } else {
+                dispatch(categoryEmpty());
             }
         } else {
+            dispatch(categoryEmpty());
             MyUtil.showMessage(showInfoMessage.showMessage, response.errorMessage ? response.errorMessage : MyLANG.UnknownError, false);
         }
 
@@ -146,7 +238,7 @@ const HomeScreen = ({route, navigation}: any) => {
             MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message, false);
         }
     }
-    const fetchBanner   = async (showLoader: any = MyLANG.Loading + '...', setRefresh: boolean = false, showInfoMessage: any = false) => {
+    const fetchBanner     = async (showLoader: any = MyLANG.Loading + '...', setRefresh: boolean = false, showInfoMessage: any = false) => {
 
         const response: any = await MyUtil
             .myHTTP(false, MyConstant.HTTP_POST, MyAPI.banner,
@@ -157,14 +249,14 @@ const HomeScreen = ({route, navigation}: any) => {
                         'app_build_ver': MyConfig.app_build_version,
                         'platform'     : MyConfig.app_platform,
                         'device'       : null,
-                    }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Short, showLoader, true, false
+                    }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, showLoader, true, false
             );
 
         MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
             'apiURL': MyAPI.banner, 'response': response
         });
 
-        if (response && response.type === MyConstant.RESPONSE.TYPE.data && response.data.status === 200 && response.data.data && response.data.data.data) {
+        if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.status === 200 && response.data?.data?.data) {
 
             const data = response.data.data.data;
             if (data?.length > 0) {
@@ -183,38 +275,70 @@ const HomeScreen = ({route, navigation}: any) => {
             MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message, false);
         }
     }
-    const fetchProduct  = async (showLoader: any = MyLANG.Loading + '...', setRefresh: boolean = false, showInfoMessage: any = false) => {
+    const fetchFeatured   = async (skip: number = 0, take: number = MyConfig.ListLimit.productListHorizontal, showLoader: any = MyLANG.Loading + '...', setRefresh: boolean = false, showInfoMessage: any = false, DataSetType: string = MyConstant.DataSetType.fresh) => {
 
         const response: any = await MyUtil
-            .myHTTP(false, MyConstant.HTTP_POST, MyAPI.product_by_category,
+            .myHTTP(false, MyConstant.HTTP_POST, MyAPI.featured_products,
                     {
-                        'language_id'  : MyConfig.LanguageActive,
-                        'categories_id': 32,
-                        'skip'         : 0,
-                        'take'         : MyConfig.ListLimit.productListHorizontal,
+                        'language_id': MyConfig.LanguageActive,
+                        'skip'       : skip,
+                        'take'       : take,
 
                         'app_ver'      : MyConfig.app_version,
                         'app_build_ver': MyConfig.app_build_version,
                         'platform'     : MyConfig.app_platform,
                         'device'       : null,
-                    }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Short, showLoader, true, false
+                    }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, showLoader, true, false
             );
 
         MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
-            'apiURL': MyAPI.product_by_category, 'response': response
+            'apiURL': MyAPI.featured_products, 'response': response
         });
 
-        if (response && response.type === MyConstant.RESPONSE.TYPE.data && response.data.status === 200 && response.data.data && response.data.data.data) {
+        if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data.status === 200 && response.data?.data?.data?.product) {
 
-            const data = response.data.data.data;
-            if (data?.product?.length > 0) {
-                setProduct(data);
+            const data = response.data.data.data.product;
+            if (data?.length > 0) {
+                switch (DataSetType) {
+                    case MyConstant.DataSetType.addToEnd:
+                        setFeatured(featured.concat(data));
+                        break;
+                    case MyConstant.DataSetType.addToStart:
+                        setFeatured(data.concat(featured));
+                        break;
+                    case MyConstant.DataSetType.addToEndUnique:
+                        // const newData = product.concat(data.filter(({id}: any) => !product.find((f: any) => f.id == id)));
+                        const newData1: any = featured;
+                        for (let i = 0; i < data.length; i++) {
+                            if (featured.some((item: any) => item?.id === data[i]?.id) === false) {
+                                newData1.push(data[i]);
+                            }
+                        }
+                        setFeatured(newData1);
+                        break;
+                    case MyConstant.DataSetType.addToStartUnique:
+                        const newData2: any = featured;
+                        for (let i = 0; i < data.length; i++) {
+                            if (featured.some((item: any) => item?.id === data[i]?.id) === false) {
+                                newData2.unshift(data[i]);
+                            }
+                        }
+                        setFeatured(newData2);
+                        break;
+                    case MyConstant.DataSetType.fresh:
+                    default:
+                        setFeatured(data);
+                        break;
+                }
             }
+
         } else {
             MyUtil.showMessage(showInfoMessage.showMessage, response.errorMessage ? response.errorMessage : MyLANG.UnknownError, false);
         }
 
-        setFirstLoadProduct(false);
+        setFirstLoadFeatured(false);
+        setLoadingMoreFeatured(false);
+        setOnEndReachedCalledDuringMomentumFeatured(true);
         if (setRefresh === true) {
             setRefreshing(false);
         }
@@ -223,38 +347,70 @@ const HomeScreen = ({route, navigation}: any) => {
             MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message, false);
         }
     }
-    const fetchProduct2 = async (showLoader: any = MyLANG.Loading + '...', setRefresh: boolean = false, showInfoMessage: any = false) => {
+    const fetchNewArrival = async (skip: number = 0, take: number = MyConfig.ListLimit.productListHorizontal, showLoader: any = MyLANG.Loading + '...', setRefresh: boolean = false, showInfoMessage: any = false, DataSetType: string = MyConstant.DataSetType.fresh) => {
 
         const response: any = await MyUtil
-            .myHTTP(false, MyConstant.HTTP_POST, MyAPI.product_by_category,
+            .myHTTP(false, MyConstant.HTTP_POST, MyAPI.new_arrival_products,
                     {
-                        'language_id'  : MyConfig.LanguageActive,
-                        'categories_id': 30,
-                        'skip'         : 0,
-                        'take'         : MyConfig.ListLimit.productListHorizontal2,
+                        'language_id': MyConfig.LanguageActive,
+                        'skip'       : skip,
+                        'take'       : take,
 
                         'app_ver'      : MyConfig.app_version,
                         'app_build_ver': MyConfig.app_build_version,
                         'platform'     : MyConfig.app_platform,
                         'device'       : null,
-                    }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Short, showLoader, true, false
+                    }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, showLoader, true, false
             );
 
         MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
-            'apiURL': MyAPI.product_by_category, 'response': response
+            'apiURL': MyAPI.new_arrival_products, 'response': response
         });
 
-        if (response && response.type === MyConstant.RESPONSE.TYPE.data && response.data.status === 200 && response.data.data && response.data.data.data) {
+        if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data.status === 200 && response.data?.data?.data?.product) {
 
-            const data = response.data.data.data;
-            if (data?.product?.length > 0) {
-                setProduct2(data);
+            const data = response.data.data.data.product;
+            if (data?.length > 0) {
+                switch (DataSetType) {
+                    case MyConstant.DataSetType.addToEnd:
+                        setNewArrival(newArrival.concat(data));
+                        break;
+                    case MyConstant.DataSetType.addToStart:
+                        setNewArrival(data.concat(newArrival));
+                        break;
+                    case MyConstant.DataSetType.addToEndUnique:
+                        // const newData = product.concat(data.filter(({id}: any) => !product.find((f: any) => f.id == id)));
+                        const newData1: any = newArrival;
+                        for (let i = 0; i < data.length; i++) {
+                            if (newArrival.some((item: any) => item?.id === data[i]?.id) === false) {
+                                newData1.push(data[i]);
+                            }
+                        }
+                        setNewArrival(newData1);
+                        break;
+                    case MyConstant.DataSetType.addToStartUnique:
+                        const newData2: any = newArrival;
+                        for (let i = 0; i < data.length; i++) {
+                            if (newArrival.some((item: any) => item?.id === data[i]?.id) === false) {
+                                newData2.unshift(data[i]);
+                            }
+                        }
+                        setNewArrival(newData2);
+                        break;
+                    case MyConstant.DataSetType.fresh:
+                    default:
+                        setNewArrival(data);
+                        break;
+                }
             }
+
         } else {
             MyUtil.showMessage(showInfoMessage.showMessage, response.errorMessage ? response.errorMessage : MyLANG.UnknownError, false);
         }
 
-        setFirstLoadProduct2(false);
+        setFirstLoadNewArrival(false);
+        setLoadingMoreNewArrival(false);
+        setOnEndReachedCalledDuringMomentumNewArrival(true);
         if (setRefresh === true) {
             setRefreshing(false);
         }
@@ -271,13 +427,13 @@ const HomeScreen = ({route, navigation}: any) => {
             <SafeAreaView style = {MyStyleSheet.SafeAreaView2}>
                 <View style = {[MyStyleSheet.SafeAreaView3, {backgroundColor: MyColor.Material.WHITE}]}>
 
-                    {!firstLoadCategory && !firstLoadBanner && !firstLoadProduct && !firstLoadProduct2 && category?.length === 0 && banner?.length === 0 && !product?.product && !product2?.product ?
+                    {(!firstLoadCategory && !firstLoadBanner && !firstLoadFeatured && !firstLoadNewArrival && category?.length === 0 && banner?.length === 0 && featured?.length === 0 && newArrival?.length === 0) ?
                      <ListEmptyViewLottie
                          source = {MyImage.lottie_empty_lost}
                          message = {MyLANG.NoHomeItemsFound}
                          style = {{view: {}, image: {}, text: {}}}
                      />
-                                                                                                                                                                                                    :
+                                                                                                                                                                                                                    :
 
                      <ScrollView
                          contentInsetAdjustmentBehavior = "automatic"
@@ -292,10 +448,36 @@ const HomeScreen = ({route, navigation}: any) => {
                          }
                      >
 
-                         {/* <Text>Engine: {global.HermesInternal}</Text>*/}
+                         {/*{global.HermesInternal == null ? (
+                             <View style = {{}}>
+                                 <Text style = {{
+                                     color       : Colors.dark,
+                                     fontSize    : 12,
+                                     fontWeight  : '600',
+                                     padding     : 4,
+                                     paddingRight: 12,
+                                     textAlign   : 'right',
+                                 }}>
+                                     Engine: No Hermes
+                                 </Text>
+                             </View>
+                         ) : (
+                              <View style = {{}}>
+                                  <Text style = {{
+                                      color       : Colors.dark,
+                                      fontSize    : 12,
+                                      fontWeight  : '600',
+                                      padding     : 4,
+                                      paddingRight: 12,
+                                      textAlign   : 'right',
+                                  }}>
+                                      Engine: Hermes
+                                  </Text>
+                              </View>
+                          )}*/}
 
                          <ScrollView
-                             style = {{
+                             contentContainerStyle = {{
                                  marginTop   : MyStyle.marginVerticalList + MyStyle.marginVerticalList,
                                  marginBottom: MyStyle.marginVerticalList,
                                  flexGrow    : 0
@@ -316,65 +498,133 @@ const HomeScreen = ({route, navigation}: any) => {
                              horizontal = {true}
                              pagingEnabled = {true}
                              decelerationRate = "fast"
+                             snapToInterval = {MyStyle.screenWidth}
+                             snapToAlignment = "center"
                              showsHorizontalScrollIndicator = {false}
                              style = {{marginVertical: MyStyle.marginVerticalList}}
                          >
                              {firstLoadBanner && banner?.length === 0 && <ImageSliderBannerContentLoader/>}
-                             <ImageSliderBanner item = {banner}
-                                                style = {{}}/>
+                             <ImageSliderBanner
+                                 item = {banner}
+                                 style = {{}}
+                             />
                          </ScrollView>
 
                          <ListHeaderViewAll
                              textLeft = {MyLANG.FeaturedProducts}
                              textRight = {MyLANG.ViewAll}
-                             onPress = {() =>
-                                 MyUtil.commonAction(false,
-                                                     navigation,
-                                                     MyConstant.CommonAction.navigate,
-                                                     MyConfig.routeName.ProductList,
-                                                     {'id': product?.categories_id, 'item': product},
-                                                     null
-                                 )
+                             onPress = {
+                                 () =>
+                                     MyUtil.commonAction(false,
+                                                         navigation,
+                                                         MyConstant.CommonAction.navigate,
+                                                         MyConfig.routeName.ProductList,
+                                                         {'title': MyLANG.FeaturedProducts, 'id': null, 'apiURL': MyAPI.featured_products},
+                                                         null
+                                     )
                              }
                          />
-                         <ScrollView
+                         {
+                             featured?.length > 0 ?
+                             <FlatList
+                                 contentContainerStyle = {{marginVertical: MyStyle.marginVerticalList}}
+                                 horizontal = {true}
+                                 data = {featured}
+                                 renderItem = {({item, index}: any) =>
+                                     <ProductHorizontalListItem
+                                         item = {item}
+                                         index = {index}
+                                     />
+                                 }
+                                 keyExtractor = {(item: any) => String(item?.id)}
+                                 ListFooterComponent = {ListFooterFeatured}
+                                 onEndReachedThreshold = {0.2}
+                                 onEndReached = {onEndReachedFeatured}
+                                 onMomentumScrollBegin = {() => {
+                                     setOnEndReachedCalledDuringMomentumFeatured(false);
+                                 }}
+                             />
+                                                  :
+                             firstLoadFeatured ?
+                             <ScrollView
+                                 horizontal
+                                 style = {{flexGrow: 0, marginVertical: MyStyle.marginVerticalList}}
+                             >
+                                 {ProductHorizontalListItemContentLoader(MyConfig.ListLimit.productListHorizontal)}
+                             </ScrollView>
+                                               :
+                             null
+                         }
+                         {/*<ScrollView
                              horizontal
                              showsHorizontalScrollIndicator = {false}
                              style = {{flexGrow: 0, marginVertical: MyStyle.marginVerticalList}}
                          >
                              {
-                                 product?.product?.length > 0 ? <ProductHorizontalListItem item = {product.product}/>
-                                                              :
-                                 firstLoadProduct ? ProductHorizontalListItemContentLoader(5)
-                                                  : null
+                                 featured?.length > 0 ? <ProductHorizontalListItem item = {featured}/>
+                                                      :
+                                 firstLoadFeatured ? ProductHorizontalListItemContentLoader(5)
+                                                   : null
                              }
-                         </ScrollView>
+                         </ScrollView>*/}
 
                          <ListHeaderViewAll
                              textLeft = {MyLANG.NewArrivals}
                              textRight = {MyLANG.ViewAll}
-                             onPress = {() =>
-                                 MyUtil.commonAction(false,
-                                                     navigation,
-                                                     MyConstant.CommonAction.navigate,
-                                                     MyConfig.routeName.ProductList,
-                                                     {'id': product2?.categories_id, 'item': product2},
-                                                     null
-                                 )
+                             onPress = {
+                                 () =>
+                                     MyUtil.commonAction(false,
+                                                         navigation,
+                                                         MyConstant.CommonAction.navigate,
+                                                         MyConfig.routeName.ProductList,
+                                                         {'title': MyLANG.NewArrivals, 'id': null, 'apiURL': MyAPI.new_arrival_products},
+                                                         null
+                                     )
                              }
                          />
-                         <ScrollView
+                         {
+                             newArrival?.length > 0 ?
+                             <FlatList
+                                 contentContainerStyle = {{marginVertical: MyStyle.marginVerticalList}}
+                                 horizontal = {true}
+                                 data = {newArrival}
+                                 renderItem = {({item, index}: any) =>
+                                     <ProductHorizontalListItem
+                                         item = {item}
+                                         index = {index}
+                                     />
+                                 }
+                                 keyExtractor = {(item: any) => String(item?.id)}
+                                 ListFooterComponent = {ListFooterNewArrival}
+                                 onEndReachedThreshold = {0.2}
+                                 onEndReached = {onEndReachedNewArrival}
+                                 onMomentumScrollBegin = {() => {
+                                     setOnEndReachedCalledDuringMomentumNewArrival(false);
+                                 }}
+                             />
+                                                    :
+                             firstLoadNewArrival ?
+                             <ScrollView
+                                 horizontal
+                                 style = {{flexGrow: 0, marginVertical: MyStyle.marginVerticalList}}
+                             >
+                                 {ProductHorizontalListItemContentLoader(MyConfig.ListLimit.productListHorizontal)}
+                             </ScrollView>
+                                                 :
+                             null
+                         }
+                         {/*<ScrollView
                              horizontal
                              showsHorizontalScrollIndicator = {false}
                              style = {{flexGrow: 0, marginVertical: MyStyle.marginVerticalList}}
                          >
                              {
-                                 product2?.product?.length > 0 ? <ProductHorizontalListItem item = {product2.product}/>
-                                                               :
-                                 firstLoadProduct2 ? ProductHorizontalListItemContentLoader(5)
-                                                   : null
+                                 newArrival?.length > 0 ? <ProductHorizontalListItem item = {newArrival}/>
+                                                        :
+                                 firstLoadNewArrival ? ProductHorizontalListItemContentLoader(5)
+                                                     : null
                              }
-                         </ScrollView>
+                         </ScrollView>*/}
 
                      </ScrollView>
                     }

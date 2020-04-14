@@ -4,7 +4,6 @@ import {
     View,
     SafeAreaView,
     ScrollView,
-    FlatList,
     RefreshControl,
 } from 'react-native';
 
@@ -25,7 +24,10 @@ import {
 import {
     CategoryListItemContentLoader,
     ListItemSeparator,
-    CategoryListItem, CartListItem, CartPageTotal, CartPageBottom,
+    CategoryListItem,
+    CartListItem,
+    CartPageTotal,
+    CartPageBottomButtons,
 } from "../shared/MyContainer";
 import {useDispatch, useSelector} from "react-redux";
 import {cartCalculateTotal, cartItemQuantityDecrement, cartItemQuantityIncrement, cartItemRemove} from "../store/CartRedux";
@@ -203,7 +205,7 @@ const CartScreen = ({}) => {
 
                             </ScrollView>
 
-                            <CartPageBottom
+                            <CartPageBottomButtons
                                 // textBackButton = {MyLANG.Back}
                                 textNextButton = {MyLANG.NextStep}
                                 // onPressBack = {onBack}
@@ -220,7 +222,7 @@ const CartScreen = ({}) => {
                                 speed = {0.5}
                                 style = {{view: {}, image: {}, text: {}}}
                             />
-                            <CartPageBottom
+                            <CartPageBottomButtons
                                 // textBackButton = {MyLANG.Back}
                                 textNextButton = {MyLANG.GoToShop}
                                 // onPressBack = {onBack}

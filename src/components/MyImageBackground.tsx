@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import {ImageBackground, StyleSheet} from "react-native";
 import {MyStyle, MyStyleSheet} from "../common/MyStyle";
 import MyImage from "../shared/MyImage";
+import FastImage from "react-native-fast-image";
 
 let renderCount = 0;
 
@@ -27,20 +28,23 @@ export const MyImageBackground = (props: any) => {
     return (
         <ImageBackground
             source = {props.source[index]}
-            defaultSource = {MyImage.defaultBanner}
-            resizeMode = {props.resizeMode || "cover"}
-            style = {props.style || styles.image}
-            imageStyle = {props.imageStyle || styles.imageStyle}
-        />
+            resizeMode = {index === 1 ? "contain" : props.resizeMode ? props.resizeMode : "cover"}
+            style = {[props.style || styles.image]}
+            imageStyle = {[props.imageStyle || styles.imageStyle, index === 1 && {marginHorizontal: MyStyle.screenWidth / 3}]}
+            onError = {onError}
+        >
+            {props.children}
+        </ImageBackground>
     )
 }
 MyImageBackground.propTypes    = {
     source       : PropTypes.array,
     defaultSource: PropTypes.string,
     resizeMode   : PropTypes.string,
-    style        : PropTypes.object,
+    style        : PropTypes.any,
     imageStyle   : PropTypes.object,
     onError      : PropTypes.func,
+    children     : PropTypes.any,
 }
 MyImageBackground.defaultProps = {
     source       : [],

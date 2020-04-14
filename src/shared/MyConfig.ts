@@ -37,13 +37,14 @@ const primaryGradient = {
 const MyConfig: any = {
 
     app_name         : 'DirectD',
-    app_version      : '0.0.1',
+    app_version      : '0.3.6',
     app_build_version: 1,
-    app_platform     : 'Android',
+    app_platform     : 'android_customer',
 
     app_email    : 'directd@gmail.com',
     app_phone    : '01888065565',
     app_copyright: 'directd',
+    app_website  : 'https://www.directd.com.my/',
 
     android_store_link  : 'market://details?id=com.directd',
     iOS_store_link      : 'itms-apps://itunes.apple.com/us/app/id${APP_STORE_LINK_ID}?mt=8',
@@ -58,8 +59,10 @@ const MyConfig: any = {
     facebook_app_id: '241236920251156',
 
     // apiUrl : 'http://192.168.0.101:8500/',
-    apiUrl   : 'https://smddeveloper.com/directd_merge/public/api/',
-    serverUrl: 'https://smddeveloper.com/directd_merge/',
+    // apiUrl   : 'https://smddeveloper.com/directd_merge/public/api/',
+    // serverUrl: 'https://smddeveloper.com/directd_merge/',
+    apiUrl   : 'https://smdtechno.com/demo/DirectD/public/api/',
+    serverUrl: 'https://smdtechno.com/demo/DirectD/',
 
     api_version: '',
     api_auth   : 'auth/',
@@ -94,9 +97,12 @@ const MyConfig: any = {
         Cart        : 'Cart',
         Settings    : 'Settings',
 
-        ProductList   : 'ProductList',
-        ProductDetails: 'ProductDetails',
-        ProductBuy    : 'ProductBuy',
+        ProductList       : 'ProductList',
+        ProductDetails    : 'ProductDetails',
+        ProductBuy        : 'ProductBuy',
+        ProductBuyDelivery: 'ProductBuyDelivery',
+        ProductBuyPayment : 'ProductBuyPayment',
+        ProductBuySuccess : 'ProductBuySuccess',
 
         EditProfile      : 'EditProfile',
         MyOrders         : 'MyOrders',
@@ -107,6 +113,8 @@ const MyConfig: any = {
         ContactUs        : 'ContactUs',
         AboutUs          : 'AboutUs',
         TermsAndCondition: 'TermsAndCondition',
+
+        InfoPage: 'InfoPage',
 
         GoogleMap: 'GoogleMap',
 
@@ -129,7 +137,7 @@ const MyConfig: any = {
 
     printConsole      : true,
     loginRequired     : false,
-    registrationAction: MyConstant.RegistrationAction.verification_needed,
+    registrationAction: MyConstant.RegistrationAction.auto_login,
     showStatusBar     : true,
     timePeriodToExit  : 2000,
     dateSetDelay      : 2500,
@@ -160,12 +168,11 @@ const MyConfig: any = {
     },
 
     ListLimit     : {
-        categoryList          : 50,
-        productList           : 16,
-        productListHorizontal : 16,
-        productListHorizontal2: 16,
-        searchList            : 16,
-        RestaurantHome        : 10,
+        categoryList         : 50,
+        productList          : 16,
+        productListHorizontal: 5,
+        searchList           : 16,
+        RestaurantHome       : 10,
     },
     LimitAddToCart: 10,
 
@@ -263,7 +270,7 @@ const MyConfig: any = {
             title          : 'Welcome to DirectD',
             text           : 'BUY WITH CONFIDENCE! All Smartphones, Tablets, Smartwatches and Notebook Sold at DirectD are 100% original set.',
             icon           : 'ios-images',
-            image          : MyImage.logoWhite,
+            image          : MyImage.logo_white,
             backgroundColor: primaryColor.first,
             start          : {x: 1.0, y: 0.0},
             end            : {x: 0.0, y: 1.0},
@@ -275,7 +282,7 @@ const MyConfig: any = {
             title          : 'Secure Payment',
             text           : 'All your payment infomation is top safety and protected.',
             icon           : 'ios-options',
-            image          : MyImage.logoWhite,
+            image          : MyImage.logo_white,
             backgroundColor: primaryColor.first,
             start          : {x: 1.0, y: 0.0},
             end            : {x: 0.0, y: 1.0},
@@ -287,7 +294,7 @@ const MyConfig: any = {
             title          : 'High Performance',
             text           : 'Saving your value time and buy product with ease.',
             icon           : 'ios-options',
-            image          : MyImage.logoWhite,
+            image          : MyImage.logo_white,
             backgroundColor: primaryColor.first,
             start          : {x: 1.0, y: 0.0},
             end            : {x: 0.0, y: 1.0},
@@ -305,19 +312,27 @@ const MyAPI = {
     mediaServer  : MyConfig.apiUrl + 'uploads/',
     imgRestaurant: MyConfig.apiUrl + 'uploads/restaurant/avatar/',
 
-    intro_slides       : MyConfig.apiUrl + MyConfig.api_version + 'slides-get',
-    login              : MyConfig.apiUrl + MyConfig.api_version + 'processlogin',
-    login_facebook     : MyConfig.apiUrl + MyConfig.api_version + 'facebookregistration',
-    login_google       : MyConfig.apiUrl + MyConfig.api_version + 'googleregistration',
-    login_sms          : MyConfig.apiUrl + MyConfig.api_version + '',
-    signup             : MyConfig.apiUrl + MyConfig.api_version + 'processregistration',
-    password_forgot    : MyConfig.apiUrl + MyConfig.api_version + 'processforgotpassword',
-    categories         : MyConfig.apiUrl + MyConfig.api_version + 'allcategories',
-    product_by_category: MyConfig.apiUrl + MyConfig.api_version + 'productsbycategory',
-    product            : MyConfig.apiUrl + MyConfig.api_version + 'getallproducts',
-    search             : MyConfig.apiUrl + MyConfig.api_version + 'getsearchdata',
-    filter             : MyConfig.apiUrl + MyConfig.api_version + 'getfilters',
-    banner             : MyConfig.apiUrl + MyConfig.api_version + 'getbanners',
+    intro_slides   : MyConfig.apiUrl + MyConfig.api_version + 'intropage',
+    login          : MyConfig.apiUrl + MyConfig.api_version + 'processlogin',
+    login_facebook : MyConfig.apiUrl + MyConfig.api_version + 'facebookregistration',
+    login_google   : MyConfig.apiUrl + MyConfig.api_version + 'googleregistration',
+    login_sms      : MyConfig.apiUrl + MyConfig.api_version + '',
+    signup         : MyConfig.apiUrl + MyConfig.api_version + 'processregistration',
+    password_forgot: MyConfig.apiUrl + MyConfig.api_version + 'processforgotpassword',
+
+    app_update_check    : MyConfig.apiUrl + MyConfig.api_version + 'appupdate',
+    app_data            : MyConfig.apiUrl + MyConfig.api_version + 'getallpages',
+    payment_methods     : MyConfig.apiUrl + MyConfig.api_version + 'getpaymentmethods',
+    featured_products   : MyConfig.apiUrl + MyConfig.api_version + 'getfeaturedproducts',
+    new_arrival_products: MyConfig.apiUrl + MyConfig.api_version + 'getnewarrivalproducts',
+    categories          : MyConfig.apiUrl + MyConfig.api_version + 'allcategories',
+    product_by_category : MyConfig.apiUrl + MyConfig.api_version + 'productsbycategory',
+    product             : MyConfig.apiUrl + MyConfig.api_version + 'getallproducts',
+    search              : MyConfig.apiUrl + MyConfig.api_version + 'getsearchdata',
+    filter              : MyConfig.apiUrl + MyConfig.api_version + 'getfilters',
+    banner              : MyConfig.apiUrl + MyConfig.api_version + 'getbanners',
+    coupon_apply        : MyConfig.apiUrl + MyConfig.api_version + 'getcoupon',
+
     // RESTAURANTS: MyConfig.apiUrl + MyConfig.api_version + MyConfig.api_auth + 'restaurants-get' + MyConfig.API_FILE_EXTENSION,
     //`https://graph.facebook.com/${result.id}/picture`
 }

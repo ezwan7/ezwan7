@@ -13,6 +13,8 @@ import RNBottomActionSheet from 'react-native-bottom-action-sheet';
 import Share from 'react-native-share';
 import ImagePicker from 'react-native-image-picker';
 import Moment from 'moment';
+import RNFetchBlob from 'rn-fetch-blob';
+import * as mime from 'react-native-mime-types';
 import NavigationService from "./NavigationService";
 import {DrawerActions, TabActions, StackActions, CommonActions} from '@react-navigation/native';
 import Splash from "react-native-splash-screen";
@@ -199,53 +201,6 @@ const MyUtil = {
         }*/
     },
 
-    onImageError: (error: any) => {
-        MyUtil.printConsole(true, 'log', 'LOG: onImageError: ', {'error': error});
-    },
-
-    /**
-     * getName user
-     * @user
-     */
-    // @ts-ignore
-    getName: (user) => {
-        if (user != null) {
-            if (
-                typeof user.last_name !== 'undefined' ||
-                typeof user.first_name !== 'undefined'
-            ) {
-                const first = user.first_name != null ? user.first_name : "";
-                const last  = user.last_name != null ? user.last_name : "";
-                return `${first} ${last}`;
-            } else if (typeof user.name !== 'undefined' && user.name != null) {
-                return user.name;
-            }
-            return MyLANG.Guest;
-        }
-        return MyLANG.Guest;
-    },
-
-    /**
-     * getAvatar
-     * @user
-     */
-    // @ts-ignore
-    getAvatar: (user) => {
-        if (user) {
-            if (user.avatar_url) {
-                return {
-                    uri: user.avatar_url,
-                };
-            } else if (user.picture) {
-                return {
-                    uri: user.picture.data.url,
-                };
-            }
-            // return MyImage.defaultAvatar;
-        }
-
-        // return MyImage.defaultAvatar;
-    },
 
     // Hardware Back Button Handler:
     onBackButtonPress: (navigation: any) => {
@@ -1279,7 +1234,7 @@ const MyUtil = {
                     [MyConstant.PASSWORD]: password,
                     "role"               : MyConfig.UserRole.customer,
                     "db_key"             : 'app_build_ver_android',
-                }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Short, showLoader, true, false);
+                }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, showLoader, true, false);
 
         MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
             'apiURL'  : MyAPI.login,
@@ -1297,6 +1252,121 @@ const MyUtil = {
     },
 
 
+    fetchBlob: async (type: string, url: string, headers: any, fileType: any, showMessage: any, showLoader: any) => {
+        MyUtil.printConsole(true, 'log', 'LOG: fetchBlob:', {
+            'type'       : type,
+            'url'        : url,
+            'headers'    : headers,
+            'fileType'   : fileType,
+            'showMessage': showMessage,
+            'showLoader' : showLoader,
+        });
+
+        let response: any = {
+            'type' : MyConstant.RESPONSE.TYPE.error,
+            'error': null,
+            'data' : null,
+        }
+
+        try {
+
+            if (showLoader !== false) {
+                MyUtil.showTinyToast(showLoader && showLoader.length > 0 ? showLoader : MyLANG.PleaseWait,
+                                     false,
+                                     MyStyle.TinyToast.CENTER,
+                                     MyStyle.TinyToast.Black.containerStyle,
+                                     MyStyle.TinyToast.Black.textStyle,
+                                     MyStyle.TinyToast.Black.textColor,
+                                     null,
+                                     MyStyle.TinyToast.imageStyleSucess,
+                                     false,
+                                     true,
+                                     true,
+                                     0,
+                                     MyConstant.TINY_TOAST.SHOW
+                );
+            }
+
+            const res = await RNFetchBlob.fetch('GET', url, headers);
+
+            MyUtil.printConsole(true, 'log', 'LOG: fetch: await-response: ', {
+                'url' : url,
+                'res' : res,
+                'info': res.info(),
+            });
+
+            if (res.info().status === 200 && mime.lookup(url)) {
+                switch (fileType) {
+                    case MyConstant.FetchFileType.base64:
+                        response = {
+                            'type' : MyConstant.RESPONSE.TYPE.data,
+                            'error': null,
+                            'data' : `data:${mime.lookup(url)};base64,` + res.base64(),
+                        }
+                        break;
+                    default:
+                        response = {
+                            'type' : MyConstant.RESPONSE.TYPE.data,
+                            'error': null,
+                            'data' : res.base64(),
+                        }
+                        break;
+                }
+            } else {
+                throw new Error(MyLANG.FileFetchingFailed);
+            }
+
+        } catch (error) {
+            MyUtil.printConsole(true, 'log', 'LOG: fetchBlob: TRY-CATCH: ', {'url': url, 'error': error});
+
+            MyUtil.showMessage(showMessage, MyLANG.FileFetchingFailed, false);
+
+            response = {
+                'type' : MyConstant.RESPONSE.TYPE.error,
+                'error': error,
+                'data' : null,
+            }
+
+        } finally {
+            MyUtil.printConsole(true, 'log', 'LOG: fetchBlob: TRY-FINALY: ', {'response': response});
+
+            if (showLoader !== false) {
+
+                MyUtil.showTinyToast(showLoader && showLoader.length > 0 ? showLoader : MyLANG.PleaseWait,
+                                     false,
+                                     MyStyle.TinyToast.CENTER,
+                                     MyStyle.TinyToast.Black.containerStyle,
+                                     MyStyle.TinyToast.Black.textStyle,
+                                     MyStyle.TinyToast.Black.textColor,
+                                     null,
+                                     MyStyle.TinyToast.imageStyleSucess,
+                                     false,
+                                     true,
+                                     true,
+                                     0,
+                                     MyConstant.TINY_TOAST.HIDE
+                );
+
+            }
+
+            return response;
+        }
+
+        /*const response: any = await MyUtil.fetchBlob(MyConstant.FetchBlobType.fetch,
+                                                     product?.image,
+                                                     {},
+                                                     MyConstant.FetchFileType.base64,
+                                                     MyConstant.SHOW_MESSAGE.TOAST,
+                                                     true
+        );
+        MyUtil.printConsole(true, 'log', 'LOG: fetchBlob: await-response: ', {
+            'response': response,
+        });
+        if (response?.type === MyConstant.RESPONSE.TYPE.data && response?.data) {
+
+        }*/
+    },
+
     linking: async (shareType: string, url: any, showMessage: any) => {
         MyUtil.printConsole(true, 'log', 'LOG: linking:', {
             'shareType'  : shareType,
@@ -1312,16 +1382,17 @@ const MyUtil = {
         }
     },
 
-    share: async (shareType: string, options: any, showMessage: any) => {
+    share: async (shareType: string, fetchBlob: any, options: any, showMessage: any) => {
         MyUtil.printConsole(true, 'log', 'LOG: share:', {
             'shareType'  : shareType,
+            'fetchBlob'  : fetchBlob,
             'options'    : options,
             'showMessage': showMessage,
         });
 
         // If both message and url are provided, url will be concatenated to the end of message to form the body of the message. If only one is provided it will be used.
         try {
-            const shareOptions = options;
+            const shareOptions: any = options;
             // title  : title,
             // message: message,
             // subject: subject,
@@ -1330,6 +1401,31 @@ const MyUtil = {
             // social : social.name,
             // whatsAppNumber: "9199999999",  // country code + phone number(currently only works on Android)
             // filename      : 'test', // only for base64 file in Android
+
+            if (fetchBlob !== false) {
+                const blob: any = await MyUtil.fetchBlob(MyConstant.FetchBlobType.fetch,
+                                                         fetchBlob,
+                                                         {},
+                                                         MyConstant.FetchFileType.base64,
+                                                         showMessage,
+                                                         true
+                );
+                MyUtil.printConsole(true, 'log', 'LOG: fetchBlob: await-response: ', {
+                    'blob': blob,
+                });
+                if (blob?.type === MyConstant.RESPONSE.TYPE.data && blob?.data) {
+                    shareOptions.url = blob?.data;
+                } else {
+                    throw new Error(MyLANG.FileFetchingFailed);
+                }
+            }
+
+            MyUtil.printConsole(true, 'log', 'LOG: share:', {
+                'shareType'   : shareType,
+                'fetchBlob'   : fetchBlob,
+                'shareOptions': shareOptions,
+                'showMessage' : showMessage,
+            });
 
             await Share
                 .open(shareOptions)
@@ -1345,6 +1441,7 @@ const MyUtil = {
 
             MyUtil.showMessage(showMessage, MyLANG.ShareFailed, false);
         }
+
         /*MyUtil
             .share(MyConstant.SHARE.TYPE.open,
                    {

@@ -1,6 +1,6 @@
 import React, {useState, useEffect, Fragment} from 'react';
-import LinearGradient from 'react-native-linear-gradient';
 import {StyleSheet, View, Text, SafeAreaView, ScrollView, Image, TouchableOpacity} from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import {useForm} from 'react-hook-form';
 
 import {MyStyle, MyStyleSheet} from '../common/MyStyle';
@@ -15,7 +15,9 @@ import MyAuth from '../common/MyAuth';
 import {StatusBarDark} from '../components/MyComponent';
 import {MyInput} from "../components/MyInput";
 import {MyButton} from "../components/MyButton";
+
 import * as yup from "yup";
+import MyFunction from "../shared/MyFunction";
 
 let renderCount = 0;
 
@@ -140,26 +142,6 @@ const SignupScreen = ({}) => {
         }
     }, [register]);
 
-    const loginFacebook = async () => {
-        const facebookLogin: any = await MyAuth.loginFacebook(MyConstant.SHOW_MESSAGE.TOAST);
-        MyUtil.printConsole(true, 'log', 'LOG: facebookLogin: await-response: ', {
-            'facebookLogin': facebookLogin
-        });
-        if (facebookLogin && facebookLogin['type'] === MyConstant.RESPONSE.TYPE.data && facebookLogin['data']) {
-            // TODO:
-        }
-    }
-
-    const loginGoogle = async () => {
-        const googleSignin: any = await MyAuth.loginGoogle(MyConstant.SHOW_MESSAGE.TOAST);
-        MyUtil.printConsole(true, 'log', 'LOG: googlePlusLogin: await-response: ', {
-            'googleSignin': googleSignin
-        });
-        if (googleSignin && googleSignin['user']) {
-
-        }
-    }
-
     const formSubmit = async (e: any) => {
         const formValue: any = await MyUtil.formProcess(e, getValues, handleSubmit, formState, errors);
         MyUtil.printConsole(true, 'log', 'LOG: formProcess: await-response: ', {'formValue': formValue});
@@ -173,7 +155,8 @@ const SignupScreen = ({}) => {
                               phone     : formValue.data.phone,
                           },
                           MyConstant.SHOW_MESSAGE.ALERT,
-                          MyLANG.Register + '...',
+                          MyLANG.Registering + '...',
+                          false,
                           null,
                           MyConstant.NAVIGATION_ACTIONS.POP_TO_ROOT
             );
@@ -283,7 +266,7 @@ const SignupScreen = ({}) => {
                                     iconLeft = {{fontFamily: MyConstant.VectorIcon.Fontisto, name: 'facebook'}}
                                     linearGradientStyle = {{marginRight: 7}}
                                     title = {MyLANG.Facebook}
-                                    onPress = {loginFacebook}
+                                    onPress = {MyFunction.loginFacebook}
                                 />
                                 <MyButton
                                     color = {MyStyle.LGButtonGoogle}
@@ -291,7 +274,7 @@ const SignupScreen = ({}) => {
                                     iconLeft = {{fontFamily: MyConstant.VectorIcon.Fontisto, name: 'google'}}
                                     linearGradientStyle = {{marginLeft: 7}}
                                     title = {MyLANG.Google}
-                                    onPress = {loginGoogle}
+                                    onPress = {MyFunction.loginGoogle}
                                 />
                             </View>
 

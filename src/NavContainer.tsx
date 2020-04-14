@@ -24,6 +24,9 @@ import SettingsScreen from "./screens/Settings";
 import ProductListScreen from "./screens/ProductList";
 import ProductDetailsScreen from "./screens/ProductDetails";
 import ProductBuyScreen from "./screens/ProductBuy";
+import ProductBuyPayment from "./screens/ProductBuyPayment";
+import ProductBuySuccess from "./screens/ProductBuySuccess";
+import ProductBuyDelivery from "./screens/ProductBuyDelivery";
 
 import NotificationScreen from './screens/Notification';
 import NotificationViewScreen from './screens/NotificationView';
@@ -37,6 +40,7 @@ import {MyConstant} from "./common/MyConstant";
 import {MyStyle, MyStyleCommon} from "./common/MyStyle";
 import MyColor from "./common/MyColor";
 import MyImage from "./shared/MyImage";
+import InfoPage from "./screens/InfoPage";
 
 
 let lastTimeBackPress: number = 0;
@@ -279,6 +283,39 @@ const HomeScreens =
                       ...MyStyleCommon.StackOptions.BottomTabStack,
                   }}
               />
+              <HomeStack.Screen
+                  name = {MyConfig.routeName.ProductBuyDelivery}
+                  component = {ProductBuyDelivery}
+                  options = {{
+                      title           : MyLANG.Delivery,
+                      headerBackground: HeaderGradientPrimary,
+                      /* headerLeft: () => {
+                       },*/
+                      ...MyStyleCommon.StackOptions.BottomTabStack,
+                  }}
+              />
+              <HomeStack.Screen
+                  name = {MyConfig.routeName.ProductBuyPayment}
+                  component = {ProductBuyPayment}
+                  options = {{
+                      title           : MyLANG.Payment,
+                      headerBackground: HeaderGradientPrimary,
+                      /* headerLeft: () => {
+                       },*/
+                      ...MyStyleCommon.StackOptions.BottomTabStack,
+                  }}
+              />
+              <HomeStack.Screen
+                  name = {MyConfig.routeName.ProductBuySuccess}
+                  component = {ProductBuySuccess}
+                  options = {{
+                      title           : MyLANG.OrderCompleted,
+                      headerBackground: HeaderGradientPrimary,
+                      /* headerLeft: () => {
+                       },*/
+                      ...MyStyleCommon.StackOptions.BottomTabStack,
+                  }}
+              />
 
               <HomeStack.Screen
                   name = {MyConfig.routeName.EditProfile}
@@ -348,6 +385,16 @@ const HomeScreens =
                   component = {NotificationViewScreen}
                   options = {{
                       title           : MyLANG.TermsAndCondition,
+                      headerBackground: HeaderGradientPrimary,
+                      ...MyStyleCommon.StackOptions.BottomTabStack,
+                  }}
+              />
+
+              <HomeStack.Screen
+                  name = {MyConfig.routeName.InfoPage}
+                  component = {InfoPage}
+                  options = {{
+                      title           : MyLANG.Information,
                       headerBackground: HeaderGradientPrimary,
                       ...MyStyleCommon.StackOptions.BottomTabStack,
                   }}

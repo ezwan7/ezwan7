@@ -19,55 +19,10 @@ import {getMyIcon, StatusBarLight} from '../components/MyComponent';
 import MyMaterialRipple from "../components/MyMaterialRipple";
 
 import MyAuth from "../common/MyAuth";
+import {appDataUpdate} from "../store/AppDataRedux";
+import MyFunction from "../shared/MyFunction";
 
 let renderCount = 0;
-
-const settingsItemOnPress = (loginRequired: boolean, navigation: any, actionType: string, routeName: any, params: any, navigationActions: any) => {
-    MyUtil.printConsole(true, 'log', 'LOG: settingsItemOnPress: ', {
-        'loginRequired'    : loginRequired,
-        // 'navigation'       : navigation,
-        'actionType'       : actionType,
-        'routeName'        : routeName,
-        'params'           : params,
-        'navigationActions': navigationActions,
-    });
-    if (actionType) {
-        switch (actionType) {
-            case MyConstant.DrawerOnPress.Navigate:
-                MyUtil.commonAction(loginRequired, navigation, MyConstant.CommonAction.navigate, routeName, params, null);
-                break;
-            case MyConstant.DrawerOnPress.DrawerJump:
-                MyUtil.drawerAction(loginRequired, navigation, MyConstant.DrawerAction.jumpTo, routeName, params, null);
-                break;
-            case MyConstant.DrawerOnPress.TabJump:
-                MyUtil.tabAction(loginRequired, navigation, MyConstant.TabAction.jumpTo, routeName, params, null);
-                break;
-            case MyConstant.DrawerOnPress.RateApp:
-                MyUtil.linking(MyConstant.Linking.openURL, MyConfig.android_store_link, MyConstant.SHOW_MESSAGE.TOAST);
-                break;
-            case MyConstant.DrawerOnPress.ShareApp:
-                MyUtil.share(MyConstant.SHARE.TYPE.open,
-                             {
-                                 message: MyLANG.ShareUs,
-                                 subject: MyLANG.AppShare,
-                                 url    : MyConfig.android_store_link,
-                             },
-                             false
-                )
-                break;
-            case MyConstant.DrawerOnPress.PromptLogout:
-                MyAuth.showLogoutConfirmation(MyConstant.SHOW_MESSAGE.ALERT,
-                                              MyLANG.LogginOut + '...',
-                                              true,
-                                              null,
-                                              MyConstant.NAVIGATION_ACTIONS.GO_BACK
-                );
-                break;
-            default:
-                break;
-        }
-    }
-};
 
 const SettingsScreen = ({route, navigation}: any) => {
     // const dispatch = useDispatch();
@@ -80,12 +35,16 @@ const SettingsScreen = ({route, navigation}: any) => {
         MyUtil.printConsole(true, 'log', `LOG: ${SettingsScreen.name}. renderCount: `, renderCount);
     }
 
+    const dispatch = useDispatch();
+
+    const app_data: any = useSelector((state: any) => state.app_data);
+
     const user: any                    = useSelector((state: any) => state.auth.user);
     const [settings, setSettings]: any = useState([]);
 
     useEffect(() => {
 
-        MyUtil.printConsole(true, 'log', `LOG: ${SettingsScreen.name}. useEffect: `, {user: user});
+        MyUtil.printConsole(true, 'log', `LOG: ${SettingsScreen.name}. useEffect: `, {user, app_data});
 
         if (user.id) {
             const settingsItem = [
@@ -168,7 +127,11 @@ const SettingsScreen = ({route, navigation}: any) => {
                     textLeft : {text: MyLANG.ContactUs},
                     textRight: null,
                     iconRight: {name: 'arrow-right'},
-                    onPress  : {loginRequired: false, actionType: MyConstant.DrawerOnPress.Navigate, routeName: MyConfig.routeName.ContactUs},
+                    onPress  : {
+                        actionType: MyConstant.DrawerOnPress.Navigate,
+                        routeName : MyConfig.routeName.InfoPage,
+                        params    : {title: MyLANG.ContactUs, text: app_data?.contact_us}
+                    },
                 },
                 {
                     gradient : MyStyle.LGDrawerItem,
@@ -178,7 +141,12 @@ const SettingsScreen = ({route, navigation}: any) => {
                     textLeft : {text: MyLANG.AboutUs},
                     textRight: null,
                     iconRight: {name: 'arrow-right'},
-                    onPress  : {loginRequired: false, actionType: MyConstant.DrawerOnPress.Navigate, routeName: MyConfig.routeName.AboutUs},
+                    onPress  : {
+                        loginRequired: false,
+                        actionType   : MyConstant.DrawerOnPress.Navigate,
+                        routeName    : MyConfig.routeName.InfoPage,
+                        params       : {title: MyLANG.AboutUs, text: app_data?.about_us}
+                    },
                 },
                 {
                     gradient : MyStyle.LGDrawerItem,
@@ -188,7 +156,39 @@ const SettingsScreen = ({route, navigation}: any) => {
                     textLeft : {text: MyLANG.TermsAndCondition},
                     textRight: null,
                     iconRight: {name: 'arrow-right'},
-                    onPress  : {loginRequired: false, actionType: MyConstant.DrawerOnPress.Navigate, routeName: MyConfig.routeName.TermsAndCondition},
+                    onPress  : {
+                        loginRequired: false,
+                        actionType   : MyConstant.DrawerOnPress.Navigate,
+                        routeName    : MyConfig.routeName.InfoPage,
+                        params       : {title: MyLANG.TermsAndCondition, text: app_data?.term_services}
+                    },
+                },
+                {
+                    gradient : MyStyle.LGDrawerItem,
+                    ripple   : MyStyle.MaterialRipple.drawer,
+                    imageLeft: null,
+                    iconLeft : null,
+                    textLeft : {text: MyLANG.RefundPolicy},
+                    textRight: null,
+                    iconRight: {name: 'arrow-right'},
+                    onPress  : {
+                        loginRequired: false,
+                        actionType   : MyConstant.DrawerOnPress.Navigate,
+                        routeName    : MyConfig.routeName.InfoPage,
+                        params       : {title: MyLANG.RefundPolicy, text: app_data?.refund_policy}
+                    },
+                },
+                {
+                    gradient : MyStyle.LGDrawerItem,
+                    ripple   : MyStyle.MaterialRipple.drawer,
+                    imageLeft: null,
+                    iconLeft : null,
+                    textLeft : {text: MyLANG.AppVersion},
+                    textRight: {text: MyConfig.app_version},
+                    iconRight: {name: 'arrow-right'},
+                    onPress  : {
+                        actionType: MyConstant.DrawerOnPress.AppUpdateCheck,
+                    },
                 },
                 {
                     gradient : MyStyle.LGDrawerItem,
@@ -273,7 +273,11 @@ const SettingsScreen = ({route, navigation}: any) => {
                     textLeft : {text: MyLANG.ContactUs},
                     textRight: null,
                     iconRight: {name: 'arrow-right'},
-                    onPress  : {loginRequired: false, actionType: MyConstant.DrawerOnPress.Navigate, routeName: MyConfig.routeName.ContactUs},
+                    onPress  : {
+                        actionType: MyConstant.DrawerOnPress.Navigate,
+                        routeName : MyConfig.routeName.InfoPage,
+                        params    : {title: MyLANG.ContactUs, text: app_data?.contact_us}
+                    },
                 },
                 {
                     gradient : MyStyle.LGDrawerItem,
@@ -283,7 +287,11 @@ const SettingsScreen = ({route, navigation}: any) => {
                     textLeft : {text: MyLANG.AboutUs},
                     textRight: null,
                     iconRight: {name: 'arrow-right'},
-                    onPress  : {loginRequired: false, actionType: MyConstant.DrawerOnPress.Navigate, routeName: MyConfig.routeName.AboutUs},
+                    onPress  : {
+                        actionType: MyConstant.DrawerOnPress.Navigate,
+                        routeName : MyConfig.routeName.InfoPage,
+                        params    : {title: MyLANG.AboutUs, text: app_data?.about_us}
+                    },
                 },
                 {
                     gradient : MyStyle.LGDrawerItem,
@@ -293,13 +301,53 @@ const SettingsScreen = ({route, navigation}: any) => {
                     textLeft : {text: MyLANG.TermsAndCondition},
                     textRight: null,
                     iconRight: {name: 'arrow-right'},
-                    onPress  : {loginRequired: false, actionType: MyConstant.DrawerOnPress.Navigate, routeName: MyConfig.routeName.TermsAndCondition},
+                    onPress  : {
+                        loginRequired: false,
+                        actionType   : MyConstant.DrawerOnPress.Navigate,
+                        routeName    : MyConfig.routeName.InfoPage,
+                        params       : {title: MyLANG.TermsAndCondition, text: app_data?.term_services}
+                    },
+                },
+                {
+                    gradient : MyStyle.LGDrawerItem,
+                    ripple   : MyStyle.MaterialRipple.drawer,
+                    imageLeft: null,
+                    iconLeft : null,
+                    textLeft : {text: MyLANG.RefundPolicy},
+                    textRight: null,
+                    iconRight: {name: 'arrow-right'},
+                    onPress  : {
+                        loginRequired: false,
+                        actionType   : MyConstant.DrawerOnPress.Navigate,
+                        routeName    : MyConfig.routeName.InfoPage,
+                        params       : {title: MyLANG.RefundPolicy, text: app_data?.refund_policy}
+                    },
+                },
+                {
+                    gradient : MyStyle.LGDrawerItem,
+                    ripple   : MyStyle.MaterialRipple.drawer,
+                    imageLeft: null,
+                    iconLeft : null,
+                    textLeft : {text: MyLANG.AppVersion},
+                    textRight: {text: MyConfig.app_version},
+                    iconRight: {name: 'arrow-right'},
+                    onPress  : {
+                        actionType: MyConstant.DrawerOnPress.AppUpdateCheck,
+                    },
                 },
             ];
             setSettings(settingsItem);
         }
 
-    }, [user]);
+    }, [user, app_data]);
+
+    useEffect(() => {
+
+        MyFunction.fetchAppData(false);
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
 
     return (
         <Fragment>
@@ -372,14 +420,15 @@ const SettingsScreen = ({route, navigation}: any) => {
                                     <MyMaterialRipple
                                         style = {settingsItem.materialRipple}
                                         {...prop.ripple}
-                                        onPress = {() =>
-                                            settingsItemOnPress(prop.onPress?.loginRequired,
-                                                                navigation,
-                                                                prop.onPress?.actionType,
-                                                                prop.onPress?.routeName,
-                                                                prop.onPress?.params,
-                                                                prop.onPress?.navigationActions,
-                                            )
+                                        onPress = {
+                                            () =>
+                                                settingsItemOnPress(prop.onPress?.loginRequired,
+                                                                    navigation,
+                                                                    prop.onPress?.actionType,
+                                                                    prop.onPress?.routeName,
+                                                                    prop.onPress?.params,
+                                                                    prop.onPress?.navigationActions,
+                                                )
                                         }
                                     >
                                         <View style = {[settingsItem.viewItem, {borderBottomWidth: key === (settings.length - 1) ? 0 : 0.9}]}>
@@ -402,12 +451,22 @@ const SettingsScreen = ({route, navigation}: any) => {
                                                  )
                                                 }
                                                 {prop.textLeft?.text &&
-                                                 <Text
-                                                     style = {[settingsItem.textLeft, prop.textLeft?.style]}
-                                                     numberOfLines = {1}
-                                                 >
-                                                     {prop.textLeft?.text}
-                                                 </Text>
+                                                 <View style = {MyStyle.ColumnCenterStart}>
+                                                     <Text
+                                                         style = {[settingsItem.textLeft, prop.textLeft?.style]}
+                                                         numberOfLines = {1}
+                                                     >
+                                                         {prop.textLeft?.text}
+                                                     </Text>
+                                                     {prop.textLeft?.subText &&
+                                                      <Text
+                                                          style = {[settingsItem.subTextLeft, prop.subTextLeft?.style]}
+                                                          numberOfLines = {1}
+                                                      >
+                                                          {prop.textLeft?.subText}
+                                                      </Text>
+                                                     }
+                                                 </View>
                                                 }
                                             </View>
                                             <View style = {settingsItem.viewRightItem}>
@@ -443,6 +502,64 @@ const SettingsScreen = ({route, navigation}: any) => {
         </Fragment>
     )
 }
+
+const settingsItemOnPress = (loginRequired: boolean, navigation: any, actionType: string, routeName: any, params: any, navigationActions: any) => {
+    MyUtil.printConsole(true, 'log', 'LOG: settingsItemOnPress: ', {
+        'loginRequired'    : loginRequired,
+        // 'navigation'       : navigation,
+        'actionType'       : actionType,
+        'routeName'        : routeName,
+        'params'           : params,
+        'navigationActions': navigationActions,
+    });
+    if (actionType) {
+        switch (actionType) {
+            case MyConstant.DrawerOnPress.Navigate:
+                MyUtil.commonAction(loginRequired, navigation, MyConstant.CommonAction.navigate, routeName, params, null);
+                break;
+            case MyConstant.DrawerOnPress.DrawerJump:
+                MyUtil.drawerAction(loginRequired, navigation, MyConstant.DrawerAction.jumpTo, routeName, params, null);
+                break;
+            case MyConstant.DrawerOnPress.TabJump:
+                MyUtil.tabAction(loginRequired, navigation, MyConstant.TabAction.jumpTo, routeName, params, null);
+                break;
+            case MyConstant.DrawerOnPress.RateApp:
+                MyUtil.linking(MyConstant.Linking.openURL, MyConfig.android_store_link, MyConstant.SHOW_MESSAGE.TOAST);
+                break;
+            case MyConstant.DrawerOnPress.ShareApp:
+                MyUtil.share(MyConstant.SHARE.TYPE.open,
+                             false,
+                             {
+                                 message: MyLANG.ShareUs,
+                                 subject: MyLANG.AppShare,
+                                 url    : MyConfig.android_store_link,
+                             },
+                             false
+                )
+                break;
+            case MyConstant.DrawerOnPress.PromptLogout:
+                MyAuth.showLogoutConfirmation(MyConstant.SHOW_MESSAGE.ALERT,
+                                              MyLANG.LogginOut + '...',
+                                              true,
+                                              null,
+                                              MyConstant.NAVIGATION_ACTIONS.GO_BACK
+                );
+                break;
+            case MyConstant.DrawerOnPress.AppUpdateCheck:
+                MyFunction.appUpdateCheck(true, MyLANG.PleaseWait + '...', {
+                    'showMessage': MyConstant.SHOW_MESSAGE.TOAST,
+                    'message'    : MyLANG.YourAppIsUptoDate
+                });
+                break;
+            case MyConstant.DrawerOnPress.ShowModal:
+
+                break;
+            default:
+                break;
+        }
+    }
+};
+
 
 SettingsScreen.navigationOptions = {}
 
@@ -553,6 +670,15 @@ const settingsItem = StyleSheet.create(
         textLeft      : {
             fontFamily: MyStyle.FontFamily.OpenSans.regular,
             fontSize  : 14,
+            color     : MyColor.Material.GREY["965"],
+
+            textTransform: "capitalize",
+
+            // paddingBottom: 2,
+        },
+        subTextLeft   : {
+            fontFamily: MyStyle.FontFamily.OpenSans.regular,
+            fontSize  : 12,
             color     : MyColor.Material.GREY["965"],
 
             textTransform: "capitalize",

@@ -1,7 +1,10 @@
 import React, {useState, useEffect, Fragment, useCallback} from 'react';
-import LinearGradient from 'react-native-linear-gradient';
 import {StyleSheet, View, Text, SafeAreaView, ScrollView, Image, TouchableOpacity, BackHandler} from 'react-native';
+import {useFocusEffect} from "@react-navigation/native";
 import {useForm} from 'react-hook-form';
+import {useSelector} from "react-redux";
+import LinearGradient from 'react-native-linear-gradient';
+import Splash from "react-native-splash-screen";
 
 import {MyStyle, MyStyleSheet} from '../common/MyStyle';
 import MyColor from '../common/MyColor';
@@ -17,9 +20,7 @@ import {MyInput} from "../components/MyInput";
 import {MyButton} from "../components/MyButton";
 
 import auth from '@react-native-firebase/auth';
-import {useFocusEffect} from "@react-navigation/native";
-import Splash from "react-native-splash-screen";
-import {useSelector} from "react-redux";
+import MyFunction from "../shared/MyFunction";
 
 
 let renderCount = 0;
@@ -90,50 +91,6 @@ const SigninScreen = ({route, navigation}: any) => {
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [register]);
-
-    const loginFacebook = async () => {
-        const facebookLogin: any = await MyAuth.loginFacebook(MyConstant.SHOW_MESSAGE.TOAST);
-        MyUtil.printConsole(true, 'log', 'LOG: facebookLogin: await-response: ', {
-            'facebookLogin': facebookLogin
-        });
-        if (facebookLogin?.type === MyConstant.RESPONSE.TYPE.data && facebookLogin?.data) {
-            MyAuth.login({
-                             mode       : MyConstant.LOGIN_MODE.FACEBOOK,
-                             facebook_id: facebookLogin?.data?.id,
-                             email      : facebookLogin?.data?.email,
-                             name       : facebookLogin?.data?.name,
-                             photo      : facebookLogin?.data?.picture?.data?.url,
-                         },
-                         MyConstant.SHOW_MESSAGE.ALERT,
-                         MyLANG.Login + '...',
-                         false,
-                         null,
-                         MyConstant.NAVIGATION_ACTIONS.POP_TO_ROOT
-            );
-        }
-    }
-
-    const loginGoogle = async () => {
-        const googleSignin: any = await MyAuth.loginGoogle(MyConstant.SHOW_MESSAGE.TOAST);
-        MyUtil.printConsole(true, 'log', 'LOG: googlePlusLogin: await-response: ', {
-            'googleSignin': googleSignin
-        });
-        if (googleSignin && googleSignin['user']) {
-            MyAuth.login({
-                             mode     : MyConstant.LOGIN_MODE.GOOGLE,
-                             google_id: googleSignin?.user?.id,
-                             email    : googleSignin?.user?.email,
-                             name     : googleSignin?.user?.name,
-                             photo    : googleSignin?.user?.photo,
-                         },
-                         MyConstant.SHOW_MESSAGE.ALERT,
-                         MyLANG.Login + '...',
-                         false,
-                         null,
-                         MyConstant.NAVIGATION_ACTIONS.POP_TO_ROOT
-            );
-        }
-    }
 
     //TODO:
     const phoneLogin = async () => {
@@ -251,7 +208,7 @@ const SigninScreen = ({route, navigation}: any) => {
                                false
             );
         }
-    };
+    }
 
     return (
         <Fragment>
@@ -332,7 +289,7 @@ const SigninScreen = ({route, navigation}: any) => {
                                     iconLeft = {{fontFamily: MyConstant.VectorIcon.Fontisto, name: 'facebook'}}
                                     linearGradientStyle = {{marginRight: 7}}
                                     title = {MyLANG.Facebook}
-                                    onPress = {loginFacebook}
+                                    onPress = {MyFunction.loginFacebook}
                                 />
                                 <MyButton
                                     color = {MyStyle.LGButtonGoogle}
@@ -340,7 +297,7 @@ const SigninScreen = ({route, navigation}: any) => {
                                     iconLeft = {{fontFamily: MyConstant.VectorIcon.Fontisto, name: 'google'}}
                                     linearGradientStyle = {{marginLeft: 7}}
                                     title = {MyLANG.Google}
-                                    onPress = {loginGoogle}
+                                    onPress = {MyFunction.loginGoogle}
                                 />
                             </View>
 

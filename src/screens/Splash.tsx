@@ -1,4 +1,5 @@
 import React from 'react';
+import {useDispatch} from "react-redux";
 
 import MyUtil from '../common/MyUtil';
 import {MyAPI, MyConfig} from '../shared/MyConfig';
@@ -6,8 +7,10 @@ import {MyConstant} from "../common/MyConstant";
 import MyLANG from "../shared/MyLANG";
 import MyColor from "../common/MyColor";
 import MyAuth from "../common/MyAuth";
+import MyImage from "../shared/MyImage";
 import {switchAppNavigator} from "../store/AppRedux";
-import {useDispatch} from "react-redux";
+import {cartItemQuantityIncrement} from "../store/CartRedux";
+import {introEmpty, introUpdate} from "../store/IntroRedux";
 
 // console.disableYellowBox = true;
 // console.ignoredYellowBox = ['Require cycle: node_modules/react-native-paper'];
@@ -103,7 +106,7 @@ const SplashScreen = ({}) => {
                         "app_build_ver": MyConfig.app_build_version,
                         "platform"     : MyConfig.app_platform,
                         "device"       : null,
-                    }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Short, false, false, true
+                    }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, false, false, true
             );
 
         MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
@@ -111,31 +114,40 @@ const SplashScreen = ({}) => {
             'response': response,
         });
 
-        if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.status === 200 && response?.data?.data?.data?.slides > 0) {
+        if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.status === 200 && response?.data?.data?.data?.length > 0) {
 
             // If Slides Exists, Update Local Slide Data with Online Data:
-            const slides     = response.data.data.data.slides;
-            const Intro: any = [];
+            const data       = response.data.data.data;
+            const intro: any = [];
 
-            //TODO: store in redux
-            for (const [index, slide] of slides.entries()) {
-                Intro.push(
+            for (const [index, slide] of data.entries()) {
+                intro.push(
                     {
                         key            : index.toString(),
-                        title          : slide.header,
-                        text           : slide.text,
-                        icon           : 'ios-images',
-                        image          : {'uri': MyAPI.mediaServer + 'slides/' + slide.img},
+                        title          : slide.title,
+                        text           : slide.subtitle,
+                        icon           : null,
+                        image          : slide.image,
                         backgroundColor: MyColor.Primary.first,
-                        colors         : MyColor.PrimaryGradient.first,
-                    }
+                        start          : {x: 1.0, y: 0.0},
+                        end            : {x: 0.0, y: 1.0},
+                        locations      : [0.0, 1.0],
+                        colors         : MyColor.Gradient.intro[index] ? MyColor.Gradient.intro[index] : MyColor.PrimaryGradient.first,
+                    },
                 )
+            }
+            if (intro?.length > 0) {
+                dispatch(introUpdate(intro));
+            } else {
+                dispatch(introEmpty());
             }
 
             // Intro Data Exists, Show Online Text, Image:
             hideSplashAndSwitch(MyConfig.appNavigation.IntroStackScreen, null);
 
         } else {
+
+            dispatch(introEmpty());
 
             // No Intro Data Found, Show Default Text, Image:
             hideSplashAndSwitch(MyConfig.appNavigation.IntroStackScreen, null);
