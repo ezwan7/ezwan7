@@ -506,6 +506,24 @@ const HomeScreen = ({route, navigation}: any) => {
                              {firstLoadBanner && banner?.length === 0 && <ImageSliderBannerContentLoader/>}
                              <ImageSliderBanner
                                  item = {banner}
+                                 onPress = {(prop: any) =>
+                                     prop?.type === 'category' ?
+                                     MyUtil.commonAction(false,
+                                                         null,
+                                                         MyConstant.CommonAction.navigate,
+                                                         MyConfig.routeName.ProductList,
+                                                         {'title': prop?.title, 'id': Number(prop?.url), 'apiURL': MyAPI.product_by_category},
+                                                         null
+                                     ) :
+                                     prop?.type === 'product' ?
+                                     MyUtil.commonAction(false,
+                                                         null,
+                                                         MyConstant.CommonAction.navigate,
+                                                         MyConfig.routeName.ProductDetails,
+                                                         {'id': Number(prop?.url), 'item': prop},
+                                                         null
+                                     ) : null
+                                 }
                                  style = {{}}
                              />
                          </ScrollView>

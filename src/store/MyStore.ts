@@ -2,7 +2,7 @@ import {createStore, applyMiddleware} from 'redux';
 import thunk from 'redux-thunk';
 import {persistStore} from "redux-persist";
 
-import myReducer from "./MyReducers";
+import myReducer from "./MyReducer";
 import {composeWithDevTools} from "redux-devtools-extension";
 
 const middleware = [

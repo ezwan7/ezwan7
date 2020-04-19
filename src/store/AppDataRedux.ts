@@ -36,7 +36,10 @@ const AppDataReducer = (state: string = initialState, action: any) => {
 
                 return action.payload?.data;
 
-            } else if (action.payload?.key && action.payload?.key.length > 0) {
+            } else if (Array.isArray(action.payload?.key) && action.payload?.key?.length > 0) {
+                return action.payload?.data;
+
+            } else if (action.payload?.key?.length > 0) {
                 const currentState: any           = state;
                 currentState[action.payload?.key] = action.payload?.data;
 

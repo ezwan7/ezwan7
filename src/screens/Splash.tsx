@@ -11,6 +11,7 @@ import MyImage from "../shared/MyImage";
 import {switchAppNavigator} from "../store/AppRedux";
 import {cartItemQuantityIncrement} from "../store/CartRedux";
 import {introEmpty, introUpdate} from "../store/IntroRedux";
+import MyFunction from "../shared/MyFunction";
 
 // console.disableYellowBox = true;
 // console.ignoredYellowBox = ['Require cycle: node_modules/react-native-paper'];
@@ -56,9 +57,6 @@ const SplashScreen = ({}) => {
         // MyUtil.firebaseGetToken();
 
 
-        // Get Current Location only if permission already given:
-
-
         // Check if App is New or Old:
         const storage: any = await MyUtil.AsyncStorageGet(MyConfig.AsyncStorage.APP_FRESH_INSTALL, false);
 
@@ -82,19 +80,13 @@ const SplashScreen = ({}) => {
             fetchIntroSlides();
         }
 
-        /*const location: any = await MyUtil.GetCurrentPosition(
-            {
-                enableHighAccuracy  : true,
-                timeout             : 15000,
-                maximumAge          : 0,
-                forceRequestLocation: true
-            }, MyConstant.SHOW_MESSAGE.ALERT);
-        MyUtil.printConsole(true, 'log', 'LOG: GetCurrentPosition: await-response: ', {
-            'location': location,
-        });
-        if (location && location.data.coords && location.data.coords.latitude && location.data.coords.longitude) {
-            //TODO:
-        }*/
+        // Update Current Location only if permission already given:
+        MyFunction.getUserLocation(MyConstant.GeolocationFetchType.store,
+                                   MyConfig.geoLocationOptionSilent,
+                                   false,
+                                   false,
+                                   false,
+        );
     }
 
     const fetchIntroSlides = async () => {

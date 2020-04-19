@@ -52,7 +52,8 @@ export default App;
 // TODO: Custom Bottom Tabs
 // TODO: blur,
 // TODO: update cart api fetch all product by id, and calculate EVERYTHING,
-// TODO: Render Optimize Home screen, use event and redux
+// TODO: Render Optimize Home screen, use event and redux,
+// TODO: No password change option for social login,
 
 // No Internet Lottie
 // Validation delay, on type gone

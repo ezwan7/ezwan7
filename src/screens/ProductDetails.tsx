@@ -9,6 +9,10 @@ import {
     Modal,
 } from 'react-native';
 
+import HTML from 'react-native-render-html';
+import {ShadowBox} from "react-native-neomorph-shadows";
+import ImageViewer from "react-native-image-zoom-viewer";
+
 import {useDispatch, useSelector} from "react-redux";
 
 import MyUtil from '../common/MyUtil';
@@ -19,6 +23,8 @@ import {MyAPI, MyConfig} from '../shared/MyConfig';
 import MyLANG from '../shared/MyLANG';
 import {MyConstant} from '../common/MyConstant';
 import MyIcon from '../components/MyIcon';
+import MyFunction from "../shared/MyFunction";
+import {MyButton} from "../components/MyButton";
 
 import {
     ActivityIndicatorLarge,
@@ -37,46 +43,37 @@ import {
     ProductDetailsContentLoader,
 } from "../shared/MyContainer";
 
-import HTML from 'react-native-render-html';
-import ImageViewer from "react-native-image-zoom-viewer";
-import {MyButton} from "../components/MyButton";
-import {ShadowBox} from "react-native-neomorph-shadows";
 
 import {cartEmpty, cartItemAdd, cartItemQuantityIncrement} from "../store/CartRedux";
 
 let renderCount = 0;
 
 const ProductDetailsScreen = ({route, navigation}: any) => {
-    // const addCartItem    = (item: any) => dispatch(addCartItem(item));
 
     if (__DEV__) {
         renderCount += 1;
         MyUtil.printConsole(true, 'log', `LOG: ${ProductDetailsScreen.name}. renderCount: `, {renderCount});
     }
 
-    const dispatch = useDispatch();
-
-    const cart: any = useSelector((state: any) => state.cart);
+    const dispatch       = useDispatch();
+    const app_input: any = useSelector((state: any) => state.app_input);
+    const user: any      = useSelector((state: any) => state.auth.user);
+    const cart: any      = useSelector((state: any) => state.cart);
+    const user_location: any = useSelector((state: any) => state.user_location);
 
     const [refreshing, setRefreshing] = useState(false);
     const [firstLoad, setFirstLoad]   = useState(true);
     const [product, setProduct]: any  = useState([]);
 
-    /*useLayoutEffect(() => {
-        MyUtil.printConsole(true, 'log', `LOG: ${ProductDetailsScreen.name}. useLayoutEffect: `, '');
-
-        if (route?.params?.item?.products_name) {
-            navigation.setOptions(
-                {
-                    title: route?.params?.item?.products_name,
-                });
-        }
-    }, [navigation, route]);*/
+    const [images, setImages]                         = useState([]);
+    const [imageViewerVisible, setImageViewerVisible] = useState(false);
 
     useEffect(() => {
-        MyUtil.printConsole(true, 'log', `LOG: ${ProductDetailsScreen.name}. useEffect: `, cart);
+        MyUtil.printConsole(true, 'log', `LOG: ${ProductDetailsScreen.name}. useEffect: `, {user,user_location, cart, app_input});
 
         fetchProduct(false, false, false);
+
+        // MyFunction.fetchPaymentMethod(false);
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -99,8 +96,9 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
             const response: any = await MyUtil
                 .myHTTP(false, MyConstant.HTTP_POST, MyAPI.product,
                         {
-                            'language_id': MyConfig.LanguageActive,
-                            'products_id': route?.params?.id,
+                            'language_id' : MyConfig.LanguageActive,
+                            'products_id' : route?.params?.id,
+                            'customers_id': user?.id,
 
                             'app_ver'      : MyConfig.app_version,
                             'app_build_ver': MyConfig.app_build_version,
@@ -113,12 +111,27 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                 'apiURL': MyAPI.product, 'response': response
             });
 
-            if (response.type === MyConstant.RESPONSE.TYPE.data && response.data.status === 200 && response.data?.data?.product_data[0]) {
+            if (response.type === MyConstant.RESPONSE.TYPE.data && response.data?.status === 200 && response.data?.data?.product_data[0]) {
 
                 const data = response.data.data.product_data[0];
-                if (data.products_id > 0) {
+                if (data.id > 0) {
                     setProduct(data);
+
+                    if (data.images?.length > 0) {
+                        let images: any = data.images.map((item: any) => {
+                            return {
+                                url: item['image'],
+                            }
+                        });
+                        setImages(images);
+
+                    } else {
+
+                        let images: any = [{url: data?.image}];
+                        setImages(images);
+                    }
                 }
+
             } else {
                 MyUtil.showMessage(MyConstant.SHOW_MESSAGE.ALERT, response.errorMessage ? response.errorMessage : MyLANG.UnknownError, false);
             }
@@ -166,6 +179,19 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
         }
 
 
+    };
+
+    const onProductLikeUnlike = async () => {
+
+        const likeUnlike: any = await MyFunction.productLikeUnlike(product?.isLiked, product?.id, user?.id, false, false);
+
+        if (likeUnlike !== false) {
+            const updatedProduct = {
+                ...product,
+                isLiked: likeUnlike,
+            }
+            setProduct(updatedProduct);
+        }
     }
 
     return (
@@ -200,6 +226,13 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                                  >
                                      <ImageSliderBanner
                                          item = {product?.images?.length > 0 ? product?.images : [{image: product?.image}]}
+                                         onPress = {
+                                             (prop: any) =>
+                                                 prop?.image?.length ?
+                                                 setImageViewerVisible(true)
+                                                                     :
+                                                 null
+                                         }
                                          style = {{
                                              height: MyStyle.screenWidth / 1.5,
                                          }}/>
@@ -287,19 +320,18 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                                      <View style = {{width: MyStyle.screenWidth}}>
                                          <HTML
                                              html = {product?.products_description ? product.products_description : MyLANG.NoText}
-                                             tagsStyles = {{
-                                                 p: {...MyStyleSheet.textHTMLBody},
-                                             }}
+                                             tagsStyles = {MyStyle.textHTMLBody}
+                                             ignoredTags = {MyStyle.IGNORED_TAGS}
                                              containerStyle = {{marginHorizontal: MyStyle.marginHorizontalPage}}
                                          />
                                      </View>
                                      <View style = {{width: MyStyle.screenWidth}}>
                                          <HTML
                                              html = {product?.products_description ? product.products_description : MyLANG.NoText}
-                                             tagsStyles = {{
-                                                 p: {...MyStyleSheet.textHTMLBody},
-                                             }}
+                                             tagsStyles = {MyStyle.textHTMLBody}
+                                             ignoredTags = {MyStyle.IGNORED_TAGS}
                                              containerStyle = {{marginHorizontal: MyStyle.marginHorizontalPage}}
+                                             textSelectable = {true}
                                          />
                                      </View>
                                  </ScrollView>
@@ -358,13 +390,19 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                                          fill = "solid"
                                          color = {MyColor.Material.WHITE}
                                          shadow = "none"
-                                         iconLeft = {{name: 'heart'}}
-                                         iconLeftStyle = {{color: MyColor.Material.BLACK}}
-                                         onPress = {
-                                             () => {
-
+                                         iconLeft = {
+                                             {
+                                                 fontFamily: product?.isLiked === '1' ? MyConstant.VectorIcon.FontAwesome : MyConstant.VectorIcon.SimpleLineIcons,
+                                                 name      : 'heart',
                                              }
                                          }
+                                         iconLeftStyle = {
+                                             {
+                                                 color   : product?.isLiked === '1' ? MyColor.Material.RED["A400"] : MyColor.Material.BLACK,
+                                                 fontSize: product?.isLiked === '1' ? 18 : 17,
+                                             }
+                                         }
+                                         onPress = {onProductLikeUnlike}
                                      />
                                      <MyButton
                                          shape = "square"
@@ -421,30 +459,29 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                     }
 
                 </View>
-                {/* <Modal visible = {true}
-                       transparent = {true}
-                >
-                    <ImageViewer imageUrls = {images}
-                                 enableSwipeDown = {true}
-                    />
-                </Modal>*/}
+
+                {
+                    images?.length > 0 &&
+                    <Modal
+                        visible = {imageViewerVisible}
+                        transparent = {true}
+                        onRequestClose = {() => setImageViewerVisible(false)}
+                    >
+                        <ImageViewer
+                            imageUrls = {images}
+                            enableSwipeDown = {true}
+                            enablePreload = {true}
+                            backgroundColor = {MyColor.Material.GREY["990"]}
+                            onSwipeDown = {() => {
+                                setImageViewerVisible(false)
+                            }}
+                        />
+                    </Modal>
+                }
             </SafeAreaView>
         </Fragment>
     )
 }
-const images               = [{
-    // Simplest usage.
-    url: 'https://avatars2.githubusercontent.com/u/7970947?v=3&s=460',
-
-    // width: number
-    // height: number
-    // Optional, if you know the image size, you can set the optimization performance
-
-    // You can pass props to <Image />.
-    props: {
-        // headers: ...
-    }
-}]
 
 ProductDetailsScreen.navigationOptions = {}
 

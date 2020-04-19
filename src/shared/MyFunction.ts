@@ -7,6 +7,7 @@ import MyUtil from "../common/MyUtil";
 import {store} from "../store/MyStore";
 import {appDataUpdate} from "../store/AppDataRedux";
 import {appInputUpdate} from "../store/AppInputRedux";
+import {userLocationUpdate} from "../store/UserLocation";
 
 
 const MyFunction = {
@@ -181,6 +182,101 @@ const MyFunction = {
                 MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message, false);
             }
         }
+    },
+
+    productLikeUnlike: async (isLiked: string, product_id: number, user_id: number, showLoader: any = false, showErrorMessage: any = false) => {
+
+        MyUtil.printConsole(true, 'log', 'LOG: productLikeUnlike: ', {
+            'isLiked'         : isLiked,
+            'product_id'      : product_id,
+            'user_id'         : user_id,
+            'showLoader'      : showLoader,
+            'showErrorMessage': showErrorMessage,
+        });
+
+        const apiUrl = isLiked === '1' ? MyAPI.product_unlike : MyAPI.product_like;
+
+        const response: any = await MyUtil
+            .myHTTP({required: true, promptLogin: true}, MyConstant.HTTP_POST, apiUrl,
+                    {
+                        'language_id'       : MyConfig.LanguageActive,
+                        'liked_products_id' : product_id,
+                        'liked_customers_id': user_id,
+
+                        'app_ver'      : MyConfig.app_version,
+                        'app_build_ver': MyConfig.app_build_version,
+                        'platform'     : MyConfig.app_platform,
+                        'device'       : null,
+                    }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, false, true, false
+            );
+
+        MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
+            'apiURL': apiUrl, 'response': response
+        });
+
+        if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.status === 200) {
+
+            const data = response.data?.data?.success;
+            if (data === '1') {
+
+                return isLiked === '1' ? '0' : '1';
+
+            } else {
+
+                if (showErrorMessage !== false) {
+                    MyUtil.showMessage(showErrorMessage.showMessage, showErrorMessage.message ? showErrorMessage.message : MyLANG.Error, false);
+                }
+            }
+        } else {
+
+            if (showErrorMessage !== false) {
+                MyUtil.showMessage(showErrorMessage.showMessage, showErrorMessage.message ? showErrorMessage.message : MyLANG.Error, false);
+            }
+        }
+
+        return false;
+    },
+
+    getUserLocation: async (type: string, options: any, askPermission: boolean = true, showLoader: any = false, showMessage: any) => {
+
+        const position: any = await MyUtil.GetCurrentPosition(options, askPermission, showLoader, showMessage);
+        MyUtil.printConsole(true, 'log', 'LOG: GetCurrentPosition: await-response: ', {
+            'position': position,
+        });
+        if (position?.type === MyConstant.RESPONSE.TYPE.data && position.data?.coords?.latitude && position.data?.coords?.longitude) {
+
+            const accuracy  = position.data?.coords?.accuracy;
+            const latitude  = position.data?.coords?.latitude;
+            const longitude = position.data?.coords?.longitude;
+
+            const geocodePosition: any = await MyUtil.GeocodePosition(latitude, longitude, showMessage);
+            MyUtil.printConsole(true, 'log', 'LOG: GeocodePosition: await-response: ', {
+                'geocodePosition': geocodePosition,
+            });
+            if (geocodePosition?.results?.[0]?.address_components?.[0]) {
+
+                const user_location: any = MyUtil.generateLocation(geocodePosition, accuracy, latitude, longitude);
+
+                switch (type) {
+                    case  MyConstant.GeolocationFetchType.store:
+                        store.dispatch(userLocationUpdate(user_location, 'all'));
+                        break;
+                    case  MyConstant.GeolocationFetchType.return:
+                        return user_location;
+                    default:
+                        return user_location;
+                }
+            }
+        }
+
+        return false;
+
+        /*const location: any = await MyFunction.getUserLocation(MyConstant.GeolocationFetchType.return,
+                                                               MyConfig.geoLocationOption,
+                                                               true,
+                                                               MyLANG.PleaseWait + '...',
+                                                               MyConstant.SHOW_MESSAGE.ALERT
+        );*/
     },
 
     getName: (user: any) => {

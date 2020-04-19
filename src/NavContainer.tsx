@@ -6,32 +6,40 @@ import {createBottomTabNavigator} from "@react-navigation/bottom-tabs";
 import {createDrawerNavigator} from "@react-navigation/drawer";
 
 import {HeaderButtonLeft} from "./components/MyButton";
-import {getImage, getMyIcon, HeaderGradientPrimary, HeaderGradientPrimaryLogo} from "./components/MyComponent";
+import {getImage, getMyIcon, HeaderGradientPrimary, HeaderGradientPrimaryLogo, MyHeaderBackButton} from "./components/MyComponent";
 import {CustomDrawerContent, CartIconWithBadge} from "./shared/MyContainer";
 
 import SplashScreen from './screens/Splash';
+
 import IntroScreen from "./screens/Intro";
+
 import SigninScreen from './screens/Signin';
 import SignupScreen from './screens/Signup';
 import SignupCompletedScreen from "./screens/SignupCompleted";
 import PasswordForgotScreen from "./screens/PasswordForgot";
 import PasswordResetScreen from "./screens/PasswordReset";
+
 import HomeScreen from './screens/Home';
 import CategoryListScreen from "./screens/CategoryList";
 import SearchScreen from "./screens/Search";
-import CartScreen from "./screens/Cart";
 import SettingsScreen from "./screens/Settings";
+
 import ProductListScreen from "./screens/ProductList";
 import ProductDetailsScreen from "./screens/ProductDetails";
+import CartScreen from "./screens/Cart";
 import ProductBuyScreen from "./screens/ProductBuy";
 import ProductBuyPayment from "./screens/ProductBuyPayment";
 import ProductBuySuccess from "./screens/ProductBuySuccess";
 import ProductBuyDelivery from "./screens/ProductBuyDelivery";
 
+import EditProfile from './screens/EditProfile';
+import MyAddress from "./screens/MyAddress";
+
 import NotificationScreen from './screens/Notification';
 import NotificationViewScreen from './screens/NotificationView';
-import GoogleMapScreen from './screens/GoogleMap';
 
+import InfoPage from "./screens/InfoPage";
+import GoogleMapScreen from './screens/GoogleMap';
 
 import MyUtil from "./common/MyUtil";
 import {MyConfig} from "./shared/MyConfig";
@@ -40,7 +48,7 @@ import {MyConstant} from "./common/MyConstant";
 import {MyStyle, MyStyleCommon} from "./common/MyStyle";
 import MyColor from "./common/MyColor";
 import MyImage from "./shared/MyImage";
-import InfoPage from "./screens/InfoPage";
+import {View} from "react-native";
 
 
 let lastTimeBackPress: number = 0;
@@ -97,13 +105,16 @@ const LoginScreens     = <>
             title     : "",
             headerLeft: () => (
                 <HeaderBackButton
-                    onPress = {() => MyUtil.commonAction(false,
-                                                         null,
-                                                         MyConstant.CommonAction.navigate,
-                                                         MyConfig.routeName.Login,
-                                                         {splash: false},
-                                                         null
-                    )}
+                    onPress = {
+                        () =>
+                            MyUtil.commonAction(false,
+                                                null,
+                                                MyConstant.CommonAction.navigate,
+                                                MyConfig.routeName.Login,
+                                                {splash: false},
+                                                null
+                            )
+                    }
                     tintColor = {MyColor.Material.BLACK}
                 />
             ),
@@ -150,16 +161,17 @@ const HomeScreens =
                   options = {({route, navigation}: any) => ({
                       title           : "",
                       headerLeft      : () =>
-                          <HeaderButtonLeft icon = {{name: 'menu'}}
-                                            onPress = {
-                                                () => MyUtil.drawerAction(false,
-                                                                          null,
-                                                                          MyConstant.DrawerAction.toggleDrawer,
-                                                                          null,
-                                                                          null,
-                                                                          null
-                                                )
-                                            }
+                          <HeaderButtonLeft
+                              icon = {{name: 'menu'}}
+                              onPress = {
+                                  () => MyUtil.drawerAction(false,
+                                                            null,
+                                                            MyConstant.DrawerAction.toggleDrawer,
+                                                            null,
+                                                            null,
+                                                            null
+                                  )
+                              }
                           />,
                       headerBackground: HeaderGradientPrimaryLogo,
                       ...MyStyleCommon.StackOptions.BottomTabStack,
@@ -171,16 +183,17 @@ const HomeScreens =
                   options = {({route, navigation}: any) => ({
                       title           : "",
                       headerLeft      : () =>
-                          <HeaderButtonLeft icon = {{name: 'menu'}}
-                                            onPress = {
-                                                () => MyUtil.drawerAction(false,
-                                                                          null,
-                                                                          MyConstant.DrawerAction.toggleDrawer,
-                                                                          null,
-                                                                          null,
-                                                                          null
-                                                )
-                                            }
+                          <HeaderButtonLeft
+                              icon = {{name: 'menu'}}
+                              onPress = {
+                                  () => MyUtil.drawerAction(false,
+                                                            null,
+                                                            MyConstant.DrawerAction.toggleDrawer,
+                                                            null,
+                                                            null,
+                                                            null
+                                  )
+                              }
                           />,
                       headerBackground: HeaderGradientPrimaryLogo,
                       ...MyStyleCommon.StackOptions.BottomTabStack,
@@ -237,16 +250,17 @@ const HomeScreens =
                   options = {({route, navigation}: any) => ({
                       title           : "",
                       headerLeft      : () =>
-                          <HeaderButtonLeft icon = {{name: 'menu'}}
-                                            onPress = {
-                                                () => MyUtil.drawerAction(false,
-                                                                          null,
-                                                                          MyConstant.DrawerAction.toggleDrawer,
-                                                                          null,
-                                                                          null,
-                                                                          null
-                                                )
-                                            }
+                          <HeaderButtonLeft
+                              icon = {{name: 'menu'}}
+                              onPress = {
+                                  () => MyUtil.drawerAction(false,
+                                                            null,
+                                                            MyConstant.DrawerAction.toggleDrawer,
+                                                            null,
+                                                            null,
+                                                            null
+                                  )
+                              }
                           />,
                       headerBackground: HeaderGradientPrimaryLogo,
                       ...MyStyleCommon.StackOptions.BottomTabStack,
@@ -268,6 +282,7 @@ const HomeScreens =
                   options = {{
                       title          : "",
                       // headerBackground: HeaderGradientPrimary,
+                      headerLeft     : (props: any) => <MyHeaderBackButton  {...props}/>,
                       ...MyStyleCommon.StackOptions.BottomTabStack,
                       headerTintColor: MyColor.Material.BLACK,
                   }}
@@ -319,18 +334,9 @@ const HomeScreens =
 
               <HomeStack.Screen
                   name = {MyConfig.routeName.EditProfile}
-                  component = {NotificationViewScreen}
+                  component = {EditProfile}
                   options = {{
                       title           : MyLANG.EditProfile,
-                      headerBackground: HeaderGradientPrimary,
-                      ...MyStyleCommon.StackOptions.BottomTabStack,
-                  }}
-              />
-              <HomeStack.Screen
-                  name = {MyConfig.routeName.MyPoints}
-                  component = {NotificationViewScreen}
-                  options = {{
-                      title           : MyLANG.MyPoints,
                       headerBackground: HeaderGradientPrimary,
                       ...MyStyleCommon.StackOptions.BottomTabStack,
                   }}
@@ -346,7 +352,7 @@ const HomeScreens =
               />
               <HomeStack.Screen
                   name = {MyConfig.routeName.MyAddress}
-                  component = {NotificationViewScreen}
+                  component = {MyAddress}
                   options = {{
                       title           : MyLANG.MyAddress,
                       headerBackground: HeaderGradientPrimary,
@@ -397,6 +403,20 @@ const HomeScreens =
                       title           : MyLANG.Information,
                       headerBackground: HeaderGradientPrimary,
                       ...MyStyleCommon.StackOptions.BottomTabStack,
+                  }}
+              />
+              <HomeStack.Screen
+                  name = {MyConfig.routeName.GoogleMap}
+                  component = {GoogleMapScreen}
+                  options = {{
+                      title                    : "",
+                      // headerBackground: HeaderGradientPrimary,
+                      headerLeft               : null,
+                      ...MyStyleCommon.StackOptions.BottomTabStack,
+                      headerTintColor          : MyColor.Material.BLACK,
+                      headerTitleContainerStyle: { // important
+                          // right: 0,
+                      },
                   }}
               />
           </>;

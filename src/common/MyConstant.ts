@@ -290,6 +290,20 @@ const MyConstant = {
         text  : 'text',
         json  : 'json',
     },
+
+    GeolocationFetchType: {
+        return: 'return',
+        store : 'store',
+    },
+    MapPageSource       : {
+        current_location: 'current_location',
+        user_location   : 'user_location',
+        params          : 'params',
+    },
+    MapPageOnSubmit     : {
+        GO_BACK: 'GO_BACK',
+        store  : 'store',
+    },
 }
 
 export {MyConstant};

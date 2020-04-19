@@ -616,7 +616,7 @@ const settingsItem = StyleSheet.create(
         },
 
         viewGap: {
-            height         : 12,
+            height         : MyStyle.marginViewGapCard,
             width          : MyStyle.screenWidth,
             backgroundColor: MyColor.Material.GREY["100"]
         },

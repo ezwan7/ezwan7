@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 
 import AppNavigatorReducer from "./AppRedux";
 import IntroReducer from "./IntroRedux";
+import UserLocationReducer from "./UserLocation";
 import AuthReducer from "./AuthRedux";
 import AppDataReducer from "./AppDataRedux";
 import AppInputReducer from "./AppInputRedux";
@@ -11,13 +12,17 @@ import CartReducer from "./CartRedux";
 import CategoryReducer from "./CategoryRedux";
 
 const persistConfig: any = {
-    key            : 'root',
-    storage        : AsyncStorage,
+    key    : 'root',
+    storage: AsyncStorage,
+
     stateReconciler: autoMergeLevel2,
-    blacklist      : [
+
+    blacklist: [
         "appNavigator",
+        "intro",
+        "user_location",
     ],
-    whitelist      : [
+    whitelist: [
         'intro',
         'auth',
         'app_data',
@@ -28,13 +33,14 @@ const persistConfig: any = {
 }
 
 const myReducer = persistCombineReducers(persistConfig, {
-    appNavigator: AppNavigatorReducer,
-    intro       : IntroReducer,
-    auth        : AuthReducer,
-    app_data    : AppDataReducer,
-    app_input   : AppInputReducer,
-    cart        : CartReducer,
-    category    : CategoryReducer,
+    appNavigator : AppNavigatorReducer,
+    intro        : IntroReducer,
+    user_location: UserLocationReducer,
+    auth         : AuthReducer,
+    app_data     : AppDataReducer,
+    app_input    : AppInputReducer,
+    cart         : CartReducer,
+    category     : CategoryReducer,
 });
 
 export default myReducer;

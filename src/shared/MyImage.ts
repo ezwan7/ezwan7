@@ -35,6 +35,8 @@ const MyImage = {
     lottie_searching_file: require("../../src/images/lottie_searching_file.json"),
     lottie_developer     : require("../../src/images/lottie_developer.json"),
     lottie_box_open      : require("../../src/images/lottie_box_open.json"),
+    lottie_map_marker    : require("../../src/images/lottie_map_marker.json"),
+    lottie_location      : require("../../src/images/lottie_location.json"),
 };
 
 export default MyImage;

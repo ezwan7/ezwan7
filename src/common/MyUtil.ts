@@ -850,69 +850,89 @@ const MyUtil = {
     },
 
 
-    GetCurrentPosition: async (options: any, showMessage: any) => {
-        MyUtil.printConsole(true, 'log', 'LOG: GetCurrentPosition:', {'options': options, 'showMessage': showMessage});
+    GetCurrentPosition: async (options: any, askPermission: boolean = true, showLoader: any = false, showMessage: any) => {
+
+        MyUtil.printConsole(true, 'log', 'LOG: GetCurrentPosition:', {
+            'options'      : options,
+            'askPermission': askPermission,
+            'showLoader'   : showLoader,
+            'showMessage'  : showMessage,
+        });
 
         let response: any = {
             'type' : MyConstant.RESPONSE.TYPE.error,
             'error': null,
             'data' : null,
-        }
+        };
+
+        let permission: any = false;
 
         try {
-            const permission: any = await MyUtil.androidPermissionRequest(
-                MyConstant.PermissionsAndroid.ACCESS_FINE_LOCATION,
-                {
-                    // @ts-ignore
-                    title  : MyLANG.Permission.title,
-                    // @ts-ignore
-                    message: MyLANG.Permission.location
-                },
-                showMessage
-            );
-            MyUtil.printConsole(true, 'log', 'LOG: androidPermissionRequest: await-response: ', {
-                'PermissionsAndroid': MyConstant.PermissionsAndroid.ACCESS_FINE_LOCATION,
-                'permission'        : permission
-            });
 
-            if (permission === true) {
-                const currentPosition = new Promise((resolve, reject) => {
-                    Geolocation.getCurrentPosition(
-                        (position: any) => {
-                            console.log('test 1', position);
-                            resolve(position);
-                        },
-                        (error: any) => {
-                            console.log('test 2', error);
-                            reject(error);
-                        },
-                        options
-                    );
-                });
-
-                await currentPosition
-                    .then((result: any) => {
-                        response = {
-                            'type' : MyConstant.RESPONSE.TYPE.data,
-                            'error': null,
-                            'data' : result,
-                        }
-                    })
-                    .catch((error: any) => {
-                        throw error;
-                    });
-
-            } else {
-
-                MyUtil.showMessage(MyConstant.SHOW_MESSAGE.ALERT, MyLANG.GPSPermissionRequest, false);
-
-                throw new Error(MyLANG.LocationPermissionDenied);
+            if (showLoader !== false) {
+                MyUtil.showTinyToast(showLoader && showLoader.length > 0 ? showLoader : MyLANG.PleaseWait,
+                                     false,
+                                     MyStyle.TinyToast.CENTER,
+                                     MyStyle.TinyToast.Black.containerStyle,
+                                     MyStyle.TinyToast.Black.textStyle,
+                                     MyStyle.TinyToast.Black.textColor,
+                                     null,
+                                     MyStyle.TinyToast.imageStyleSucess,
+                                     false,
+                                     true,
+                                     true,
+                                     0,
+                                     MyConstant.TINY_TOAST.SHOW
+                )
             }
 
+            if (askPermission === true) {
+                permission = await MyUtil.androidPermissionRequest(
+                    MyConstant.PermissionsAndroid.ACCESS_FINE_LOCATION,
+                    {
+                        title  : MyLANG?.Permission?.title,
+                        message: MyLANG?.Permission?.location
+                    },
+                    showMessage
+                );
+                MyUtil.printConsole(true, 'log', 'LOG: androidPermissionRequest: await-response: ', {
+                    'PermissionsAndroid': MyConstant.PermissionsAndroid.ACCESS_FINE_LOCATION,
+                    'permission'        : permission
+                });
+                if (permission !== true) {
+                    throw new Error(MyLANG.LocationPermissionDenied);
+                }
+            }
+
+            const currentPosition = new Promise((resolve, reject) => {
+                Geolocation.getCurrentPosition(
+                    (position: any) => {
+                        resolve(position);
+                    },
+                    (error: any) => {
+                        reject(error);
+                    },
+                    options
+                );
+            });
+
+            await currentPosition
+                .then((result: any) => {
+                    response = {
+                        'type' : MyConstant.RESPONSE.TYPE.data,
+                        'error': null,
+                        'data' : result,
+                    }
+                })
+                .catch((error: any) => {
+                    throw error;
+                });
+
         } catch (error) {
+
             MyUtil.printConsole(true, 'log', 'LOG: GeocodePosition: TRY-CATCH: ', {'options': options, 'error': error});
 
-            MyUtil.showMessage(showMessage, MyLANG.GPSFailed, false);
+            MyUtil.showMessage(showMessage, error?.message ? error.message : MyLANG.GPSFailed, false);
 
             response = {
                 'type' : MyConstant.RESPONSE.TYPE.error,
@@ -921,7 +941,25 @@ const MyUtil = {
             }
 
         } finally {
-            MyUtil.printConsole(true, 'log', 'LOG: GeocodePosition: TRY-FINALY: ', {'response': response});
+            // MyUtil.printConsole(true, 'log', 'LOG: GeocodePosition: TRY-FINALY: ', {'response': response});
+
+            if (showLoader !== false) {
+
+                MyUtil.showTinyToast(showLoader && showLoader.length > 0 ? showLoader : MyLANG.PleaseWait,
+                                     false,
+                                     MyStyle.TinyToast.CENTER,
+                                     MyStyle.TinyToast.Black.containerStyle,
+                                     MyStyle.TinyToast.Black.textStyle,
+                                     MyStyle.TinyToast.Black.textColor,
+                                     null,
+                                     MyStyle.TinyToast.imageStyleSucess,
+                                     false,
+                                     true,
+                                     true,
+                                     0,
+                                     MyConstant.TINY_TOAST.HIDE
+                )
+            }
 
             return response;
         }
@@ -977,7 +1015,7 @@ const MyUtil = {
         if (position && position.results && position.results[0] && position.results[0].address_components && position.results[0].address_components[0]) {}*/
     },
 
-    GeocodeAddress: async (address: string, showMessage: any) => {
+    GeocodeAddress    : async (address: string, showMessage: any) => {
         MyUtil.printConsole(true, 'log', 'LOG: GeocodeAddress:', {
             'address'    : address,
             'showMessage': showMessage,
@@ -1008,32 +1046,88 @@ const MyUtil = {
         });
         if (address && address.results && address.results[0] && address.results[0].geometry && address.results[0].geometry.location && address.results[0].geometry.location.lat && address.results[0].geometry.location.lng) {}*/
     },
+    /**
+     * Get the value for a given key in address_components
+     *
+     * @param {Array} components address_components returned from Google maps autocomplete
+     * @param type key for desired address component
+     * @returns {String} value, if found, for given type (key)
+     */
+    extractFromAddress: (components: any, type: any) => {
+        return components.filter((component: any) => component.types.indexOf(type) === 0).map((item: any) => item.long_name).pop() || null;
+    },
 
+    generateAddress: (address_components: any) => {
+
+        const street_number: any = MyUtil.extractFromAddress(address_components, 'street_number');
+        const street: any        = MyUtil.extractFromAddress(address_components, 'route');
+        const city: any          = MyUtil.extractFromAddress(address_components, 'locality');
+        const state: any         = MyUtil.extractFromAddress(address_components, 'administrative_area_level_1');
+        const country: any       = MyUtil.extractFromAddress(address_components, 'country');
+        const postal_code: any   = MyUtil.extractFromAddress(address_components, 'postal_code');
+
+        const address: string = `${street_number?.length ? (street_number + ', ') : ''}${street?.length ? (street + ', ') : ''}${city?.length ? (city + ', ') : ''}${state?.length ? (state + ', ') : ''}${country?.length ? (country + ', ') : ''}${postal_code?.length ? (postal_code) : ''}`;
+
+        return address;
+    },
+
+    generateLocation: (geocodePosition: any, accuracy: any, latitude: any, longitude: any) => {
+
+        const address: any            = geocodePosition.results[0];
+        const address_components: any = address.address_components;
+
+        const location: any = {
+            accuracy : accuracy,
+            latitude : latitude,
+            longitude: longitude,
+
+            address     : {
+                street_number: MyUtil.extractFromAddress(address_components, 'street_number'),
+
+                street     : MyUtil.extractFromAddress(address_components, 'route'), // CHECK
+                city       : MyUtil.extractFromAddress(address_components, 'locality'),
+                state      : MyUtil.extractFromAddress(address_components, 'administrative_area_level_1'),
+                country    : MyUtil.extractFromAddress(address_components, 'country'),
+                postal_code: MyUtil.extractFromAddress(address_components, 'postal_code'),
+            },
+            address_text: MyUtil.generateAddress(address_components),
+
+            plus_code         : geocodePosition.plus_code,
+            address_components: address.address_components,
+            formatted_address : address.formatted_address,
+            geometry          : address.geometry,
+            place_id          : address.place_id,
+            types             : address.types,
+        };
+
+        return location;
+    },
 
     myHTTP: async (loginRequired: any, httpMethod: any, apiURL: string, body: any, headers: any, asForm: boolean = false, responseType: any = MyConstant.HTTP_JSON, timeout: number = 0, showLoader: any = false, retry: any = false, cancelPrevious: boolean = true) => {
+
+        MyUtil.printConsole(true, 'log', 'LOG: myHTTP: ', {
+            'loginRequired'    : loginRequired,
+            'httpMethod'       : httpMethod,
+            'apiURL'           : apiURL,
+            'body'             : body,
+            'headers'          : headers,
+            'responseType'     : responseType,
+            'timeout'          : timeout,
+            'showLoader'       : showLoader,
+            'cancelPrevious'   : cancelPrevious,
+            'CancelTokenSource': CancelTokenSource,
+        });
 
         let response: any = {
             'type'        : MyConstant.RESPONSE.TYPE.error,
             'error'       : null,
             'errors'      : null,
             'errorMessage': null,
+            'errorType'   : null,
             'data'        : null,
         }
 
         try {
-
-            MyUtil.printConsole(true, 'log', 'LOG: myHTTP: ', {
-                'loginRequired'    : loginRequired,
-                'httpMethod'       : httpMethod,
-                'apiURL'           : apiURL,
-                'body'             : body,
-                'headers'          : headers,
-                'responseType'     : responseType,
-                'timeout'          : timeout,
-                'showLoader'       : showLoader,
-                'cancelPrevious'   : cancelPrevious,
-                'CancelTokenSource': CancelTokenSource,
-            });
 
             if (showLoader !== false) {
                 MyUtil.showTinyToast(showLoader && showLoader.length > 0 ? showLoader : MyLANG.PleaseWait,
@@ -1053,10 +1147,11 @@ const MyUtil = {
             }
 
             let authReq: any = false;
-            if (loginRequired === true) {
+            if (loginRequired !== false) {
                 const user = store.getState().auth.user;
                 MyUtil.printConsole(true, 'log', 'LOG: myHTTP: ', {'user': user});
                 if (!user.id) {
+                    response.errorType = 'auth';
                     throw new Error(MyLANG.PleaseLoginFirst);
                 }
             }
@@ -1123,6 +1218,7 @@ const MyUtil = {
                 'error'       : null,
                 'errors'      : null,
                 'errorMessage': null,
+                'errorType'   : null,
                 'data'        : axiosResponse,
             }
 
@@ -1191,7 +1287,17 @@ const MyUtil = {
                 'error'       : error,
                 'errors'      : errors,
                 'errorMessage': errorMessage,
+                'errorType'   : response.errorType,
                 'data'        : null,
+            }
+
+            if (loginRequired?.required === true && loginRequired?.promptLogin === true && response.errorType === 'auth') {
+                MyUtil.showLoginRequired(MyConstant.SHOW_MESSAGE.ALERT,
+                                         MyLANG.PleaseWait + '...',
+                                         true,
+                                         null,
+                                         MyConstant.NAVIGATION_ACTIONS.GO_BACK
+                )
             }
 
         } finally {

@@ -1,6 +1,6 @@
 const initialState: any = {
-    payment_method : null,
-    delivery_method: null,
+    payment_method : [],
+    delivery_method: [],
 }
 
 const types = {
@@ -35,11 +35,15 @@ const AppInputReducer = (state: string = initialState, action: any) => {
             } else if (Array.isArray(action.payload?.key) && action.payload?.key?.length > 0) {
                 return action.payload?.data;
 
-            } else if (action.payload?.key && action.payload?.key.length > 0) {
+            } else if (action.payload?.key?.length > 0) {
                 const currentState: any           = state;
                 currentState[action.payload?.key] = action.payload?.data;
 
                 return currentState;
+
+            } else {
+
+                return state;
             }
 
         case types.EMPTY_APP_INPUT_DATA:

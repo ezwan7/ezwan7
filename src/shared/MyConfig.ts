@@ -37,8 +37,8 @@ const primaryGradient = {
 const MyConfig: any = {
 
     app_name         : 'DirectD',
-    app_version      : '0.3.6',
-    app_build_version: 1,
+    app_version      : '0.4.0',
+    app_build_version: 40,
     app_platform     : 'android_customer',
 
     app_email    : 'directd@gmail.com',
@@ -114,8 +114,7 @@ const MyConfig: any = {
         AboutUs          : 'AboutUs',
         TermsAndCondition: 'TermsAndCondition',
 
-        InfoPage: 'InfoPage',
-
+        InfoPage : 'InfoPage',
         GoogleMap: 'GoogleMap',
 
         DrawerOne: 'DrawerOne',
@@ -172,7 +171,8 @@ const MyConfig: any = {
         productList          : 16,
         productListHorizontal: 5,
         searchList           : 16,
-        RestaurantHome       : 10,
+        addressList          : 16,
+        restaurantHome       : 10,
     },
     LimitAddToCart: 10,
 
@@ -303,7 +303,23 @@ const MyConfig: any = {
         },
     ],
 
-    token: null,
+    geoLocationOption      : {
+        enableHighAccuracy   : true,
+        timeout              : 10000,
+        maximumAge           : 0,
+        forceRequestLocation : true,
+        useSignificantChanges: true,
+        showLocationDialog   : true,
+    },
+    geoLocationOptionSilent: {
+        enableHighAccuracy   : true,
+        timeout              : 10000,
+        maximumAge           : 0,
+        forceRequestLocation : false,
+        useSignificantChanges: true,
+        showLocationDialog   : false,
+    },
+
 };
 
 const MyAPI = {
@@ -332,6 +348,11 @@ const MyAPI = {
     filter              : MyConfig.apiUrl + MyConfig.api_version + 'getfilters',
     banner              : MyConfig.apiUrl + MyConfig.api_version + 'getbanners',
     coupon_apply        : MyConfig.apiUrl + MyConfig.api_version + 'getcoupon',
+
+    password_change: MyConfig.apiUrl + MyConfig.api_version + 'updatepassword',
+    user_addresses : MyConfig.apiUrl + MyConfig.api_version + 'getalladdress',
+    product_like   : MyConfig.apiUrl + MyConfig.api_version + 'likeproduct',
+    product_unlike : MyConfig.apiUrl + MyConfig.api_version + 'unlikeproduct',
 
     // RESTAURANTS: MyConfig.apiUrl + MyConfig.api_version + MyConfig.api_auth + 'restaurants-get' + MyConfig.API_FILE_EXTENSION,
     //`https://graph.facebook.com/${result.id}/picture`

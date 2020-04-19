@@ -5,8 +5,9 @@ import MyIcon from "../components/MyIcon";
 import React from "react";
 import {MyConstant} from "./MyConstant";
 
-const screenHeight = Dimensions.get('window').height;
-const screenWidth  = Dimensions.get('window').width;
+const screenHeight      = Dimensions.get('window').height;
+const screenWidth       = Dimensions.get('window').width;
+const screenAspectRatio = screenWidth / screenHeight;
 
 const isIphoneX = Platform.OS === "ios" && !Platform.isPad && !Platform.isTVOS && (screenHeight >= 812 || screenWidth >= 812);
 
@@ -26,30 +27,38 @@ const headerHeight    = Platform.select(
 );
 
 const MyStyle: any = {
-    screenHeight: screenHeight,
-    screenWidth : screenWidth,
+    screenHeight     : screenHeight,
+    screenWidth      : screenWidth,
+    screenAspectRatio: screenAspectRatio,
 
     statusBarHeight     : statusBarHeight,
     headerHeight        : headerHeight,
     headerHeightAdjusted: headerHeight - statusBarHeight,
     toolbarHeight       : isIphoneX ? 35 : 0,
 
-    marginHorizontalList : 12,
-    marginVerticalList   : 15,
-    paddingHorizontalList: 12,
-    paddingVerticalList  : 15,
+    marginHorizontalLogin : 32,
+    marginVerticalLogin   : 32,
+    paddingHorizontalLogin: 32,
+    paddingVerticalLogin  : 32,
 
     marginHorizontalPage : 24,
     marginVerticalPage   : 24,
     paddingHorizontalPage: 24,
     paddingVerticalPage  : 15,
 
-    marginHorizontalLogin : 32,
-    marginVerticalLogin   : 32,
-    paddingHorizontalLogin: 32,
-    paddingVerticalLogin  : 32,
+    marginHorizontalList : 12,
+    marginVerticalList   : 15,
+    paddingHorizontalList: 12,
+    paddingVerticalList  : 15,
 
     marginHorizontalTextsView: 10,
+
+    marginViewGapCard      : 14,
+    marginViewGapCardMedium: 18,
+
+    marginButtonTop     : 20,
+    marginButtonBottom  : 15,
+    marginButtonVertical: 20,
 
     borderRadiusImageList     : 4,
     borderRadiusImageListLarge: 8,
@@ -369,6 +378,50 @@ const MyStyle: any = {
         shadowOpacity: 0,
         shadowRadius : 0,
     },
+
+    IGNORED_TAGS:
+        ['head', 'scripts', 'audio', 'video', 'track', 'embed', 'object', 'param', 'source', 'canvas', 'noscript',
+         'caption', 'col', 'colgroup', 'button', 'datalist', 'fieldset', 'form', 'input', 'label', 'legend', 'meter', 'optgroup',
+         'option', 'output', 'progress', 'select', 'textarea', 'details', 'diaglog', 'menu', 'menuitem', 'summary', 'tfoot', 'th', 'thead'
+        ],
+    textHTMLBody: {
+        p    : {
+            fontFamily: 'open_sans_regular',
+            fontSize  : 14,
+            color     : MyColor.Material.GREY["700"],
+            textAlign : "justify",
+            lineHeight: 18,
+        },
+        table: {
+            flex          : 1,
+            flexDirection : 'row',
+            alignItems    : 'center',
+            justifyContent: 'center',
+
+            marginVertical: 10,
+
+            // borderLeftWidth : 1,
+            // borderTopWidth  : 1,
+            // borderColor     : '#ccc',
+            // borderRightWidth: 0.5,
+        },
+        tbody: {},
+        tr   : {
+            flex         : 1,
+            flexDirection: 'row',
+            // borderBottomWidth: 1,
+            // borderBottomColor: '#ccc'
+        },
+        td   : {
+            justifyContent : 'flex-start',
+            alignItems     : 'flex-start',
+            width          : '50%',
+            // paddingHorizontal: 12,
+            paddingVertical: 5,
+            // borderRightWidth : 0.5,
+            // borderRightColor : '#ccc',
+        },
+    },
 }
 
 const MyStyleCommon: any = {
@@ -498,30 +551,45 @@ const MyStyleSheet = StyleSheet.create(
         },
 
 
-        linkTextList   : {
+        linkTextList: {
             fontFamily: MyStyle.FontFamily.OpenSans.regular,
             fontSize  : 13,
             color     : MyColor.attentionDark,
         },
-        headerList     : {
+
+        headerList      : {
             fontFamily: MyStyle.FontFamily.OpenSans.regular,
             fontSize  : 16,
             color     : MyColor.Material.BLACK,
+
+            textTransform: "capitalize",
         },
-        headerPage     : {
+        headerPage      : {
             fontFamily: MyStyle.FontFamily.OpenSans.bold,
             fontSize  : 18,
             color     : MyColor.textDarkPrimary,
+
+            textTransform: "capitalize",
         },
-        headerPageLarge: {
+        headerPageMedium: {
+            fontFamily: MyStyle.FontFamily.OpenSans.bold,
+            fontSize  : 20,
+            color     : MyColor.textDarkPrimary,
+
+            textTransform: "capitalize",
+        },
+        headerPageLarge : {
             fontFamily: MyStyle.FontFamily.OpenSans.bold,
             fontSize  : 44,
             color     : MyColor.textDarkPrimary,
+
+            textTransform: "capitalize",
         },
-        subHeaderPage  : {
+
+        subHeaderPage: {
             fontFamily: MyStyle.FontFamily.Roboto.regular,
             fontSize  : 14,
-            color     : MyColor.textDarkSecondary,
+            color     : MyColor.textDarkSecondary2,
         },
 
         titleList               : {
@@ -549,14 +617,6 @@ const MyStyleSheet = StyleSheet.create(
             fontFamily: MyStyle.FontFamily.OpenSans.semiBold,
             fontSize  : 30,
             color     : "#f0f0f0",
-        },
-
-        textHTMLBody: {
-            fontFamily: MyStyle.FontFamily.OpenSans.regular,
-            fontSize  : 14,
-            color     : MyColor.Material.GREY["700"],
-            textAlign : "justify",
-            lineHeight: 18,
         },
 
         imageListExtraSmall: {

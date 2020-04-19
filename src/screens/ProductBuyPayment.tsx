@@ -10,6 +10,7 @@ import {
 import LinearGradient from "react-native-linear-gradient";
 import {ShadowBox} from "react-native-neomorph-shadows";
 import {useForm} from "react-hook-form";
+import {useDispatch, useSelector} from "react-redux";
 
 import MyUtil from '../common/MyUtil';
 import {MyStyle, MyStyleSheet} from '../common/MyStyle';
@@ -20,14 +21,12 @@ import MyLANG from '../shared/MyLANG';
 import {MyConstant} from '../common/MyConstant';
 import MyIcon from '../components/MyIcon';
 import {MyInput} from "../components/MyInput";
+import MyFunction from "../shared/MyFunction";
 
 import {StatusBarLight} from '../components/MyComponent';
-
 import {MyButton} from "../components/MyButton";
 import {MyFastImage} from "../components/MyFastImage";
 import {CartListItem, CartPageBottomButtons, CartPageTotal, OrderListItem} from "../shared/MyContainer";
-import {useDispatch, useSelector} from "react-redux";
-import MyFunction from "../shared/MyFunction";
 
 let renderCount = 0;
 
@@ -46,10 +45,8 @@ const ProductBuyPayment = ({route, navigation}: any) => {
     useEffect(() => {
         MyUtil.printConsole(true, 'log', `LOG: ${ProductBuyPayment.name}. useEffect: `, {cart, app_input});
 
-        MyFunction.fetchPaymentMethod(false);
-
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [cart]);
+    }, [cart, app_input]);
 
     const onBack = () => {
         MyUtil.stackAction(false,
@@ -106,9 +103,10 @@ const ProductBuyPayment = ({route, navigation}: any) => {
 
                             {app_input?.payment_method?.[0] &&
                              app_input.payment_method
-                                      .map((prop: any) =>
+                                      .map((prop: any, key: any) =>
                                                (
                                                    <Text
+                                                       key = {key}
                                                        numberOfLines = {1}>
                                                        {prop?.name}
                                                    </Text>

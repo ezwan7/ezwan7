@@ -236,33 +236,63 @@ const ProductBuyScreen = ({route, navigation}: any) => {
                                     <View style = {{
                                         flexDirection : "row",
                                         justifyContent: "flex-start",
-                                        alignItems    : "center"
+                                        alignItems    : "center",
+
+                                        backgroundColor: cart?.voucher?.item?.id && Number(cart?.voucher?.amount) > 0 ? MyColor.backgroundGrey : 'transparent',
+                                        marginTop      : cart?.voucher?.item?.id && Number(cart?.voucher?.amount) > 0 ? 16 : 0,
+
+                                        borderRadius: 100,
                                     }}>
-                                        {(cart?.voucher?.item && cart?.voucher?.item?.id && Number(cart?.voucher?.amount) > 0) ?
+                                        {(cart?.voucher?.item?.id && Number(cart?.voucher?.amount) > 0) ?
                                          <>
-                                             <Text style = {{flex: 0.68, marginRight: 10}}>
-                                                 {cart?.voucher?.item?.code}
-                                                 {MyConfig.Currency.MYR.symbol} {cart?.voucher?.amount}
-                                             </Text>
+                                             <View
+                                                 style = {{
+                                                     flex       : 0.68,
+                                                     marginRight: 4,
+
+                                                     marginLeft: 24,
+                                                 }}
+                                             >
+                                                 <Text
+                                                     style = {{
+                                                         fontFamily: MyStyle.FontFamily.Roboto.regular,
+                                                         fontSize  : 14,
+                                                         color     : MyColor.textDarkSecondary
+                                                     }}
+                                                 >
+                                                     {cart?.voucher?.item?.code}
+                                                 </Text>
+                                                 <Text
+                                                     style = {{
+                                                         fontFamily: MyStyle.FontFamily.OpenSans.semiBold,
+                                                         fontSize  : 15,
+                                                         color     : MyColor.attentionDark,
+                                                     }}
+                                                 >
+                                                     {MyConfig.Currency.MYR.symbol} {cart?.voucher?.amount} off
+                                                 </Text>
+                                             </View>
                                              <MyButton
                                                  fill = "solid"
-                                                 color = {MyColor.Material.AMBER["900"]}
+                                                 color = {MyColor.Material.BLUEGREY["A400"]}
                                                  display = "inline"
                                                  title = {MyLANG.Remove}
                                                  linearGradientStyle = {{flex: 0.32, height: 46}}
                                                  onPress = {(e: any) => dispatch(cartUpdateVoucher({}, 0))}
                                              />
                                          </>
-                                                                                                                               :
+                                                                                                        :
                                          <>
                                              <MyInput
                                                  floatingLabel = {MyLANG.CouponCode}
+                                                 floatingLabelBackground = {MyColor.backgroundGrey}
                                                  onChangeText = {(text: any) => setValue('coupon_code', text, true)}
                                                  value = {getValues().coupon_code}
-                                                 helperText = {{message: errors.coupon_code?.message ? errors.coupon_code.message : null}}
+
                                                  viewGroupStyle = {{flex: 0.68, marginRight: 10}}
                                                  viewStyle = {{backgroundColor: MyColor.backgroundGrey}}
-                                                 floatingLabelBackground = {MyColor.backgroundGrey}
+
+                                                 helperText = {{message: errors.coupon_code?.message ? errors.coupon_code.message : null}}
                                              />
                                              <MyButton
                                                  fill = "solid"

@@ -37,6 +37,7 @@ const ProductListScreen = ({route, navigation}: any) => {
         renderCount += 1;
         MyUtil.printConsole(true, 'log', `LOG: ${ProductListScreen.name}. renderCount: `, renderCount);
     }
+
     const [firstLoad, setFirstLoad]                                               = useState(true);
     const [loading, setLoading]                                                   = useState(true);
     const [refreshing, setRefreshing]                                             = useState(false);

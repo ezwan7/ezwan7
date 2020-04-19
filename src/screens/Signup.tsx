@@ -11,13 +11,13 @@ import MyLANG from '../shared/MyLANG';
 import {MyConstant} from '../common/MyConstant';
 import MyUtil from '../common/MyUtil';
 import MyAuth from '../common/MyAuth';
+import MyFunction from "../shared/MyFunction";
 
 import {StatusBarDark} from '../components/MyComponent';
 import {MyInput} from "../components/MyInput";
 import {MyButton} from "../components/MyButton";
 
 import * as yup from "yup";
-import MyFunction from "../shared/MyFunction";
 
 let renderCount = 0;
 
@@ -118,6 +118,7 @@ const signupForm: any = {
 };
 
 const SignupScreen = ({}) => {
+
     if (__DEV__) {
         renderCount += 1;
         MyUtil.printConsole(true, 'log', `LOG: ${SignupScreen.name}. renderCount: `, renderCount);
@@ -131,10 +132,13 @@ const SignupScreen = ({}) => {
             validationSchema    : SignupFormSchema,
             validateCriteriaMode: 'all',
             submitFocusError    : true,
-        });
+        }
+    );
 
     useEffect(() => {
+
         // MyUtil.printConsole(true, 'log', `LOG: ${SignupScreen.name}. useEffect: `, 'register');
+
         for (const key of Object.keys(SignupFormSchema['fields'])) {
             if (key) {
                 register({name: key});
@@ -250,7 +254,7 @@ const SignupScreen = ({}) => {
                             <MyButton
                                 color = {MyStyle.LGButtonPrimary}
                                 title = {MyLANG.Register}
-                                linearGradientStyle = {{marginTop: 15}}
+                                linearGradientStyle = {{marginTop: MyStyle.marginButtonTop}}
                                 onPress = {(e: any) => {
                                     formSubmit(e);
                                 }}

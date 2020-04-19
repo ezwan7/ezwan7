@@ -749,7 +749,7 @@ const ImageSliderProduct             = ({item, style}: any) => {
         </>
     )
 }
-const ImageSliderBanner              = ({item, style}: any) => {
+const ImageSliderBanner              = ({item, onPress, style}: any) => {
     // MyUtil.printConsole(true, 'log', 'LOG: ImageSliderBanner: ', {item, style});
 
     return (
@@ -759,24 +759,7 @@ const ImageSliderBanner              = ({item, style}: any) => {
                     key = {key}
                     activeOpacity = {0.9}
                     style = {[bannerHorizontalList.touchable, {}]}
-                    onPress = {() =>
-                        prop?.type === 'category' ?
-                        MyUtil.commonAction(false,
-                                            null,
-                                            MyConstant.CommonAction.navigate,
-                                            MyConfig.routeName.ProductList,
-                                            {'title': prop?.title, 'id': Number(prop?.url), 'apiURL': MyAPI.product_by_category},
-                                            null
-                        ) :
-                        prop?.type === 'product' ?
-                        MyUtil.commonAction(false,
-                                            null,
-                                            MyConstant.CommonAction.navigate,
-                                            MyConfig.routeName.ProductDetails,
-                                            {'id': Number(prop?.url), 'item': prop},
-                                            null
-                        ) : null
-                    }
+                    onPress = {() => onPress(prop)}
                 >
                     <MyImageBackground
                         source = {[{'uri': prop.image}, MyImage.defaultBanner]}
@@ -927,7 +910,7 @@ const ProductDetailsContentLoader = () => {
                 <ContentLoader
                     speed = {2}
                     width = {MyStyle.screenWidth}
-                    height = {(MyStyle.screenWidth / 1.5) + 20 + 6 + 22 + 10 + 26 + 22 + 28 + (MyStyle.screenWidth / 1.5)}
+                    height = {(MyStyle.screenWidth / 1.5) + 20 + 6 + 22 + 10 + 26 + 22 + 28 + (MyStyle.screenWidth)}
                     backgroundColor = {MyColor.Material.GREY["200"]}
                     foregroundColor = {MyColor.Material.GREY["400"]}
                     style = {{}}
@@ -970,7 +953,7 @@ const ProductDetailsContentLoader = () => {
                         rx = "0"
                         ry = "0"
                         width = {MyStyle.screenWidth}
-                        height = {MyStyle.screenWidth / 1.5}
+                        height = {MyStyle.screenWidth}
                     />
                 </ContentLoader>
             </View>

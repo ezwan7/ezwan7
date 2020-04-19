@@ -185,7 +185,7 @@ const PasswordResetScreen = ({route, navigation}: any) => {
                             <MyButton
                                 color = {MyStyle.LGButtonPrimary}
                                 title = {MyLANG.Submit}
-                                linearGradientStyle = {{marginTop: 15}}
+                                linearGradientStyle = {{marginTop: MyStyle.marginButtonTop}}
                                 onPress = {(e: any) => {
                                     formSubmit(e);
                                 }}

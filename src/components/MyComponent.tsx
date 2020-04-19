@@ -56,19 +56,23 @@ const getImage = (props: any) => {
 
 const StatusBarLight = () => {
     return (
-        <StatusBar animated = {true}
-                   backgroundColor = "transparent"
-                   barStyle = "light-content"
-                   translucent = {true}/>
+        <StatusBar
+            animated = {true}
+            backgroundColor = "transparent"
+            barStyle = "light-content"
+            translucent = {true}
+        />
     )
 }
 
 const StatusBarDark = () => {
     return (
-        <StatusBar animated = {true}
-                   backgroundColor = "transparent"
-                   barStyle = "dark-content"
-                   translucent = {true}/>
+        <StatusBar
+            animated = {true}
+            backgroundColor = "transparent"
+            barStyle = "dark-content"
+            translucent = {true}
+        />
     )
 }
 
@@ -236,6 +240,82 @@ const HeaderInputSearch = (props: any) => {
     )
 }
 
+const HeaderGoogleMapSearch = (props: any) => {
+    return (
+        /*<ShadowBox
+            useSvg
+            style = {{
+                shadowOffset : {width: 0, height: 2},
+                shadowOpacity: 0.5,
+                shadowColor  : "#000000",
+                shadowRadius : 5,
+                width        : MyStyle.screenWidth,
+                height       : MyStyle.headerHeight,
+                zIndex       : 1000,
+            }}
+        >*/
+        <View style = {{
+            height: MyStyle.headerHeight,
+            zIndex: 1000,
+
+            flexDirection : "column",
+            justifyContent: "flex-start",
+        }}>
+            <LinearGradient
+                start = {MyStyle.LGHeaderPrimary.start}
+                end = {MyStyle.LGHeaderPrimary.end}
+                locations = {MyStyle.LGHeaderPrimary.locations}
+                colors = {MyStyle.LGHeaderPrimary.colors}
+                style = {{
+                    height: MyStyle.statusBarHeight,
+                }}
+            />
+            <View
+                style = {{
+                    flex          : 1,
+                    flexDirection : "row",
+                    justifyContent: "space-between",
+                    alignItems    : "center",
+                }}
+            >
+                <MyHeaderBackButton onPress = {props.onBack}/>
+
+                <View style = {{flexDirection: "row"}}>
+                    <TouchableOpacity
+                        style = {{
+                            marginRight: 4,
+                        }}
+                        activeOpacity = {0.7}
+                        onPress = {props.onSearch}
+                    >
+                        <MyIcon.AntDesign
+                            name = "search1"
+                            size = {24}
+                            color = {MyColor.Material.BLACK}
+                            style = {{paddingVertical: 7, paddingHorizontal: 8}}
+                        />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style = {{
+                            marginRight: 10,
+                        }}
+                        activeOpacity = {0.7}
+                        onPress = {props.onMarker}
+                    >
+                        <MyIcon.MaterialCommunityIcons
+                            name = "crosshairs-gps"
+                            size = {24}
+                            color = {MyColor.Material.BLACK}
+                            style = {{paddingVertical: 7, paddingHorizontal: 8}}
+                        />
+                    </TouchableOpacity>
+                </View>
+            </View>
+        </View>
+    )
+}
+
+
 const TopTabBarGradientPrimary = (props: any) => {
     return (
         <View style = {{
@@ -261,6 +341,36 @@ const TopTabBarGradientPrimary = (props: any) => {
                 {/*<MaterialTopTabBar {...props} />*/}
             </LinearGradient>
         </View>
+    )
+}
+
+const MyHeaderBackButton = (props: any) => {
+    return (
+        <TouchableOpacity
+            style = {{
+                marginLeft     : 10,
+                backgroundColor: MyColor.Material.WHITE,
+                borderRadius   : 100,
+
+                shadowColor  : "#000",
+                shadowOffset : {
+                    width : 0,
+                    height: 1,
+                },
+                shadowOpacity: 0.22,
+                shadowRadius : 2.22,
+                elevation    : 3,
+            }}
+            activeOpacity = {0.9}
+            onPress = {props.onPress}
+        >
+            <MyIcon.Feather
+                name = "arrow-left"
+                size = {22}
+                color = {MyColor.Material.BLACK}
+                style = {{paddingVertical: 7, paddingHorizontal: 8}}
+            />
+        </TouchableOpacity>
     )
 }
 
@@ -403,8 +513,11 @@ export {
     HeaderGradientPrimaryLogo,
 
     HeaderInputSearch,
+    HeaderGoogleMapSearch,
 
     TopTabBarGradientPrimary,
+
+    MyHeaderBackButton,
 
     Separator,
 

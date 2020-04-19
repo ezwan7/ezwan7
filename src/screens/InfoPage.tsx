@@ -62,9 +62,7 @@ const InfoPage = ({route, navigation}: any) => {
                     >
                         <HTML
                             html = {route?.params?.text ? route?.params?.text : MyLANG.NoText}
-                            tagsStyles = {{
-                                p: {...MyStyleSheet.textHTMLBody},
-                            }}
+                            tagsStyles = {MyStyle.textHTMLBody}
                             containerStyle = {{marginHorizontal: MyStyle.marginHorizontalPage}}
                         />
 

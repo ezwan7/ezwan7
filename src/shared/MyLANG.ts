@@ -58,6 +58,10 @@ export default new LocalizedStrings(
             RegistrationCompletedTitleDescription: "Congratulations, your account has been successfully created.",
             ForgotPasswordDescription            : "Please enter your email address to reset your password.",
             ResetPasswordDescription             : "Please enter the code you have received vai email and your new password.",
+            ChangePasswordCurrent                : "To change your password, please enter your current password below",
+            ChangePasswordNew                    : "Enter your new and confirm password below and press the button",
+            EditProfileDesc                      : "Update your profile information below and press the button",
+            PasswordUpdated                      : "Password updated",
             YouMayLoginNow                       : "You may login now from login page.",
             PressToLogin                         : "Press the button to login now into the app",
             WeWillVerify                         : "We will verify your account and let you know within 48 hours. Thank you for your patient.",
@@ -95,6 +99,7 @@ export default new LocalizedStrings(
             MyPoints         : "My Points",
             MyOrders         : "My Orders",
             MyAddress        : "My Address",
+            MyAddresses      : "My Addresses",
             Reservations     : "Reservations",
             Notification     : "Notification",
             Notifications    : "Notifications",
@@ -109,8 +114,9 @@ export default new LocalizedStrings(
             RefundPolicy     : "Refund Policy",
             TermsAndCondition: "Terms & Condition",
 
-            Facebook: "Facebook",
-            Google  : "Google",
+            Facebook : "Facebook",
+            Google   : "Google",
+            GoogleMap: "Google Map",
 
             // Home
             products: "products",
@@ -259,6 +265,8 @@ export default new LocalizedStrings(
             Success                : "Success",
             Category               : "Category",
             Registering            : "Registering",
+            ChangePassword         : "Change password",
+            UpdateProfile          : "Update profile",
 
             // Checkout
             Checkout                   : "Checkout",
@@ -373,16 +381,19 @@ export default new LocalizedStrings(
             Categories: "Categories",
 
             // sign up
-            profileDetail  : "Profile Details",
-            firstName      : "First name",
-            lastName       : "Last name",
-            accountDetails : "Account Details",
-            Username       : "Username",
-            email          : "Email",
-            generatePass   : "Use generate password",
-            Password       : "Password",
-            ConfirmPassword: "Confirm Password",
-            signup         : "Sign Up",
+            profileDetail     : "Profile details",
+            firstName         : "First name",
+            lastName          : "Last name",
+            accountDetails    : "Account details",
+            Username          : "Username",
+            email             : "Email",
+            generatePass      : "Use generate password",
+            Password          : "Password",
+            ConfirmPassword   : "Confirm password",
+            CurrentPassword   : "Current password",
+            NewPassword       : "New password",
+            ConfirmNewPassword: "Confirm new password",
+            signup            : "Sign up",
 
             // filter panel
             welcomeBack: "Welcome back ",

@@ -163,6 +163,14 @@ const MyAuth = {
         } else {
             MyUtil.showMessage(showMessage, response.errorMessage ? response.errorMessage : MyLANG.UnknownError, false);
 
+            MyAuth.processLogout(null,
+                                 showMessage,
+                                 showLoader,
+                                 [MyConstant.CLEAR_STORAGE.ALL_ASYNC_STORAGE, MyConstant.CLEAR_STORAGE.TOKEN],
+                                 doReRoute,
+                                 navigationActions
+            );
+
             // Login Failed, Check Config to re route:
             if (doReRoute) {
                 MyAuth.checkIfLoginRequired(false, null, navigationActions);
