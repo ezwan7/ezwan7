@@ -37,8 +37,8 @@ const primaryGradient = {
 const MyConfig: any = {
 
     app_name         : 'DirectD',
-    app_version      : '0.4.0',
-    app_build_version: 40,
+    app_version      : '0.6.0',
+    app_build_version: 60,
     app_platform     : 'android_customer',
 
     app_email    : 'directd@gmail.com',
@@ -97,25 +97,28 @@ const MyConfig: any = {
         Cart        : 'Cart',
         Settings    : 'Settings',
 
-        ProductList       : 'ProductList',
-        ProductDetails    : 'ProductDetails',
-        ProductBuy        : 'ProductBuy',
-        ProductBuyDelivery: 'ProductBuyDelivery',
-        ProductBuyPayment : 'ProductBuyPayment',
-        ProductBuySuccess : 'ProductBuySuccess',
+        ProductList      : 'ProductList',
+        ProductDetails   : 'ProductDetails',
+        ProductBuy       : 'ProductBuy',
+        ProductBuyPayment: 'ProductBuyPayment',
+        ProductBuySuccess: 'ProductBuySuccess',
 
         EditProfile      : 'EditProfile',
+        MyPoints         : 'MyPoints',
         MyOrders         : 'MyOrders',
         MyAddress        : 'MyAddress',
-        MyPoints         : 'MyPoints',
+        MyAddressForm    : 'MyAddressForm',
         Notifications    : 'Notifications',
         NotificationView : 'NotificationView',
+        ReferAndEarn     : 'ReferAndEarn',
         ContactUs        : 'ContactUs',
         AboutUs          : 'AboutUs',
         TermsAndCondition: 'TermsAndCondition',
 
-        InfoPage : 'InfoPage',
-        GoogleMap: 'GoogleMap',
+        InfoPage     : 'InfoPage',
+        GoogleMap    : 'GoogleMap',
+        OptionPage   : 'OptionPage',
+        MyWebViewPage: 'MyWebViewPage',
 
         DrawerOne: 'DrawerOne',
 
@@ -170,15 +173,17 @@ const MyConfig: any = {
         categoryList         : 50,
         productList          : 16,
         productListHorizontal: 5,
+        notificationList     : 20,
         searchList           : 16,
-        addressList          : 16,
-        restaurantHome       : 10,
+        addressList          : 15,
+        optionList           : 32,
+        countryList          : 20,
     },
     LimitAddToCart: 10,
 
     LanguageActive: 1,
 
-    defaultUseForm: {
+    useFormDefault: {
         mode                : 'onSubmit',
         reValidateMode      : 'onChange',
         // defaultValues       : defaultValues,
@@ -249,18 +254,18 @@ const MyConfig: any = {
         // customButtons : [{name: 'fb', title: 'Choose Photo from Facebook'}],
         storageOptions: {
             skipBackup: true,
-            path      : 'images',
+            // path      : 'images',
         },
         tintColor     : '#ffffff',
-        cameraType    : 'front', // 'front' or 'back'
+        cameraType    : 'back', // 'front' or 'back'
         mediaType     : 'photo', // 'photo', 'video', or 'mixed'
-        maxWidth      : 500,
-        maxHeight     : 500,
+        maxWidth      : 1000,
+        maxHeight     : 1000,
         rotation      : 0,
         quality       : 0.7,
         videoQuality  : 'high', // 'low', 'medium', or 'high' on iOS, 'low' or 'high' on Android
         durationLimit : 3,
-        allowsEditing : false,
+        allowsEditing : true,
         noData        : false,
     },
 
@@ -303,6 +308,34 @@ const MyConfig: any = {
         },
     ],
 
+    genderList: [
+        {
+            id  : 0,
+            name: MyLANG.Male,
+        },
+        {
+            id  : 1,
+            name: MyLANG.Female,
+        },
+        {
+            id  : 2,
+            name: MyLANG.Other,
+        },
+    ],
+
+    deliveryTypes: [
+        {
+            id   : 1,
+            icon : 'shopping-store',
+            title: MyLANG.SelfPickup,
+        },
+        {
+            id   : 2,
+            icon : 'truck',
+            title: MyLANG.CourierService,
+        },
+    ],
+
     geoLocationOption      : {
         enableHighAccuracy   : true,
         timeout              : 10000,
@@ -335,9 +368,13 @@ const MyAPI = {
     login_sms      : MyConfig.apiUrl + MyConfig.api_version + '',
     signup         : MyConfig.apiUrl + MyConfig.api_version + 'processregistration',
     password_forgot: MyConfig.apiUrl + MyConfig.api_version + 'processforgotpassword',
+    password_reset : MyConfig.apiUrl + MyConfig.api_version + 'resetotppassword',
 
+    register_device     : MyConfig.apiUrl + MyConfig.api_version + 'registerdevices',
     app_update_check    : MyConfig.apiUrl + MyConfig.api_version + 'appupdate',
-    app_data            : MyConfig.apiUrl + MyConfig.api_version + 'getallpages',
+    app_info            : MyConfig.apiUrl + MyConfig.api_version + 'getallpages',
+    countries           : MyConfig.apiUrl + MyConfig.api_version + 'getcountries',
+    states              : MyConfig.apiUrl + MyConfig.api_version + 'getzones',
     payment_methods     : MyConfig.apiUrl + MyConfig.api_version + 'getpaymentmethods',
     featured_products   : MyConfig.apiUrl + MyConfig.api_version + 'getfeaturedproducts',
     new_arrival_products: MyConfig.apiUrl + MyConfig.api_version + 'getnewarrivalproducts',
@@ -347,12 +384,22 @@ const MyAPI = {
     search              : MyConfig.apiUrl + MyConfig.api_version + 'getsearchdata',
     filter              : MyConfig.apiUrl + MyConfig.api_version + 'getfilters',
     banner              : MyConfig.apiUrl + MyConfig.api_version + 'getbanners',
-    coupon_apply        : MyConfig.apiUrl + MyConfig.api_version + 'getcoupon',
 
-    password_change: MyConfig.apiUrl + MyConfig.api_version + 'updatepassword',
-    user_addresses : MyConfig.apiUrl + MyConfig.api_version + 'getalladdress',
-    product_like   : MyConfig.apiUrl + MyConfig.api_version + 'likeproduct',
-    product_unlike : MyConfig.apiUrl + MyConfig.api_version + 'unlikeproduct',
+    coupon_apply        : MyConfig.apiUrl + MyConfig.api_version + 'getcoupon',
+    delivery_method_rate: MyConfig.apiUrl + MyConfig.api_version + 'getrate',
+    update_profile      : MyConfig.apiUrl + MyConfig.api_version + 'updatecustomerinfo',
+    password_change     : MyConfig.apiUrl + MyConfig.api_version + 'updatepassword',
+    upload_profile_photo: MyConfig.apiUrl + MyConfig.api_version + 'uploadprofilephoto',
+    user_addresses      : MyConfig.apiUrl + MyConfig.api_version + 'getalladdress',
+    user_address_add    : MyConfig.apiUrl + MyConfig.api_version + 'addshippingaddress',
+    user_address_edit   : MyConfig.apiUrl + MyConfig.api_version + 'updateshippingaddress',
+    user_address_delete : MyConfig.apiUrl + MyConfig.api_version + 'deleteshippingaddress',
+    product_like        : MyConfig.apiUrl + MyConfig.api_version + 'likeproduct',
+    product_unlike      : MyConfig.apiUrl + MyConfig.api_version + 'unlikeproduct',
+    notifications       : MyConfig.apiUrl + MyConfig.api_version + 'getnotifications',
+    order_place         : MyConfig.apiUrl + MyConfig.api_version + 'place_order',
+
+    payment_gateway: MyConfig.serverUrl + 'ipay-response',
 
     // RESTAURANTS: MyConfig.apiUrl + MyConfig.api_version + MyConfig.api_auth + 'restaurants-get' + MyConfig.API_FILE_EXTENSION,
     //`https://graph.facebook.com/${result.id}/picture`

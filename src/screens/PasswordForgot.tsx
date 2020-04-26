@@ -40,7 +40,7 @@ const PasswordForgotScreen = ({}) => {
         MyUtil.printConsole(true, 'log', `LOG: ${PasswordForgotScreen.name}. renderCount: `, renderCount);
     }
 
-    const {register, getValues, setValue, handleSubmit, formState, errors, reset, triggerValidation}: any = useForm(MyConfig.defaultUseForm);
+    const {register, getValues, setValue, handleSubmit, formState, errors, reset, triggerValidation}: any = useForm(MyConfig.useFormDefault);
 
     useEffect(() => {
         // MyUtil.printConsole(true, 'log', `LOG: ${PasswordForgotScreen.name}. useEffect: `, 'register');
@@ -59,7 +59,9 @@ const PasswordForgotScreen = ({}) => {
                                   MyConstant.SHOW_MESSAGE.ALERT,
                                   MyLANG.PleaseWait + '...',
                                   MyConfig.routeName.PasswordReset,
-                                  {'email': formValue.data.email},
+                                  {
+                                      email: formValue.data.email
+                                  },
                                   null
             );
         } else {
@@ -81,11 +83,8 @@ const PasswordForgotScreen = ({}) => {
                                 locations = {MyStyle.LGWhitish.locations}
                                 colors = {MyStyle.LGWhitish.colors}>
                     <ScrollView contentInsetAdjustmentBehavior = "automatic">
-                        <View style = {[MyStyleSheet.mainView, {
-                            alignItems      : "center",
-                            marginBottom    : MyStyle.marginVerticalLogin,
-                            marginHorizontal: MyStyle.marginHorizontalLogin,
-                        }]}>
+
+                        <View style = {[MyStyleSheet.viewPageLogin, {alignItems: "center", marginTop: MyStyle.headerHeightAdjusted}]}>
                             <Image source = {MyImage.logo1024}
                                    resizeMode = "contain"
                                    style = {styles.imageLogo}

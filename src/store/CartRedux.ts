@@ -8,9 +8,9 @@ const initialState: any = {
         item  : {},
         amount: 0,
     },
-    delivery_charge: 18.45,
-    service_charge : 13.50,
-    tax            : 7.8,
+    delivery_charge: 0,
+    service_charge : 0,
+    tax            : 0,
 
     total: 0,
 };

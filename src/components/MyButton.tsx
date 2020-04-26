@@ -265,6 +265,10 @@ const MyButton = (props: any) => {
         props.size === "normal" && styles.textNormal ||
         props.size === "large" && styles.textLarge,
 
+        (props.fill === "transparent" && props.color) && {
+            color: props.color,
+        },
+
         props.textTransform === "uppercase" && {
             textTransform: "uppercase",
         } ||
@@ -653,18 +657,18 @@ const styles = StyleSheet.create(
         },
         textNormal: {
             fontFamily: MyStyle.FontFamily.OpenSans.regular,
-            fontSize  : 15,
+            fontSize  : 14,
         },
         textLarge : {
             fontFamily: MyStyle.FontFamily.OpenSans.regular,
-            fontSize  : 18,
+            fontSize  : 17,
         },
 
         iconSmall : {
             fontSize: 11,
         },
         iconNormal: {
-            fontSize: 17,
+            fontSize: 16,
         },
         iconLarge : {
             fontSize: 20,

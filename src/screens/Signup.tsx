@@ -50,7 +50,10 @@ const SignupFormSchema: any = yup.object().shape(
                              .min(5, MyLANG.PhoneNumber + ' ' + MyLANG.mustBeMinimum + ' 5 ' + MyLANG.character)
                              .max(16, MyLANG.PhoneNumber + ' ' + MyLANG.mustBeMaximum + ' 16 ' + MyLANG.character)
                              .matches(MyConstant.Validation.phone, MyLANG.InvalidPhone),
-    });
+        reference_code  : yup.string()
+                             .max(16, MyLANG.ReferenceCode + ' ' + MyLANG.mustBeMaximum + ' 16 ' + MyLANG.character),
+    }
+);
 
 const signupForm: any = {
     first_name      : {
@@ -151,12 +154,13 @@ const SignupScreen = ({}) => {
         MyUtil.printConsole(true, 'log', 'LOG: formProcess: await-response: ', {'formValue': formValue});
         if (formValue && formValue.type === MyConstant.RESPONSE.TYPE.data && formValue.data) {
             MyAuth.signup({
-                              mode      : MyConstant.LOGIN_MODE.EMAIL,
-                              first_name: formValue.data.first_name,
-                              last_name : formValue.data.last_name,
-                              email     : formValue.data.email,
-                              password  : formValue.data.password,
-                              phone     : formValue.data.phone,
+                              mode          : MyConstant.LOGIN_MODE.EMAIL,
+                              first_name    : formValue.data.first_name,
+                              last_name     : formValue.data.last_name,
+                              email         : formValue.data.email,
+                              password      : formValue.data.password,
+                              phone         : formValue.data.phone,
+                              reference_code: formValue.data.reference_code,
                           },
                           MyConstant.SHOW_MESSAGE.ALERT,
                           MyLANG.Registering + '...',
@@ -182,12 +186,10 @@ const SignupScreen = ({}) => {
                                 end = {MyStyle.LGWhitish.end}
                                 locations = {MyStyle.LGWhitish.locations}
                                 colors = {MyStyle.LGWhitish.colors}>
+
                     <ScrollView contentInsetAdjustmentBehavior = "automatic">
-                        <View style = {[MyStyleSheet.mainView, {
-                            alignItems      : "center",
-                            marginBottom    : MyStyle.marginVerticalLogin,
-                            marginHorizontal: MyStyle.marginHorizontalLogin,
-                        }]}>
+
+                        <View style = {[MyStyleSheet.viewPageLogin, {alignItems: "center", marginTop: MyStyle.headerHeightAdjusted}]}>
                             <Image source = {MyImage.logo1024}
                                    resizeMode = "contain"
                                    style = {styles.imageLogo}
@@ -242,13 +244,20 @@ const SignupScreen = ({}) => {
                             />
                             <MyInput
                                 floatingLabel = {MyLANG.EnterYourPhone}
-                                placeholderLabel = "+60 [00] [0000] [0000]"
+                                placeholderLabel = "+60 00 0000 0000"
                                 mask = {"+60 [00] [0000] [9999]"}
                                 inputProps = {{keyboardType: 'phone-pad'}}
                                 onChangeText = {(text: any) => setValue('phone', text, true)}
-                                value = {getValues().email}
+                                value = {getValues().phone}
                                 iconLeft = {{name: 'phone'}}
                                 helperText = {{message: errors.phone?.message ? errors.phone.message : null}}
+                            />
+                            <MyInput
+                                floatingLabel = {MyLANG.ReferenceCode + ' (' + MyLANG.Optional + ')'}
+                                onChangeText = {(text: any) => setValue('reference_code', text, true)}
+                                value = {getValues().reference_code}
+                                iconLeft = {{name: 'present'}}
+                                helperText = {{message: errors.reference_code?.message ? errors.reference_code.message : null}}
                             />
 
                             <MyButton
@@ -282,16 +291,18 @@ const SignupScreen = ({}) => {
                                 />
                             </View>
 
-                            <TouchableOpacity activeOpacity = {0.7}
-                                              onPress = {
-                                                  () => MyUtil.commonAction(false,
-                                                                            null,
-                                                                            MyConstant.CommonAction.goBack,
-                                                                            null,
-                                                                            null,
-                                                                            null
-                                                  )
-                                              }>
+                            <TouchableOpacity
+                                activeOpacity = {0.7}
+                                onPress = {
+                                    () => MyUtil.commonAction(false,
+                                                              null,
+                                                              MyConstant.CommonAction.goBack,
+                                                              null,
+                                                              null,
+                                                              null
+                                    )
+                                }
+                            >
                                 <View style = {[MyStyle.RowCenter, {marginTop: 44}]}>
                                     <Text style = {styles.textAlreadyHaveAccount}>
                                         {MyLANG.AlreadyHaveAnAccount}

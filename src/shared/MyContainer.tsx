@@ -89,7 +89,7 @@ const drawerItemOnPress = (loginRequired: boolean, navigation: any, actionType: 
 const CustomDrawerContent = ({props}: any) => {
     // console.log('test', props?.state?.routes[props?.state?.index].name);
     const user     = store.getState().auth.user;
-    const app_data = store.getState().app_data;
+    const app_info = store.getState().app_info;
     // MyUtil.printConsole(true, 'log', 'LOG: CustomDrawerContent: ', {props, user});
 
     let DrawerItem = [];
@@ -150,7 +150,7 @@ const CustomDrawerContent = ({props}: any) => {
                 onPress       : {
                     actionType: MyConstant.DrawerOnPress.Navigate,
                     routeName : MyConfig.routeName.InfoPage,
-                    params    : {title: MyLANG.ContactUs, text: app_data?.contact_us}
+                    params    : {title: MyLANG.ContactUs, text: app_info?.contact_us}
                 },
             },
             {
@@ -163,7 +163,7 @@ const CustomDrawerContent = ({props}: any) => {
                 onPress       : {
                     actionType: MyConstant.DrawerOnPress.Navigate,
                     routeName : MyConfig.routeName.InfoPage,
-                    params    : {title: MyLANG.AboutUs, text: app_data?.about_us}
+                    params    : {title: MyLANG.AboutUs, text: app_info?.about_us}
                 },
             },
             {
@@ -247,7 +247,7 @@ const CustomDrawerContent = ({props}: any) => {
                 onPress       : {
                     actionType: MyConstant.DrawerOnPress.Navigate,
                     routeName : MyConfig.routeName.InfoPage,
-                    params    : {title: MyLANG.ContactUs, text: app_data?.contact_us}
+                    params    : {title: MyLANG.ContactUs, text: app_info?.contact_us}
                 },
             },
             {
@@ -261,7 +261,7 @@ const CustomDrawerContent = ({props}: any) => {
                     loginRequired: false,
                     actionType   : MyConstant.DrawerOnPress.Navigate,
                     routeName    : MyConfig.routeName.InfoPage,
-                    params       : {title: MyLANG.AboutUs, text: app_data?.about_us}
+                    params       : {title: MyLANG.AboutUs, text: app_info?.about_us}
                 },
             },
         ];
@@ -288,10 +288,9 @@ const CustomDrawerContent = ({props}: any) => {
                 >
                     <View style = {customDrawer.viewProfileSection}>
                         <View style = {customDrawer.viewImageProfile}>
-                            <Image
+                            <MyFastImage
+                                source = {[user?.customers_picture?.length > 9 ? {'uri': user?.customers_picture} : MyImage.defaultAvatar, MyImage.defaultAvatar]}
                                 style = {customDrawer.imageProfile}
-                                source = {MyImage.defaultAvatar}
-                                resizeMode = "contain"
                             />
                         </View>
                         <Text
@@ -492,9 +491,9 @@ const ProductListItem              = ({item, index}: any) => {
     // MyUtil.printConsole(true, 'log', 'LOG: ProductListItem: ', {index, item});
 
     return (
-        <TouchableOpacity
-            activeOpacity = {0.7}
-            style = {[productList.touchable, {}]}
+        <MyMaterialRipple
+            style = {productList.materialRipple}
+            {...MyStyle.MaterialRipple.drawer}
             onPress = {
                 () =>
                     MyUtil.commonAction(false,
@@ -534,7 +533,8 @@ const ProductListItem              = ({item, index}: any) => {
                                          <IconStar
                                              key = {key}
                                              size = {10}
-                                             color = {MyColor.Material.YELLOW['200']}
+                                             color = {MyColor.Material.GREY['200']}
+                                             solid
                                              style = {{marginRight: 3}}
                                          />
                                      )
@@ -573,7 +573,7 @@ const ProductListItem              = ({item, index}: any) => {
 
                 </View>
             </View>
-        </TouchableOpacity>
+        </MyMaterialRipple>
     )
 }
 const ProductListItemContentLoader = (count: any) => {
@@ -1201,7 +1201,7 @@ const CartPageBottomButtons = (props: any) => {
     )
 }
 const CartPageTotal         = (props: any) => {
-    MyUtil.printConsole(true, 'log', 'LOG: CartPageTotal: ', props);
+    // MyUtil.printConsole(true, 'log', 'LOG: CartPageTotal: ', props);
 
     return (
         <View style = {[cartPageTotal.view, props.style]}>
@@ -1354,6 +1354,395 @@ const CartPageTotal         = (props: any) => {
         </View>
     )
 }
+
+// Notification List:
+const NotificationListItem              = ({item, index}: any) => {
+    // MyUtil.printConsole(true, 'log', 'LOG: NotificationListItem: ', {index, item});
+
+    return (
+        <MyMaterialRipple
+            style = {notificationList.materialRipple}
+            {...MyStyle.MaterialRipple.drawer}
+            onPress = {
+                () =>
+                    MyUtil.commonAction(false,
+                                        null,
+                                        MyConstant.CommonAction.navigate,
+                                        MyConfig.routeName.NotificationView,
+                                        {'title': item?.title, 'id': item?.id, 'item': item},
+                                        null
+                    )
+            }
+        >
+            <View style = {[notificationList.view, item?.read_status === 1 && {backgroundColor: MyColor.Material.WHITE}]}>
+                <MyFastImage
+                    source = {[item?.image?.length > 0 ? {'uri': item.image} : MyImage.defaultItem, MyImage.defaultItem]}
+                    style = {notificationList.image}
+                />
+                <View style = {notificationList.textsView}>
+                    <View>
+                        <Text
+                            style = {notificationList.textTitle}
+                            numberOfLines = {2}>
+                            {item?.title}
+                        </Text>
+                        <Text
+                            style = {notificationList.textBody}
+                            numberOfLines = {3}>
+                            {item?.body}
+                        </Text>
+                    </View>
+                    <Text
+                        style = {notificationList.textTime}
+                        numberOfLines = {1}>
+                        {MyUtil.momentFormat(item?.created_on, MyConstant.MomentFormat["1st Jan, 1970 12:01 am"])}
+                    </Text>
+
+                </View>
+            </View>
+        </MyMaterialRipple>
+    )
+}
+const NotificationListItemContentLoader = (count: any) => {
+    // MyUtil.printConsole(true, 'log', 'LOG: NotificationListItemContentLoader: ', '');
+
+    return (
+        <>
+            {Array(count)
+                .fill('')
+                .map((prop, key) => (
+                         <View key = {key}>
+                             <ListItemSeparator/>
+                             <ContentLoader
+                                 speed = {2}
+                                 width = {MyStyle.screenWidth}
+                                 height = {(MyStyle.screenWidth * 0.16)}
+                                 backgroundColor = {MyColor.Material.GREY["200"]}
+                                 foregroundColor = {MyColor.Material.GREY["400"]}
+                                 style = {{marginVertical: MyStyle.marginVerticalList, marginHorizontal: MyStyle.marginHorizontalList}}
+                             >
+                                 <Rect x = "0"
+                                       y = "0"
+                                       rx = "100"
+                                       ry = "100"
+                                       width = {MyStyle.screenWidth * 0.16}
+                                       height = {MyStyle.screenWidth * 0.16}/>
+                                 <Rect x = {(MyStyle.screenWidth * 0.16) + 10}
+                                       y = {6}
+                                       rx = "3"
+                                       ry = "3"
+                                       width = {MyStyle.screenWidth - ((MyStyle.screenWidth * 0.16) + 10 + 15 + 15 + 50)}
+                                       height = "10"/>
+                                 <Rect x = {(MyStyle.screenWidth * 0.16) + 10}
+                                       y = {6 + 10 + 6}
+                                       rx = "3"
+                                       ry = "3"
+                                       width = {MyStyle.screenWidth - ((MyStyle.screenWidth * 0.16) + 10 + 15 + 15 + 100)}
+                                       height = "14"/>
+                                 <Rect x = {MyStyle.screenWidth - ((MyStyle.screenWidth * 0.35) + 30)}
+                                       y = {6 + 10 + 6 + 14 + 15}
+                                       rx = "3"
+                                       ry = "3"
+                                       width = {MyStyle.screenWidth * 0.35}
+                                       height = "9"/>
+                             </ContentLoader>
+                         </View>
+                     )
+                )
+            }
+        </>
+    )
+
+    // return RestaurantItemContentLoader(MyConfig.ListLimit.RestaurantHome);
+}
+
+const NotificationDetailsContentLoader = () => {
+    // MyUtil.printConsole(true, 'log', 'LOG: NotificationDetailsContentLoader: ', '');
+
+    return (
+        <>
+            <View style = {{}}>
+                <ContentLoader
+                    speed = {2}
+                    width = {MyStyle.screenWidth}
+                    height = {MyStyle.screenHeight * 0.85}
+                    backgroundColor = {MyColor.Material.GREY["200"]}
+                    foregroundColor = {MyColor.Material.GREY["400"]}
+                    style = {{}}
+                >
+                    <Rect
+                        x = "0"
+                        y = "0"
+                        rx = "0"
+                        ry = "0"
+                        width = {MyStyle.screenWidth}
+                        height = {MyStyle.screenWidth / 1.5}
+                    />
+                    <Rect
+                        x = {MyStyle.marginHorizontalPage}
+                        y = {(MyStyle.screenWidth / 1.5) + (MyStyle.marginHorizontalPage / 2)}
+                        rx = "4"
+                        ry = "4"
+                        width = {MyStyle.screenWidth - (MyStyle.marginHorizontalPage * 2)}
+                        height = "22"
+                    />
+                    <Rect
+                        x = {MyStyle.marginHorizontalPage * 4}
+                        y = {(MyStyle.screenWidth / 1.5) + (MyStyle.marginHorizontalPage / 2) + 22 + 10}
+                        rx = "4"
+                        ry = "4"
+                        width = {MyStyle.screenWidth - (MyStyle.marginHorizontalPage * 8)}
+                        height = "12"
+                    />
+                    <Rect
+                        x = "0"
+                        y = {(MyStyle.screenWidth / 1.5) + 20 + 6 + 22 + 10 + 26 + 20}
+                        rx = "4"
+                        ry = "4"
+                        width = {MyStyle.screenWidth}
+                        height = {(MyStyle.screenHeight * 0.50)}
+                    />
+                </ContentLoader>
+            </View>
+        </>
+    )
+}
+
+// Address List:
+const AddressListItem              = ({item, onPress, rippleStyle, address_title, phone}: any) => {
+    // MyUtil.printConsole(true, 'log', 'LOG: AddressListItem: ', {item});
+
+    return (
+        <MyMaterialRipple
+            style = {[MyStyle.RowStartCenter, rippleStyle]}
+            {...MyStyle.MaterialRipple.drawer}
+            onPress = {onPress}
+        >
+            <MyIcon.SimpleLineIcons
+                name = "direction"
+                size = {22}
+                color = {MyColor.textDarkSecondary2}
+                style = {{alignSelf: "flex-start", marginTop: 4, marginRight: 10, marginLeft: 8}}
+            />
+            <View style = {[MyStyle.ColumnStart, {flex: 1}]}>
+                {address_title ?
+                 <>
+                     <Text style = {[MyStyleSheet.textListItemTitleAlt, {}]}>{item?.company}</Text>
+                     <Text style = {[MyStyleSheet.textListItemSubTitleAlt, {}]}>{item?.firstname} {item?.lastname}</Text>
+                 </>
+                               :
+                 <Text style = {[MyStyleSheet.textListItemTitleAlt, {marginBottom: 2}]}>{item?.firstname} {item?.lastname}</Text>
+                }
+                <Text style = {[MyStyleSheet.textListItemSubTitleAlt, {marginBottom: 4}]}>{phone}</Text>
+                <Text style = {MyStyleSheet.textListItemSubTitleAlt}>{item?.street}</Text>
+                <Text style = {MyStyleSheet.textListItemSubTitleAlt}>{item?.city}</Text>
+                <Text style = {MyStyleSheet.textListItemSubTitleAlt}>{item?.zone_name}</Text>
+                <Text style = {MyStyleSheet.textListItemSubTitleAlt}>{item?.country_name}</Text>
+                <Text style = {MyStyleSheet.textListItemSubTitleAlt}>{item?.postcode}</Text>
+            </View>
+            <MyIcon.Entypo
+                name = "chevron-right"
+                size = {20}
+                color = {MyColor.Material.GREY["800"]}
+                style = {{marginRight: 8}}
+            />
+        </MyMaterialRipple>
+    )
+}
+const AddressListItemContentLoader = (count: any) => {
+    // MyUtil.printConsole(true, 'log', 'LOG: AddressListItemContentLoader: ', '');
+
+    return (
+        <>
+            <ContentLoader
+                speed = {2}
+                width = {MyStyle.screenWidth}
+                height = {50 + (MyStyle.marginHorizontalList)}
+                backgroundColor = {MyColor.Material.GREY["200"]}
+                foregroundColor = {MyColor.Material.GREY["400"]}
+                style = {{marginTop: MyStyle.marginVerticalList}}
+            >
+                <Rect x = "0"
+                      y = "0"
+                      rx = "0"
+                      ry = "0"
+                      width = {MyStyle.screenWidth}
+                      height = {50}/>
+            </ContentLoader>
+            {Array(count)
+                .fill('')
+                .map((prop, key) => (
+                         <View key = {key}>
+                             <ListItemSeparator/>
+                             <ContentLoader
+                                 speed = {2}
+                                 width = {MyStyle.screenWidth}
+                                 height = {10 + 6 + 140}
+                                 backgroundColor = {MyColor.Material.GREY["200"]}
+                                 foregroundColor = {MyColor.Material.GREY["400"]}
+                                 style = {{marginVertical: MyStyle.marginVerticalList, marginHorizontal: MyStyle.marginHorizontalList}}
+                             >
+                                 <Rect x = {MyStyle.marginHorizontalList}
+                                       y = "0"
+                                       rx = "3"
+                                       ry = "3"
+                                       width = {MyStyle.screenWidth * 0.25}
+                                       height = "10"/>
+                                 <Rect x = {0}
+                                       y = {10 + 6}
+                                       rx = "0"
+                                       ry = "0"
+                                       width = {MyStyle.screenWidth - (MyStyle.marginHorizontalList * 2)}
+                                       height = {140}/>
+                             </ContentLoader>
+                         </View>
+                     )
+                )
+            }
+        </>
+    )
+
+    // return RestaurantItemContentLoader(MyConfig.ListLimit.RestaurantHome);
+}
+
+// Option Page:
+const OptionList = ({item, index, listShow, listSelected, onItem}: any) => {
+    // MyUtil.printConsole(true, 'log', 'LOG: OptionList: ', {index, item, listShow, listSelected});
+
+    return (
+        <LinearGradient
+            style = {[optionList.linearGradientStyles, {}]}
+            {...MyStyle.LGDrawerItem}
+        >
+            <MyMaterialRipple
+                style = {optionList.materialRipple}
+                {...MyStyle.MaterialRipple.drawer}
+                onPress = {() => onItem(item)}
+            >
+                <View style = {optionList.view}>
+                    {listShow.image &&
+                     <MyFastImage
+                         source = {[{'uri': item?.[listShow.image]}, MyImage.defaultItem]}
+                         style = {optionList.image}
+                     />
+                    }
+                    <View style = {optionList.textsView}>
+                        {listShow.title &&
+                         <Text
+                             style = {optionList.textTitle}
+                             numberOfLines = {2}>
+                             {item?.[listShow.title]}
+                         </Text>
+                        }
+                        {listShow.subTitle &&
+                         <Text
+                             style = {optionList.textSubtitle}
+                             numberOfLines = {5}>
+                             {item?.[listShow.subTitle]}
+                         </Text>
+                        }
+                    </View>
+                    <View>
+                        {listSelected === item.id &&
+                         <MyIcon.FontAwesome
+                             style = {optionList.iconSelected}
+                             name = "check"
+                             size = {18}
+                             color = {MyColor.attentionDark}
+                         />
+                        }
+                    </View>
+                </View>
+            </MyMaterialRipple>
+        </LinearGradient>
+    )
+}
+
+// Modal Radio List:
+const ModalRadioList = (props: any) => {
+    MyUtil.printConsole(true, 'log', 'LOG: ModalRadioList: ', {props});
+
+    return (
+        <>
+            {/*<LinearGradient
+                style = {styles.linearGradientStyles}
+                start = {MyStyle.LGWhitish.start}
+                end = {MyStyle.LGWhitish.end}
+                locations = {MyStyle.LGWhitish.locations}
+                colors = {MyStyle.LGWhitish.colors}
+            >*/}
+            {props.title && <Text style = {modalRadioList.textTitle}>{props.title}</Text>}
+            {props.subTitle && <Text style = {modalRadioList.textSubtitle}>{props.subTitle}</Text>}
+            {/* </LinearGradient>*/}
+
+            <View style = {modalRadioList.viewItemList}>
+                {
+                    props?.items?.length > 0 &&
+                    props?.items
+                         .map((prop: any, index: any) =>
+                                  (
+                                      <MyMaterialRipple
+                                          key = {index}
+                                          {...MyStyle.MaterialRipple.drawer}
+                                          style = {modalRadioList.viewItem}
+                                          onPress = {() => props.onItem(prop)}
+                                      >
+                                          {/*<MyIcon.Fontisto
+                                                style = {modalRadioList.iconSelectedLeft}
+                                                name = "radio-btn-active"
+                                                size = {18}
+                                                color = {MyColor.attentionDark}
+                                            />*/}
+                                          {/*<MyFastImage
+                                                source = {[user?.customers_picture?.length > 0 ? MyImage.defaultAvatar : MyImage.defaultAvatar, MyImage.defaultAvatar]}
+                                                style = {modalRadioList.imageLeft}
+                                            />*/}
+                                          <View style = {modalRadioList.viewTexts}>
+
+                                              {props.titleText &&
+                                               <Text
+                                                   numberOfLines = {2}
+                                                   style = {[modalRadioList.textItemTitle, Number(prop?.id) === Number(props.selected) && {color: MyColor.Primary.first}]}
+                                               >
+                                                   {prop[props.titleText]}
+                                               </Text>
+                                              }
+
+                                              {props.subTitleText &&
+                                               <Text
+                                                   numberOfLines = {2}
+                                                   style = {[modalRadioList.textItemSubtitle, Number(prop?.id) === Number(props.selected) && {color: MyColor.Primary.first, fontFamily: MyStyle.FontFamily.OpenSans.semiBold}]}
+                                               >
+                                                   {prop[props.subTitleText]}
+                                               </Text>
+                                              }
+
+                                              {props.bodyText &&
+                                               <Text
+                                                   numberOfLines = {5}
+                                                   style = {modalRadioList.textItemBody}
+                                               >
+                                                   {prop[props.bodyText]}
+                                               </Text>
+                                              }
+
+                                          </View>
+                                          <MyIcon.Fontisto
+                                              style = {modalRadioList.iconSelectedRight}
+                                              name = {Number(prop?.id) === Number(props.selected) ? "radio-btn-active" : "radio-btn-passive"}
+                                              size = {18}
+                                              color = {Number(prop?.id) === Number(props.selected) ? MyColor.Primary.first : MyColor.Material.GREY["600"]}
+                                          />
+                                      </MyMaterialRipple>
+                                  )
+                         )
+
+                }
+            </View>
+        </>
+    )
+}
+
 
 //
 const OrderListItem = (props: any) => {
@@ -1842,8 +2231,8 @@ const categoryList = StyleSheet.create(
 // PRODUCT LIST PAGE:
 const productList = StyleSheet.create(
     {
-        touchable: {},
-        view     : {
+        materialRipple: {},
+        view          : {
             display         : 'flex',
             flexDirection   : 'row',
             justifyContent  : 'flex-start',
@@ -1851,10 +2240,10 @@ const productList = StyleSheet.create(
             marginHorizontal: MyStyle.marginHorizontalList,
             marginVertical  : MyStyle.marginVerticalList,
         },
-        image    : {
+        image         : {
             ...MyStyleSheet.imageList,
         },
-        textsView: {
+        textsView     : {
             display       : 'flex',
             flexDirection : 'column',
             justifyContent: 'flex-start',
@@ -1863,7 +2252,7 @@ const productList = StyleSheet.create(
 
             marginHorizontal: MyStyle.marginHorizontalTextsView,
         },
-        textName : {
+        textName      : {
             fontFamily: MyStyle.FontFamily.OpenSans.regular,
             fontSize  : 13,
             color     : MyColor.Material.BLACK,
@@ -2073,6 +2462,177 @@ const cartPageTotal = StyleSheet.create(
     }
 );
 
+// NOTIFICATION LIST PAGE:
+const notificationList = StyleSheet.create(
+    {
+        materialRipple: {},
+        view          : {
+            display          : 'flex',
+            flexDirection    : 'row',
+            justifyContent   : 'flex-start',
+            paddingHorizontal: MyStyle.paddingHorizontalList,
+            paddingVertical  : MyStyle.paddingVerticalList,
+        },
+        image         : {
+            ...MyStyleSheet.imageListSmall,
+
+            borderRadius: 100,
+        },
+        textsView     : {
+            display       : 'flex',
+            flexDirection : 'column',
+            justifyContent: 'space-between',
+
+            flex: 1,
+
+            marginHorizontal: MyStyle.marginHorizontalTextsView,
+        },
+        textTitle     : {
+            fontFamily: MyStyle.FontFamily.OpenSans.regular,
+            fontSize  : 14,
+            color     : MyColor.textDarkPrimary,
+        },
+        textBody      : {
+            fontFamily: MyStyle.FontFamily.Roboto.regular,
+            fontSize  : 13,
+            color     : MyColor.textDarkSecondary,
+
+            marginTop: 1,
+        },
+        textTime      : {
+            fontFamily: MyStyle.FontFamily.Roboto.regular,
+            fontSize  : 12,
+            color     : MyColor.textDarkSecondary,
+
+            alignSelf: "flex-end",
+
+            marginTop: 4,
+        },
+    }
+);
+
+// OPTION PAGE:
+const optionList = StyleSheet.create(
+    {
+        linearGradientStyles: {},
+        materialRipple      : {},
+        view                : {
+            display       : 'flex',
+            flexDirection : 'row',
+            justifyContent: 'space-around',
+            alignItems    : "center",
+
+            marginHorizontal: MyStyle.marginHorizontalList,
+            paddingVertical : MyStyle.paddingVerticalList,
+        },
+        image               : {
+            ...MyStyleSheet.imageListExtraSmall,
+        },
+        textsView           : {
+            display       : 'flex',
+            flexDirection : 'column',
+            justifyContent: 'center',
+            alignItems    : "flex-start",
+
+            flex: 1,
+
+            marginLeft : MyStyle.marginHorizontalTextsView,
+            marginRight: 20,
+        },
+        textTitle           : {
+            fontFamily: MyStyle.FontFamily.OpenSans.regular,
+            fontSize  : 15,
+            color     : MyColor.textDarkPrimary,
+        },
+        textSubtitle        : {
+            fontFamily: MyStyle.FontFamily.Roboto.regular,
+            fontSize  : 13,
+            color     : MyColor.textDarkSecondary,
+
+            marginTop: 2,
+        },
+
+        iconSelected: {},
+    }
+);
+
+// MODAL RADIO LIST:
+const modalRadioList = StyleSheet.create(
+    {
+        textTitle   : {
+            fontFamily: MyStyle.FontFamily.Roboto.bold,
+            fontSize  : 21,
+            color     : MyColor.textDarkPrimary,
+
+            paddingTop       : MyStyle.paddingVerticalModal,
+            paddingHorizontal: MyStyle.paddingHorizontalModal,
+        },
+        textSubtitle: {
+            fontFamily: MyStyle.FontFamily.Roboto.regular,
+            fontSize  : 15,
+            color     : MyColor.textDarkSecondary,
+
+            marginTop        : 2,
+            paddingBottom    : MyStyle.paddingVerticalModal / 2,
+            paddingHorizontal: MyStyle.paddingHorizontalModal,
+        },
+
+        viewItemList     : {
+            display       : "flex",
+            flexDirection : "column",
+            justifyContent: "flex-start",
+
+            marginTop      : MyStyle.paddingVerticalModal / 2,
+            marginBottom   : MyStyle.paddingVerticalModal,
+            backgroundColor: '#f9f9f9',
+        },
+        viewItem         : {
+            display       : "flex",
+            flexDirection : "row",
+            justifyContent: "flex-start",
+            alignItems    : "center",
+
+            paddingVertical: MyStyle.paddingVerticalModalItem,
+        },
+        imageLeft        : {
+            width          : MyStyle.screenWidth * 0.08,
+            height         : MyStyle.screenWidth * 0.08,
+            backgroundColor: MyColor.Material.GREY["100"],
+
+            marginLeft : MyStyle.paddingHorizontalModalItem / 2,
+            marginRight: 10,
+        },
+        viewTexts        : {
+            flex      : 1,
+            marginLeft: MyStyle.paddingHorizontalModalItem,
+        },
+        textItemTitle    : {
+            fontFamily: MyStyle.FontFamily.OpenSans.semiBold,
+            fontSize  : 16,
+            color     : MyColor.textDarkPrimary2,
+        },
+        textItemSubtitle : {
+            fontFamily: MyStyle.FontFamily.OpenSans.regular,
+            fontSize  : 16,
+            color     : MyColor.textDarkPrimary,
+        },
+        textItemBody     : {
+            fontFamily: MyStyle.FontFamily.Roboto.regular,
+            fontSize  : 14,
+            color     : MyColor.textDarkSecondary,
+        },
+        iconSelectedLeft : {
+            paddingLeft: MyStyle.paddingHorizontalModalItem / 2,
+            marginRight: 10,
+        },
+        iconSelectedRight: {
+            marginLeft  : 6,
+            paddingRight: MyStyle.paddingHorizontalModalItem / 1.5,
+        },
+    }
+);
+
+
 const orderList = StyleSheet.create(
     {
         view     : {
@@ -2261,7 +2821,17 @@ export {
     CartPageBottomButtons,
     CartPageTotal,
 
+    OptionList,
+    ModalRadioList,
+
     OrderListItem,
+
+    NotificationListItem,
+    NotificationListItemContentLoader,
+    NotificationDetailsContentLoader,
+
+    AddressListItem,
+    AddressListItemContentLoader,
 
     RestaurantListItem,
     RestaurantItemContentLoader,

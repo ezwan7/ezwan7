@@ -113,6 +113,7 @@ const MyInput = (props: any) => {
                                                                          props.helperText?.type === "error" && MyColor.errorDark ||
                                                                          MyColor.errorDark)) ||
                                           (isFocused && (props.focusedBorderColor?.borderColor && props.focusedBorderColor.borderColor || MyColor.Primary.first)) ||
+                                          ((value && props.readyBorderColor?.borderColor) && props.readyBorderColor.borderColor) ||
                                           (props.mode === "line" && MyColor.Material.GREY["600"] ||
                                           props.mode === "outlined" && MyColor.Material.GREY["800"] ||
                                           props.mode === "rounded" && MyColor.Material.GREY["800"])
@@ -149,7 +150,7 @@ const MyInput = (props: any) => {
             color          : _animatedIsFocused.interpolate(
                 {
                     inputRange : [0, 1],
-                    outputRange: [MyColor.Material.GREY["800"], labelTextColorFocused],
+                    outputRange: [MyColor.Material.GREY["600"], labelTextColorFocused],
                 }
             ),
         },
@@ -411,13 +412,16 @@ const MyInput = (props: any) => {
                     }
                     {
                         props.iconRight?.name &&
-                        <TouchableOpacity activeOpacity = {0.5}
-                                          style = {styles.iconRightTouchable}
-                                          onPress = {props.iconRightOnPress?.type ? iconRightOnPress : props.iconRightOnPress}>
+                        <TouchableOpacity
+                            activeOpacity = {0.5}
+                            style = {styles.iconRightTouchable}
+                            onPress = {props.iconRightOnPress?.type ? iconRightOnPress : props.iconRightOnPress}
+                        >
                             {getMyIcon(
                                 {
                                     fontFamily: props.iconRight?.fontFamily || MyConstant.VectorIcon.SimpleLineIcons,
                                     name      : props.iconRight?.name,
+                                    size      : props.iconRight?.size,
                                     color     : props.iconRight?.color || MyColor.Material.GREY["800"],
                                     style     : iconRightStyles
                                 }
@@ -441,6 +445,7 @@ MyInput.propTypes = {
     mode                   : PropTypes.string,
     focusedBorder          : PropTypes.bool,
     focusedBorderColor     : PropTypes.any,
+    readyBorderColor       : PropTypes.any,
     placeholder            : PropTypes.string,
     floatingLabel          : PropTypes.string,
     floatingLabelBackground: PropTypes.string,
@@ -486,6 +491,7 @@ MyInput.defaultProps = {
     mode                   : "rounded" || "line" || "outlined" || "transparent",
     focusedBorder          : true,
     focusedBorderColor     : true, // {borderColor: MyColor.Primary.first},
+    readyBorderColor       : true, // {borderColor: MyColor.Primary.first},
     placeholder            : null,
     floatingLabel          : null,
     floatingLabelBackground: "#f1f1f1",
@@ -700,6 +706,7 @@ const styles = StyleSheet.create(
         },
 
         focusedBorderColor: {},
+        readyBorderColor  : {},
 
         helperText: {
             position: "absolute",
@@ -746,6 +753,7 @@ const styles = StyleSheet.create(
     mode = "outlined"
     focusedBorder={false}
     focusedBorderColor={false} // {borderColor: MyColor.Primary.first},
+    readyBorderColor={false} // {borderColor: MyColor.Primary.first},
     // placeholder = "Enter your Password"
     floatingLabel = "Enter your Password"
     floatingLabelBackground = "#f1f1f1"

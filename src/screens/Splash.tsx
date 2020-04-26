@@ -52,10 +52,18 @@ const SplashScreen = ({}) => {
         //                    2: App don't require Login: Show Home Tab.
         //
 
+        MyUtil.printConsole(true, 'log', `LOG: ${SplashScreen.name}. prepareData: `, '');
 
         // Get Firebase Token
-        // MyUtil.firebaseGetToken();
+        await MyUtil.firebaseGetToken();
 
+        // Update Current Location only if permission already given:
+        await MyFunction.getUserLocation(MyConstant.GeolocationFetchType.store,
+                                         MyConfig.geoLocationOptionSilent,
+                                         false,
+                                         false,
+                                         false,
+        );
 
         // Check if App is New or Old:
         const storage: any = await MyUtil.AsyncStorageGet(MyConfig.AsyncStorage.APP_FRESH_INSTALL, false);
@@ -79,14 +87,6 @@ const SplashScreen = ({}) => {
 
             fetchIntroSlides();
         }
-
-        // Update Current Location only if permission already given:
-        MyFunction.getUserLocation(MyConstant.GeolocationFetchType.store,
-                                   MyConfig.geoLocationOptionSilent,
-                                   false,
-                                   false,
-                                   false,
-        );
     }
 
     const fetchIntroSlides = async () => {
@@ -117,7 +117,7 @@ const SplashScreen = ({}) => {
                     {
                         key            : index.toString(),
                         title          : slide.title,
-                        text           : slide.subtitle,
+                        text           : slide.subTitle,
                         icon           : null,
                         image          : slide.image,
                         backgroundColor: MyColor.Primary.first,

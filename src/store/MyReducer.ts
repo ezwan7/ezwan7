@@ -6,10 +6,13 @@ import AppNavigatorReducer from "./AppRedux";
 import IntroReducer from "./IntroRedux";
 import UserLocationReducer from "./UserLocation";
 import AuthReducer from "./AuthRedux";
-import AppDataReducer from "./AppDataRedux";
 import AppInputReducer from "./AppInputRedux";
+import AppInfoReducer from "./AppInfoRedux";
+import AppDataReducer from "./AppDataRedux";
 import CartReducer from "./CartRedux";
 import CategoryReducer from "./CategoryRedux";
+import AddressReducer from "./AddressRedux";
+import NotificationReducer from "./NotificationRedux";
 
 const persistConfig: any = {
     key    : 'root',
@@ -25,10 +28,13 @@ const persistConfig: any = {
     whitelist: [
         'intro',
         'auth',
-        'app_data',
         'app_input',
+        'app_info',
+        'app_data',
         'cart',
         'category',
+        'addresses',
+        'notification',
     ]
 }
 
@@ -37,10 +43,13 @@ const myReducer = persistCombineReducers(persistConfig, {
     intro        : IntroReducer,
     user_location: UserLocationReducer,
     auth         : AuthReducer,
-    app_data     : AppDataReducer,
     app_input    : AppInputReducer,
+    app_info     : AppInfoReducer,
+    app_data     : AppDataReducer,
     cart         : CartReducer,
     category     : CategoryReducer,
+    addresses    : AddressReducer,
+    notification : NotificationReducer,
 });
 
 export default myReducer;

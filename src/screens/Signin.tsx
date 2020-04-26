@@ -59,7 +59,7 @@ const SigninScreen = ({route, navigation}: any) => {
 
     const user: any = useSelector((state: any) => state.auth.user);
 
-    const {register, getValues, setValue, handleSubmit, formState, errors, reset, triggerValidation}: any = useForm(MyConfig.defaultUseForm);
+    const {register, getValues, setValue, handleSubmit, formState, errors, reset, triggerValidation}: any = useForm(MyConfig.useFormDefault);
 
     useFocusEffect(
         useCallback(() => {
@@ -221,11 +221,8 @@ const SigninScreen = ({route, navigation}: any) => {
                                 locations = {MyStyle.LGWhitish.locations}
                                 colors = {MyStyle.LGWhitish.colors}>
                     <ScrollView contentInsetAdjustmentBehavior = "automatic">
-                        <View style = {[MyStyleSheet.mainView, {
-                            alignItems      : "center",
-                            marginBottom    : MyStyle.marginVerticalLogin,
-                            marginHorizontal: MyStyle.marginHorizontalLogin,
-                        }]}>
+
+                        <View style = {[MyStyleSheet.viewPageLogin, {alignItems: "center", marginTop: MyStyle.headerHeightAdjusted}]}>
                             <Image source = {MyImage.logo1024}
                                    resizeMode = "contain"
                                    style = {styles.imageLogo}
@@ -301,14 +298,19 @@ const SigninScreen = ({route, navigation}: any) => {
                                 />
                             </View>
 
-                            <TouchableOpacity activeOpacity = {0.7}
-                                              onPress = {() => MyUtil.commonAction(false,
-                                                                                   null,
-                                                                                   MyConstant.CommonAction.navigate,
-                                                                                   MyConfig.routeName.Signup,
-                                                                                   null,
-                                                                                   null
-                                              )}>
+                            <TouchableOpacity
+                                activeOpacity = {0.7}
+                                onPress = {
+                                    () =>
+                                        MyUtil.commonAction(false,
+                                                            null,
+                                                            MyConstant.CommonAction.navigate,
+                                                            MyConfig.routeName.Signup,
+                                                            null,
+                                                            null
+                                        )
+                                }
+                            >
                                 <View style = {[MyStyle.RowCenter, {marginTop: 44}]}>
                                     <Text style = {styles.textDontHaveAccount}>
                                         {MyLANG.DontHaveAnAccount}

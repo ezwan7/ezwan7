@@ -112,25 +112,29 @@ const MyAuth = {
                 break;
         }
 
+        const device_token: any = store.getState().auth.device_token;
+
         // Call Login API:
         const response: any = await MyUtil
             .myHTTP(false, MyConstant.HTTP_POST, API,
                     {
-                        "app_ver"               : MyConfig.app_version,
-                        "app_build_ver"         : MyConfig.app_build_version,
-                        "platform"              : MyConfig.app_platform,
-                        [MyConstant.USERNAME]   : formParam?.username,
-                        [MyConstant.PASSWORD]   : formParam?.password,
-                        [MyConstant.FACEBOOK_ID]: formParam?.facebook_id,
-                        [MyConstant.GOOGLE_ID]  : formParam?.google_id,
-                        [MyConstant.EMAIL]      : formParam?.email,
-                        [MyConstant.NAME]       : formParam?.name,
-                        [MyConstant.FIRST_NAME] : formParam?.first_name,
-                        [MyConstant.LAST_NAME]  : formParam?.last_name,
-                        [MyConstant.PHOTO]      : formParam?.photo,
+                        [MyConstant.USERNAME]    : formParam?.username,
+                        [MyConstant.PASSWORD]    : formParam?.password,
+                        [MyConstant.FACEBOOK_ID] : formParam?.facebook_id,
+                        [MyConstant.GOOGLE_ID]   : formParam?.google_id,
+                        [MyConstant.EMAIL]       : formParam?.email,
+                        [MyConstant.NAME]        : formParam?.name,
+                        [MyConstant.FIRST_NAME]  : formParam?.first_name,
+                        [MyConstant.LAST_NAME]   : formParam?.last_name,
+                        [MyConstant.PHOTO]       : formParam?.photo,
+                        [MyConstant.DEVICE_TOKEN]: device_token,
                         // "role"               : MyConfig.UserRole.customer,
                         // "db_key"             : 'app_build_ver_android',
                         // "device"             : null,
+                        'app_ver'      : MyConfig.app_version,
+                        'app_build_ver': MyConfig.app_build_version,
+                        'platform'     : MyConfig.app_platform,
+                        'device'       : null,
                     }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, showLoader, true, false
             );
 
@@ -588,18 +592,16 @@ const MyAuth = {
         const response: any = await MyUtil
             .myHTTP(false, MyConstant.HTTP_POST, API,
                     {
-                        "app_ver"               : MyConfig.app_version,
-                        "app_build_ver"         : MyConfig.app_build_version,
-                        "platform"              : MyConfig.app_platform,
-                        [MyConstant.USERNAME]   : formParam?.username,
-                        [MyConstant.PASSWORD]   : formParam?.password,
-                        [MyConstant.FACEBOOK_ID]: formParam?.facebook_id,
-                        [MyConstant.GOOGLE_ID]  : formParam?.google_id,
-                        [MyConstant.EMAIL]      : formParam?.email,
-                        [MyConstant.NAME]       : formParam?.name,
-                        [MyConstant.FIRST_NAME] : formParam?.first_name,
-                        [MyConstant.LAST_NAME]  : formParam?.last_name,
-                        [MyConstant.PHOTO]      : formParam?.photo,
+                        [MyConstant.USERNAME]      : formParam?.username,
+                        [MyConstant.PASSWORD]      : formParam?.password,
+                        [MyConstant.FACEBOOK_ID]   : formParam?.facebook_id,
+                        [MyConstant.GOOGLE_ID]     : formParam?.google_id,
+                        [MyConstant.EMAIL]         : formParam?.email,
+                        [MyConstant.NAME]          : formParam?.name,
+                        [MyConstant.FIRST_NAME]    : formParam?.first_name,
+                        [MyConstant.LAST_NAME]     : formParam?.last_name,
+                        [MyConstant.PHOTO]         : formParam?.photo,
+                        [MyConstant.REFERENCE_CODE]: formParam?.reference_code,
 
                         "customers_firstname": formParam?.first_name,
                         "customers_lastname" : formParam?.last_name, //CHANGE
@@ -607,6 +609,10 @@ const MyAuth = {
                         // "role"               : MyConfig.UserRole.customer,
                         // "db_key"             : 'app_build_ver_android',
                         // "device"             : null,
+                        'app_ver'      : MyConfig.app_version,
+                        'app_build_ver': MyConfig.app_build_version,
+                        'platform'     : MyConfig.app_platform,
+                        'device'       : null,
                     }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, showLoader, true, false
             );
 
@@ -709,10 +715,11 @@ const MyAuth = {
         const response: any = await MyUtil
             .myHTTP(false, MyConstant.HTTP_POST, MyAPI.password_forgot,
                     {
-                        "app_ver"         : MyConfig.app_version,
-                        "app_build_ver"   : MyConfig.app_build_version,
-                        "platform"        : MyConfig.app_platform,
                         [MyConstant.EMAIL]: formParam?.email,
+                        'app_ver'      : MyConfig.app_version,
+                        'app_build_ver': MyConfig.app_build_version,
+                        'platform'     : MyConfig.app_platform,
+                        'device'       : null,
                     }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, showLoader, true, false
             );
 
@@ -721,13 +728,13 @@ const MyAuth = {
             'response': response,
         });
 
-        if (response?.type === MyConstant.RESPONSE.TYPE.data && response?.data?.status === 200 && response?.data?.data?.data) {
+        if (response?.type === MyConstant.RESPONSE.TYPE.data && response?.data?.status === 200 && response?.data?.data?.success === '1') {
 
             const data = response.data.data.data;
             MyUtil.showMessage(showMessage,
                                {
                                    'title'  : MyLANG.Success,
-                                   'message': response?.data?.data?.message ? response?.data?.data?.message : MyLANG.PasswordResetCodeSent
+                                   'message': response?.data?.data?.message || MyLANG.PasswordResetCodeSent
                                },
                                false
             );
@@ -736,7 +743,7 @@ const MyAuth = {
             }
 
         } else {
-            MyUtil.showMessage(showMessage, response.errorMessage ? response.errorMessage : MyLANG.UnknownError, false);
+            MyUtil.showMessage(showMessage, response?.data?.data?.message || MyLANG.UnknownError, false);
         }
     },
 
@@ -749,6 +756,43 @@ const MyAuth = {
             'params'           : params,
             'navigationActions': navigationActions,
         });
+
+        const response: any = await MyUtil
+            .myHTTP(false, MyConstant.HTTP_POST, MyAPI.password_reset,
+                    {
+                        'otp'   : formParam?.code,
+                        email   : formParam?.email,
+                        password: formParam?.password,
+
+                        'app_ver'      : MyConfig.app_version,
+                        'app_build_ver': MyConfig.app_build_version,
+                        'platform'     : MyConfig.app_platform,
+                        'device'       : null,
+                    }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, showLoader, true, false
+            );
+
+        MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
+            'apiURL'  : MyAPI.password_forgot,
+            'response': response,
+        });
+
+        if (response?.type === MyConstant.RESPONSE.TYPE.data && response?.data?.status === 200 && response?.data?.data?.success === '1') {
+
+            const data = response.data.data.data;
+            MyUtil.showMessage(showMessage,
+                               {
+                                   'title'  : MyLANG.Success,
+                                   'message': response?.data?.data?.message || MyLANG.PasswordResetSuccessfull
+                               },
+                               false
+            );
+            if (routeName) {
+                MyUtil.commonAction(false, null, MyConstant.CommonAction.navigate, routeName, params, null);
+            }
+
+        } else {
+            MyUtil.showMessage(showMessage, response?.data?.data?.message || MyLANG.UnknownError, false);
+        }
     },
 
     showLogoutConfirmation: async (showMessage: any, showLoader: any, doReRoute: any, routeTo: any, navigationActions: any) => {

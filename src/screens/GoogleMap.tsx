@@ -39,7 +39,7 @@ const GoogleMapScreen = ({route, navigation}: any) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    useEffect(() => {
+    /*useEffect(() => {
 
         MyUtil.printConsole(true, 'log', `LOG: ${GoogleMapScreen.name}. useEffect: location: `, {location});
 
@@ -52,7 +52,7 @@ const GoogleMapScreen = ({route, navigation}: any) => {
         }
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [location]);
+    }, [location]);*/
 
     const initMap = async () => {
         switch (route?.params?.mapPageSource) {
@@ -100,23 +100,23 @@ const GoogleMapScreen = ({route, navigation}: any) => {
         }
     }
 
-    const onAddressSubmit = () => {
+    const onSubmit = () => {
 
-        MyUtil.printConsole(true, 'log', 'LOG: onAddressSubmit: ', location);
+        MyUtil.printConsole(true, 'log', 'LOG: onSubmit: ', location);
 
-        switch (route?.params?.mapPageOnSubmit) {
+        switch (route?.params?.onSubmit?.type) {
 
             case MyConstant.MapPageOnSubmit.store:
 
                 break;
 
-            case MyConstant.MapPageOnSubmit.GO_BACK:
-                MyUtil.stackAction(false,
-                                   null,
-                                   MyConstant.StackAction.pop,
-                                   1,
-                                   location,
-                                   null
+            case MyConstant.MapPageOnSubmit.select_and_GO_BACK:
+                MyUtil.commonAction(false,
+                                    navigation,
+                                    MyConstant.CommonAction.navigate,
+                                    route?.params?.onSubmit.routeName,
+                                    location,
+                                    null
                 )
                 break;
 
@@ -162,7 +162,7 @@ const GoogleMapScreen = ({route, navigation}: any) => {
         const location: any = await MyFunction.getUserLocation(MyConstant.GeolocationFetchType.return,
                                                                MyConfig.geoLocationOption,
                                                                true,
-                                                               MyLANG.PleaseWait + '...',
+                                                               false,
                                                                MyConstant.SHOW_MESSAGE.ALERT
         );
         MyUtil.printConsole(true, 'log', 'LOG: getUserLocation: await-response: ', {'location': location});
@@ -178,6 +178,8 @@ const GoogleMapScreen = ({route, navigation}: any) => {
                 location    : location,
             }
             setLocation(updatedLocation);
+
+            mapMoveCamera(updatedLocation);
         }
     };
 
@@ -204,21 +206,23 @@ const GoogleMapScreen = ({route, navigation}: any) => {
                     location    : location,
                 }
                 setLocation(updatedLocation);
+
+                mapMoveCamera(updatedLocation);
             }
         }
     };
 
     const getGeocodeAddress = async (formatted_address: any) => {
 
-        const geocodeAddress: any = await MyUtil.GeocodeAddress(formatted_address, MyConstant.SHOW_MESSAGE.TOAST);
+        const geocodeAddress: any = await MyUtil.GeocodeAddress(formatted_address, MyLANG.PleaseWait + '...', MyConstant.SHOW_MESSAGE.TOAST);
         MyUtil.printConsole(true, 'log', 'LOG: GeocodeAddress: await-response: ', {'geocodeAddress': geocodeAddress});
 
-        if (geocodeAddress?.results?.[0]?.geometry && geocodeAddress?.results?.[0]?.geometry?.location?.lat && geocodeAddress?.results?.[0]?.geometry?.location?.lng) {
+        if (geocodeAddress?.type === MyConstant.RESPONSE.TYPE.data && geocodeAddress.data) {
 
-            const location: any = MyUtil.generateLocation(geocodeAddress,
+            const location: any = MyUtil.generateLocation(geocodeAddress.data,
                                                           0,
-                                                          geocodeAddress.results[0].geometry?.location.lat,
-                                                          geocodeAddress.results[0].geometry?.location.lng
+                                                          geocodeAddress.data?.results?.[0].geometry?.location.lat,
+                                                          geocodeAddress.data?.results?.[0].geometry?.location.lng
             );
 
             MyUtil.printConsole(true, 'log', 'LOG: getGeocodeAddress: ', {location});
@@ -235,22 +239,22 @@ const GoogleMapScreen = ({route, navigation}: any) => {
                     location    : location,
                 }
                 setLocation(updatedLocation);
+
+                mapMoveCamera(updatedLocation);
             }
         }
     };
 
-
-    const onRegionChange = async (region: any) => {
-
+    const mapMoveCamera = async (updatedLocation: any) => {
+        if (mapRef?.current && updatedLocation?.region?.latitude && updatedLocation?.region?.longitude) {
+            // const prevPos = {latitude: mapRef.current?.props?.initialRegion?.latitude, longitude: mapRef.current?.props?.initialRegion?.longitude};
+            // const curPos  = {latitude: location.region?.latitude, longitude: location.region?.longitude};
+            // const curRot  = getRotation(prevPos, curPos);
+            // mapRef.current.animateCamera({heading: {curRot}, center: curPos, pitch: 90});
+            mapRef.current.animateCamera({center: updatedLocation.region});
+        }
         // Add Debounce:
-        getGeocodePosition(region);
-
-        // let prevPos = {latitude: 30.420814, longitude: -120.081949};
-        // let curPos = {latitude: 37.420814, longitude: -122.081949};
-        // const curRot = getRotation(prevPos, curPos);
-        // googleMap.animateCamera({heading: {curRot}, center: curPos, pitch: 90});
-        // console.log('onRegionChange: region: ', this.state.region);
-        // console.log('onRegionChange: myRegion: ', myRegion);
+        // getGeocodePosition(region);
     }
 
 
@@ -285,7 +289,7 @@ const GoogleMapScreen = ({route, navigation}: any) => {
                                 provider = {PROVIDER_GOOGLE}
                                 onMapReady = {onMapReady}
                                 initialRegion = {location.region}
-                                /*onRegionChange = {onRegionChange}
+                                /*onRegionChange = {getGeocodePosition}
                                 onRegionChangeComplete = {(region: any) => {
                                     setAddress();
                                 }}*/
@@ -329,7 +333,7 @@ const GoogleMapScreen = ({route, navigation}: any) => {
                                     linearGradientStyle = {styles.buttonAddress}
                                     touchableStyle = {{}}
                                     iconLeft = {{fontFamily: MyConstant.VectorIcon.Fontisto, name: 'check'}}
-                                    onPress = {onAddressSubmit}
+                                    onPress = {onSubmit}
                                 />
                             </View>
                         </View>

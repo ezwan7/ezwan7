@@ -43,8 +43,10 @@ import {
     ProductDetailsContentLoader,
 } from "../shared/MyContainer";
 
-
 import {cartEmpty, cartItemAdd, cartItemQuantityIncrement} from "../store/CartRedux";
+import {MyImageViewer} from "../components/MyImageViewer";
+import MyMaterialRipple from "../components/MyMaterialRipple";
+
 
 let renderCount = 0;
 
@@ -55,25 +57,23 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
         MyUtil.printConsole(true, 'log', `LOG: ${ProductDetailsScreen.name}. renderCount: `, {renderCount});
     }
 
-    const dispatch       = useDispatch();
-    const app_input: any = useSelector((state: any) => state.app_input);
-    const user: any      = useSelector((state: any) => state.auth.user);
-    const cart: any      = useSelector((state: any) => state.cart);
+    const dispatch = useDispatch();
+
+    const user: any          = useSelector((state: any) => state.auth.user);
+    const app_input: any     = useSelector((state: any) => state.app_input);
+    const cart: any          = useSelector((state: any) => state.cart);
     const user_location: any = useSelector((state: any) => state.user_location);
 
     const [refreshing, setRefreshing] = useState(false);
     const [firstLoad, setFirstLoad]   = useState(true);
     const [product, setProduct]: any  = useState([]);
 
-    const [images, setImages]                         = useState([]);
     const [imageViewerVisible, setImageViewerVisible] = useState(false);
 
     useEffect(() => {
-        MyUtil.printConsole(true, 'log', `LOG: ${ProductDetailsScreen.name}. useEffect: `, {user,user_location, cart, app_input});
+        MyUtil.printConsole(true, 'log', `LOG: ${ProductDetailsScreen.name}. useEffect: `, {user, user_location, cart, app_input});
 
         fetchProduct(false, false, false);
-
-        // MyFunction.fetchPaymentMethod(false);
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -116,20 +116,6 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                 const data = response.data.data.product_data[0];
                 if (data.id > 0) {
                     setProduct(data);
-
-                    if (data.images?.length > 0) {
-                        let images: any = data.images.map((item: any) => {
-                            return {
-                                url: item['image'],
-                            }
-                        });
-                        setImages(images);
-
-                    } else {
-
-                        let images: any = [{url: data?.image}];
-                        setImages(images);
-                    }
                 }
 
             } else {
@@ -225,22 +211,15 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                                      snapToAlignment = "center"
                                  >
                                      <ImageSliderBanner
-                                         item = {product?.images?.length > 0 ? product?.images : [{image: product?.image}]}
-                                         onPress = {
-                                             (prop: any) =>
-                                                 prop?.image?.length ?
-                                                 setImageViewerVisible(true)
-                                                                     :
-                                                 null
-                                         }
-                                         style = {{
-                                             height: MyStyle.screenWidth / 1.5,
-                                         }}/>
+                                         item = {(Array.isArray(product?.images) && product?.images?.length > 0) ? product?.images : [{image: product?.image}]}
+                                         onPress = {(prop: any) => prop?.image?.length ? setImageViewerVisible(true) : null}
+                                         style = {{height: MyStyle.screenWidth / 1.5}}
+                                     />
                                  </ScrollView>
 
                                  <Text
                                      numberOfLines = {2}
-                                     style = {[MyStyleSheet.titlePage, {
+                                     style = {[MyStyleSheet.textPageTitle, {
                                          textAlign       : 'center',
                                          marginHorizontal: MyStyle.marginHorizontalPage,
                                          marginTop       : 15,
@@ -258,13 +237,13 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                                  >
                                      {product?.discount_price &&
                                       <Text numberOfLines = {1}
-                                            style = {[MyStyleSheet.titlePriceDiscountedPage, {marginRight: 5}]}
+                                            style = {[MyStyleSheet.textPriceDiscountedPage, {marginRight: 5}]}
                                       >
                                           {MyConfig.Currency.MYR.symbol} {product?.products_price}
                                       </Text>
                                      }
                                      <Text numberOfLines = {1}
-                                           style = {[MyStyleSheet.titlePricePage, {}]}
+                                           style = {[MyStyleSheet.textPricePage, {}]}
                                      >
                                          {MyConfig.Currency.MYR.symbol} {product?.discount_price ? product?.discount_price : product?.products_price}
                                      </Text>
@@ -286,7 +265,8 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                                                   /> :
                                                   <IconStar
                                                       key = {key}
-                                                      color = {MyColor.Material.YELLOW['200']}
+                                                      solid
+                                                      color = {MyColor.Material.GREY["200"]}
                                                       style = {{marginRight: 3}}
                                                   />
                                               )
@@ -302,6 +282,52 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                                      >
                                          {product?.rating > 0 ? product?.rating : '0'}
                                      </Text>
+                                 </View>
+
+                                 <View style = {{...MyStyle.RowStartCenter}}>
+                                     <Text
+                                         style = {{
+                                             fontFamily: MyStyle.FontFamily.Roboto.medium,
+                                             fontSize  : 16,
+                                             color     : MyColor.textDarkPrimary,
+
+                                             paddingVertical  : 10,
+                                             paddingHorizontal: 10,
+                                             backgroundColor  : MyColor.backgroundGrey,
+                                         }}
+                                     >
+                                         Color
+                                     </Text>
+                                     <View style = {{flexDirection: "row", justifyContent: "flex-start", flexWrap: "wrap"}}>
+
+                                         <MyMaterialRipple
+                                             style = {MyStyleSheet.MRButtonProductPage}
+                                             {...MyStyle.MaterialRipple.drawer}
+                                             onPress = {''}
+                                         >
+                                             <Text style = {MyStyleSheet.textButtonProductPage}>
+                                                 Red
+                                             </Text>
+                                         </MyMaterialRipple>
+                                         <MyMaterialRipple
+                                             style = {MyStyleSheet.MRButtonProductPage}
+                                             {...MyStyle.MaterialRipple.drawer}
+                                             onPress = {''}
+                                         >
+                                             <Text style = {MyStyleSheet.textButtonProductPageSelected}>
+                                                 Green
+                                             </Text>
+                                         </MyMaterialRipple>
+                                         <MyMaterialRipple
+                                             style = {MyStyleSheet.MRButtonProductPage}
+                                             {...MyStyle.MaterialRipple.drawer}
+                                             onPress = {''}
+                                         >
+                                             <Text style = {MyStyleSheet.textButtonProductPage}>
+                                                 Yellow
+                                             </Text>
+                                         </MyMaterialRipple>
+                                     </View>
                                  </View>
 
                                  <ScrollView
@@ -461,23 +487,14 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                 </View>
 
                 {
-                    images?.length > 0 &&
-                    <Modal
+                    ((Array.isArray(product?.images) && product?.images?.length > 0) || product?.image?.length > 0) &&
+                    <MyImageViewer
                         visible = {imageViewerVisible}
-                        transparent = {true}
                         onRequestClose = {() => setImageViewerVisible(false)}
-                    >
-                        <ImageViewer
-                            imageUrls = {images}
-                            enableSwipeDown = {true}
-                            enablePreload = {true}
-                            backgroundColor = {MyColor.Material.GREY["990"]}
-                            onSwipeDown = {() => {
-                                setImageViewerVisible(false)
-                            }}
-                        />
-                    </Modal>
+                        images = {product?.images?.length > 0 ? product?.images : [{image: product?.image}]}
+                    />
                 }
+
             </SafeAreaView>
         </Fragment>
     )

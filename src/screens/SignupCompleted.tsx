@@ -41,8 +41,8 @@ const SignupCompletedScreen = ({route, navigation}: any) => {
 
             BackHandler.addEventListener('hardwareBackPress', onBackPress);
 
-            return () =>
-                BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+            return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+
         }, [])
     );
 
@@ -51,11 +51,14 @@ const SignupCompletedScreen = ({route, navigation}: any) => {
             <StatusBarDark/>
             <SafeAreaView style = {MyStyleSheet.SafeAreaView1}/>
             <SafeAreaView style = {MyStyleSheet.SafeAreaView2}>
-                <LinearGradient style = {[MyStyleSheet.SafeAreaView3, {}]}
-                                start = {MyStyle.LGWhitish.start}
-                                end = {MyStyle.LGWhitish.end}
-                                locations = {MyStyle.LGWhitish.locations}
-                                colors = {MyStyle.LGWhitish.colors}>
+                <LinearGradient
+                    style = {[MyStyleSheet.SafeAreaView3, {}]}
+                    start = {MyStyle.LGWhitish.start}
+                    end = {MyStyle.LGWhitish.end}
+                    locations = {MyStyle.LGWhitish.locations}
+                    colors = {MyStyle.LGWhitish.colors}
+                >
+
                     <ScrollView contentInsetAdjustmentBehavior = "automatic">
                         <View style = {[MyStyleSheet.mainView, {
                             alignItems      : "center",

@@ -19,6 +19,9 @@ import NavigationService from "./NavigationService";
 import {DrawerActions, TabActions, StackActions, CommonActions} from '@react-navigation/native';
 import Splash from "react-native-splash-screen";
 
+import {store} from "../store/MyStore";
+import {device_token_update} from "../store//AuthRedux";
+
 // import {firebase} from '@react-native-firebase/messaging';
 
 import MyLANG from '../shared/MyLANG';
@@ -29,7 +32,6 @@ import MyColor from '../common/MyColor';
 import {MyStyle} from '../common/MyStyle';
 import MyIcon from "../components/MyIcon";
 
-import {store} from "../store/MyStore";
 
 import {MyAlert} from "../components/MyAlert";
 
@@ -496,39 +498,31 @@ const MyUtil = {
 
     firebaseGetToken: async () => {
 
-        Notifications.registerRemoteNotifications();
+        // Notifications.registerRemoteNotifications();
 
         Notifications.events().registerRemoteNotificationsRegistered((registered: Registered) => {
 
-            MyUtil.printConsole(true, 'log', 'LOG: RemoteNotificationsRegistered: ', {
-                'registered': registered
-            });
+            MyUtil.printConsole(true, 'log', 'LOG: Notification RemoteNotificationsRegistered: ', {'registered': registered});
 
             const deviceToken = registered.deviceToken;
 
-            MyUtil.AsyncStorageSet(MyConfig.AsyncStorage.FIREBASE_TOEKN, deviceToken, MyConstant.SHOW_MESSAGE.TOAST)
-                  .then((result: any) => {
-                      MyUtil.printConsole(true, 'log', 'LOG: AsyncStorageSet: resolve-then: ', {
-                          'key' : MyConfig.AsyncStorage.FIREBASE_TOEKN,
-                          'data': deviceToken
-                      });
+            if (deviceToken?.length > 10) {
 
-                      MyUtil.firebaseNotificationListeners();
+                const device_token = store.getState().auth.device_token;
+                if (deviceToken !== device_token) {
 
-                  })
-                  .catch((error: any) => {
-                      MyUtil.printConsole(true, 'log', 'LOG: AsyncStorageSet: reject-catch: ', {
-                          'key'  : MyConfig.AsyncStorage.FIREBASE_TOEKN,
-                          'error': error
-                      });
-                  });
+                    store.dispatch(device_token_update(deviceToken));
+                }
+
+                MyUtil.firebaseNotificationListeners();
+            }
         });
 
         Notifications.events().registerRemoteNotificationsRegistrationFailed((registrationError: RegistrationError) => {
 
             MyUtil.printConsole(true,
                                 'log',
-                                'LOG: RemoteNotificationsRegistrationFailed: ',
+                                'LOG: Notification RemoteNotificationsRegistrationFailed: ',
                                 {'registrationError': registrationError}
             );
 
@@ -540,6 +534,7 @@ const MyUtil = {
     },
 
     firebaseInitialNotification: async () => {
+
         return await Notifications.getInitialNotification();
 
         /*MyUtil.firebaseInitialNotification()
@@ -630,6 +625,8 @@ const MyUtil = {
     // createNotificationListeners:
     firebaseNotificationListeners: () => {
 
+        MyUtil.printConsole(true, 'log', 'LOG: Notification firebaseNotificationListeners: ', {});
+
         // Notifications.cancelLocalNotification(id);
         // Notifications.removeAllDeliveredNotifications();
 
@@ -655,6 +652,7 @@ const MyUtil = {
 
             completion();
         });
+
         /*Notifications.events().registerNotificationOpened((notification: Notification, completion: () => void, action: NotificationActionResponse) => {
          console.log("Notification opened by device user", notification.payload);
          console.log(`Notification opened with an action identifier: ${action.identifier} and response text: ${action.text}`);
@@ -675,10 +673,10 @@ const MyUtil = {
         try {
             const state = await NetInfo.fetch();
 
-            MyUtil.printConsole(true, 'log', 'LOG: isInternetAvailable: await: ', {
+            /*MyUtil.printConsole(true, 'log', 'LOG: isInternetAvailable: await: ', {
                 'isConnected': state.isConnected,
                 'state'      : state,
-            });
+            });*/
 
             return state.isConnected;
 
@@ -699,11 +697,14 @@ const MyUtil = {
     },
 
 
-    GetDeviceInfo: async (getType: any, showMessage: any) => {
-        MyUtil.printConsole(true, 'log', 'LOG: GetDeviceInfo:', {
-            'getType'    : getType,
-            'showMessage': showMessage,
-        });
+    GetDeviceInfo: async (getType: any, feature: any = null, returnType: any = 'string', askPermission: boolean = false, showLoader: any = false, showMessage: any = false) => {
+        /*MyUtil.printConsole(true, 'log', 'LOG: GetDeviceInfo:', {
+            'getType'      : getType,
+            'feature'      : feature,
+            'askPermission': askPermission,
+            'showMessage'  : showMessage,
+            'showLoader'   : showLoader,
+        });*/
 
         let response: any = {
             'type' : MyConstant.RESPONSE.TYPE.error,
@@ -712,40 +713,307 @@ const MyUtil = {
         }
 
         try {
-            const deviceInfo = new Promise((resolve, reject) => {
-                switch (getType) {
-                    case MyConstant.DeviceInfo.getAndroidId:
-                        DeviceInfo.getAndroidId()
-                                  .then(data => {
-                                      resolve(data);
-                                  })
-                                  .catch((error: any) => {
-                                      reject(error);
-                                  });
-                        break;
-                    case MyConstant.DeviceInfo.getApplicationName:
-                        resolve(DeviceInfo.getApplicationName());
-                        break;
-                    case MyConstant.DeviceInfo.hasNotch:
-                        resolve(DeviceInfo.hasNotch());
-                        break;
-                    default:
-                        reject('Get Type Not Found!');
-                        break;
-                }
-            });
+            if (showLoader !== false) {
+                MyUtil.showTinyToast(showLoader && showLoader.length > 0 ? showLoader : MyLANG.PleaseWait,
+                                     false,
+                                     MyStyle.TinyToast.CENTER,
+                                     MyStyle.TinyToast.Black.containerStyle,
+                                     MyStyle.TinyToast.Black.textStyle,
+                                     MyStyle.TinyToast.Black.textColor,
+                                     null,
+                                     MyStyle.TinyToast.imageStyleSucess,
+                                     false,
+                                     true,
+                                     true,
+                                     0,
+                                     MyConstant.TINY_TOAST.SHOW
+                );
+            }
 
-            await deviceInfo
-                .then((result: any) => {
-                    response = {
-                        'type' : MyConstant.RESPONSE.TYPE.data,
-                        'error': null,
-                        'data' : result,
-                    }
-                })
-                .catch((error: any) => {
-                    throw error;
-                });
+            let result: any = false;
+            switch (getType) {
+
+                case MyConstant.DeviceInfo.getAndroidId:
+                    result = await DeviceInfo.getAndroidId();
+                    break;
+
+                case MyConstant.DeviceInfo.getApiLevel:
+                    result = await DeviceInfo.getApiLevel();
+                    break;
+
+                case MyConstant.DeviceInfo.getApplicationName:
+                    result = await DeviceInfo.getApplicationName();
+                    break;
+
+                case MyConstant.DeviceInfo.getAvailableLocationProviders:
+                    result = await DeviceInfo.getAvailableLocationProviders();
+                    break;
+
+                case MyConstant.DeviceInfo.getBaseOs:
+                    result = await DeviceInfo.getBaseOs();
+                    break;
+
+                case MyConstant.DeviceInfo.getBuildId:
+                    result = await DeviceInfo.getBuildId();
+                    break;
+
+                case MyConstant.DeviceInfo.getBatteryLevel:
+                    result = await DeviceInfo.getBatteryLevel();
+                    break;
+
+                case MyConstant.DeviceInfo.getBootloader:
+                    result = await DeviceInfo.getBootloader();
+                    break;
+
+                case MyConstant.DeviceInfo.getBrand:
+                    result = await DeviceInfo.getBrand();
+                    break;
+
+                case MyConstant.DeviceInfo.getBuildNumber:
+                    result = await DeviceInfo.getBuildNumber();
+                    break;
+
+                case MyConstant.DeviceInfo.getBundleId:
+                    result = await DeviceInfo.getBundleId();
+                    break;
+
+                case MyConstant.DeviceInfo.isCameraPresent:
+                    result = await DeviceInfo.isCameraPresent();
+                    break;
+
+                case MyConstant.DeviceInfo.getCarrier:
+                    result = await DeviceInfo.getCarrier();
+                    break;
+
+                case MyConstant.DeviceInfo.getCodename:
+                    result = await DeviceInfo.getCodename();
+                    break;
+
+                case MyConstant.DeviceInfo.getDevice:
+                    result = await DeviceInfo.getDevice();
+                    break;
+
+                case MyConstant.DeviceInfo.getDeviceId:
+                    result = await DeviceInfo.getDeviceId();
+                    break;
+
+                case MyConstant.DeviceInfo.getDeviceType:
+                    result = await DeviceInfo.getDeviceType();
+                    break;
+
+                case MyConstant.DeviceInfo.getDisplay:
+                    result = await DeviceInfo.getDisplay();
+                    break;
+
+                case MyConstant.DeviceInfo.getDeviceName:
+                    result = await DeviceInfo.getDeviceName();
+                    break;
+
+                case MyConstant.DeviceInfo.getDeviceToken:
+                    result = await DeviceInfo.getDeviceToken();
+                    break;
+
+                case MyConstant.DeviceInfo.getFirstInstallTime:
+                    result = await DeviceInfo.getFirstInstallTime();
+                    break;
+
+                case MyConstant.DeviceInfo.getFingerprint:
+                    result = await DeviceInfo.getFingerprint();
+                    break;
+
+                case MyConstant.DeviceInfo.getFontScale:
+                    result = await DeviceInfo.getFontScale();
+                    break;
+
+                case MyConstant.DeviceInfo.getFreeDiskStorage:
+                    result = await DeviceInfo.getFreeDiskStorage();
+                    break;
+
+                case MyConstant.DeviceInfo.getHardware:
+                    result = await DeviceInfo.getHardware();
+                    break;
+
+                case MyConstant.DeviceInfo.getHost:
+                    result = await DeviceInfo.getHost();
+                    break;
+
+                case MyConstant.DeviceInfo.getIpAddress:
+                    result = await DeviceInfo.getIpAddress();
+                    break;
+
+                case MyConstant.DeviceInfo.getIncremental:
+                    result = await DeviceInfo.getIncremental();
+                    break;
+
+                case MyConstant.DeviceInfo.getInstallerPackageName:
+                    result = await DeviceInfo.getInstallerPackageName();
+                    break;
+
+                case MyConstant.DeviceInfo.getInstallReferrer:
+                    result = await DeviceInfo.getInstallReferrer();
+                    break;
+
+                case MyConstant.DeviceInfo.getInstanceId:
+                    result = await DeviceInfo.getInstanceId();
+                    break;
+
+                case MyConstant.DeviceInfo.getLastUpdateTime:
+                    result = await DeviceInfo.getLastUpdateTime();
+                    break;
+
+                case MyConstant.DeviceInfo.getMacAddress:
+                    result = await DeviceInfo.getMacAddress();
+                    break;
+
+                case MyConstant.DeviceInfo.getManufacturer:
+                    result = await DeviceInfo.getManufacturer();
+                    break;
+
+                case MyConstant.DeviceInfo.getMaxMemory:
+                    result = await DeviceInfo.getMaxMemory();
+                    break;
+
+                case MyConstant.DeviceInfo.getModel:
+                    result = await DeviceInfo.getModel();
+                    break;
+
+                case MyConstant.DeviceInfo.getPhoneNumber:
+                    result = await DeviceInfo.getPhoneNumber();
+                    break;
+
+                case MyConstant.DeviceInfo.getPowerState:
+                    result = await DeviceInfo.getPowerState();
+                    break;
+
+                case MyConstant.DeviceInfo.getProduct:
+                    result = await DeviceInfo.getProduct();
+                    break;
+
+                case MyConstant.DeviceInfo.getPreviewSdkInt:
+                    result = await DeviceInfo.getPreviewSdkInt();
+                    break;
+
+                case MyConstant.DeviceInfo.getReadableVersion:
+                    result = await DeviceInfo.getReadableVersion();
+                    break;
+
+                case MyConstant.DeviceInfo.getSerialNumber:
+                    result = await DeviceInfo.getSerialNumber();
+                    break;
+
+                case MyConstant.DeviceInfo.getSecurityPatch:
+                    result = await DeviceInfo.getSecurityPatch();
+                    break;
+
+                case MyConstant.DeviceInfo.getSystemAvailableFeatures:
+                    result = await DeviceInfo.getSystemAvailableFeatures();
+                    break;
+
+                case MyConstant.DeviceInfo.getSystemName:
+                    result = await DeviceInfo.getSystemName();
+                    break;
+
+                case MyConstant.DeviceInfo.getSystemVersion:
+                    result = await DeviceInfo.getSystemVersion();
+                    break;
+
+                case MyConstant.DeviceInfo.getTags:
+                    result = await DeviceInfo.getTags();
+                    break;
+
+                case MyConstant.DeviceInfo.getType:
+                    result = await DeviceInfo.getType();
+                    break;
+
+                case MyConstant.DeviceInfo.getTotalDiskCapacity:
+                    result = await DeviceInfo.getTotalDiskCapacity();
+                    break;
+
+                case MyConstant.DeviceInfo.getTotalMemory:
+                    result = await DeviceInfo.getTotalMemory();
+                    break;
+
+                case MyConstant.DeviceInfo.getUniqueId:
+                    result = await DeviceInfo.getUniqueId();
+                    break;
+
+                case MyConstant.DeviceInfo.getUsedMemory:
+                    result = await DeviceInfo.getUsedMemory();
+                    break;
+
+                case MyConstant.DeviceInfo.getUserAgent:
+                    result = await DeviceInfo.getUserAgent();
+                    break;
+
+                case MyConstant.DeviceInfo.getVersion:
+                    result = await DeviceInfo.getVersion();
+                    break;
+
+                case MyConstant.DeviceInfo.hasNotch:
+                    result = await DeviceInfo.hasNotch();
+                    break;
+
+                case MyConstant.DeviceInfo.hasSystemFeature:
+                    result = await DeviceInfo.hasSystemFeature(feature);
+                    break;
+
+                case MyConstant.DeviceInfo.isAirplaneMode:
+                    result = await DeviceInfo.isAirplaneMode();
+                    break;
+
+                case MyConstant.DeviceInfo.isBatteryCharging:
+                    result = await DeviceInfo.isBatteryCharging();
+                    break;
+
+                case MyConstant.DeviceInfo.isEmulator:
+                    result = await DeviceInfo.isEmulator();
+                    break;
+
+                case MyConstant.DeviceInfo.isLandscape:
+                    result = await DeviceInfo.isLandscape();
+                    break;
+
+                case MyConstant.DeviceInfo.isLocationEnabled:
+                    result = await DeviceInfo.isLocationEnabled();
+                    break;
+
+                case MyConstant.DeviceInfo.isHeadphonesConnected:
+                    result = await DeviceInfo.isHeadphonesConnected();
+                    break;
+
+                case MyConstant.DeviceInfo.isPinOrFingerprintSet:
+                    result = await DeviceInfo.isPinOrFingerprintSet();
+                    break;
+
+                case MyConstant.DeviceInfo.isTablet:
+                    result = await DeviceInfo.isTablet();
+                    break;
+
+                case MyConstant.DeviceInfo.supported32BitAbis:
+                    result = await DeviceInfo.supported32BitAbis();
+                    break;
+
+                case MyConstant.DeviceInfo.supported64BitAbis:
+                    result = await DeviceInfo.supported64BitAbis();
+                    break;
+
+                case MyConstant.DeviceInfo.supportedAbis:
+                    result = await DeviceInfo.supportedAbis();
+                    break;
+
+                default:
+                    throw new Error('Get Type Not Found!');
+            }
+
+            if (result !== false) {
+                response = {
+                    'type' : MyConstant.RESPONSE.TYPE.data,
+                    'error': null,
+                    'data' : result,
+                }
+            } else {
+                throw result;
+            }
 
         } catch (error) {
             MyUtil.printConsole(true, 'log', 'LOG: GetDeviceInfo: TRY-CATCH: ', {'error': error});
@@ -761,7 +1029,31 @@ const MyUtil = {
         } finally {
             MyUtil.printConsole(true, 'log', 'LOG: GetDeviceInfo: TRY-FINALY: ', {'response': response});
 
-            return response;
+            if (showLoader !== false) {
+
+                MyUtil.showTinyToast(showLoader && showLoader.length > 0 ? showLoader : MyLANG.PleaseWait,
+                                     false,
+                                     MyStyle.TinyToast.CENTER,
+                                     MyStyle.TinyToast.Black.containerStyle,
+                                     MyStyle.TinyToast.Black.textStyle,
+                                     MyStyle.TinyToast.Black.textColor,
+                                     null,
+                                     MyStyle.TinyToast.imageStyleSucess,
+                                     false,
+                                     true,
+                                     true,
+                                     0,
+                                     MyConstant.TINY_TOAST.HIDE
+                );
+            }
+
+            if (returnType === 'string') {
+                return response.data;
+
+            } else {
+                return response;
+
+            }
         }
 
         /*const deviceInfo: any = await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getApplicationName, MyConstant.SHOW_MESSAGE.TOAST);
@@ -1015,37 +1307,101 @@ const MyUtil = {
         if (position && position.results && position.results[0] && position.results[0].address_components && position.results[0].address_components[0]) {}*/
     },
 
-    GeocodeAddress    : async (address: string, showMessage: any) => {
+    GeocodeAddress: async (address: string, showLoader: any = false, showMessage: any) => {
         MyUtil.printConsole(true, 'log', 'LOG: GeocodeAddress:', {
             'address'    : address,
+            'showLoader' : showLoader,
             'showMessage': showMessage,
         });
 
+        let response: any = {
+            'type' : MyConstant.RESPONSE.TYPE.error,
+            'error': null,
+            'data' : null,
+        };
+
         try {
+
+            if (showLoader !== false) {
+                MyUtil.showTinyToast(showLoader && showLoader.length > 0 ? showLoader : MyLANG.PleaseWait,
+                                     false,
+                                     MyStyle.TinyToast.CENTER,
+                                     MyStyle.TinyToast.Black.containerStyle,
+                                     MyStyle.TinyToast.Black.textStyle,
+                                     MyStyle.TinyToast.Black.textColor,
+                                     null,
+                                     MyStyle.TinyToast.imageStyleSucess,
+                                     false,
+                                     true,
+                                     true,
+                                     0,
+                                     MyConstant.TINY_TOAST.SHOW
+                )
+            }
+
             // if (Geocoder.isInit() !== true) {
             Geocoder.init(MyConfig.google_map_api_key, {});
             // }
-            const response = await Geocoder.from(address);
+            const geocoder: any = await Geocoder.from(address);
 
-            return response;
+            if (geocoder?.results?.[0]?.geometry && geocoder?.results?.[0]?.geometry?.location?.lat && geocoder?.results?.[0]?.geometry?.location?.lng) {
+
+                response = {
+                    'type' : MyConstant.RESPONSE.TYPE.data,
+                    'error': null,
+                    'data' : geocoder,
+                }
+
+            } else {
+                throw new Error(MyLANG.GeocoderComponentMissing);
+            }
 
         } catch (error) {
+
             MyUtil.printConsole(true, 'log', 'LOG: GeocodeAddress: TRY-CATCH: ', {
                 'address': address,
                 'error'  : error
             });
 
-            MyUtil.showMessage(showMessage, MyLANG.GeocoderFailed, false);
+            MyUtil.showMessage(showMessage, error?.message || MyLANG.GeocoderFailed, false);
 
-            return error;
+            response = {
+                'type' : MyConstant.RESPONSE.TYPE.error,
+                'error': error,
+                'data' : null,
+            }
+
+        } finally {
+            // MyUtil.printConsole(true, 'log', 'LOG: GeocodeAddress: TRY-FINALY: ', {'response': response});
+
+            if (showLoader !== false) {
+
+                MyUtil.showTinyToast(showLoader && showLoader.length > 0 ? showLoader : MyLANG.PleaseWait,
+                                     false,
+                                     MyStyle.TinyToast.CENTER,
+                                     MyStyle.TinyToast.Black.containerStyle,
+                                     MyStyle.TinyToast.Black.textStyle,
+                                     MyStyle.TinyToast.Black.textColor,
+                                     null,
+                                     MyStyle.TinyToast.imageStyleSucess,
+                                     false,
+                                     true,
+                                     true,
+                                     0,
+                                     MyConstant.TINY_TOAST.HIDE
+                )
+            }
+
+            return response;
         }
 
         /*const address: any = await MyUtil.GeocodeAddress('KLCC', MyConstant.SHOW_MESSAGE.TOAST);
         MyUtil.printConsole(true, 'log', 'LOG: GeocodeAddress: await-response: ', {
             'address': address,
         });
-        if (address && address.results && address.results[0] && address.results[0].geometry && address.results[0].geometry.location && address.results[0].geometry.location.lat && address.results[0].geometry.location.lng) {}*/
+        */
     },
+
     /**
      * Get the value for a given key in address_components
      *
@@ -1057,7 +1413,7 @@ const MyUtil = {
         return components.filter((component: any) => component.types.indexOf(type) === 0).map((item: any) => item.long_name).pop() || null;
     },
 
-    generateAddress: (address_components: any) => {
+    generateAddressFromComponent: (address_components: any) => {
 
         const street_number: any = MyUtil.extractFromAddress(address_components, 'street_number');
         const street: any        = MyUtil.extractFromAddress(address_components, 'route');
@@ -1065,6 +1421,13 @@ const MyUtil = {
         const state: any         = MyUtil.extractFromAddress(address_components, 'administrative_area_level_1');
         const country: any       = MyUtil.extractFromAddress(address_components, 'country');
         const postal_code: any   = MyUtil.extractFromAddress(address_components, 'postal_code');
+
+        const address: string = MyUtil.generateAddress(street_number, street, city, state, country, postal_code);
+
+        return address;
+    },
+
+    generateAddress: (street_number: any, street: any, city: any, state: any, country: any, postal_code: any) => {
 
         const address: string = `${street_number?.length ? (street_number + ', ') : ''}${street?.length ? (street + ', ') : ''}${city?.length ? (city + ', ') : ''}${state?.length ? (state + ', ') : ''}${country?.length ? (country + ', ') : ''}${postal_code?.length ? (postal_code) : ''}`;
 
@@ -1090,7 +1453,7 @@ const MyUtil = {
                 country    : MyUtil.extractFromAddress(address_components, 'country'),
                 postal_code: MyUtil.extractFromAddress(address_components, 'postal_code'),
             },
-            address_text: MyUtil.generateAddress(address_components),
+            address_text: MyUtil.generateAddressFromComponent(address_components),
 
             plus_code         : geocodePosition.plus_code,
             address_components: address.address_components,
@@ -1105,18 +1468,18 @@ const MyUtil = {
 
     myHTTP: async (loginRequired: any, httpMethod: any, apiURL: string, body: any, headers: any, asForm: boolean = false, responseType: any = MyConstant.HTTP_JSON, timeout: number = 0, showLoader: any = false, retry: any = false, cancelPrevious: boolean = true) => {
 
-        MyUtil.printConsole(true, 'log', 'LOG: myHTTP: ', {
-            'loginRequired'    : loginRequired,
-            'httpMethod'       : httpMethod,
-            'apiURL'           : apiURL,
-            'body'             : body,
-            'headers'          : headers,
-            'responseType'     : responseType,
-            'timeout'          : timeout,
-            'showLoader'       : showLoader,
-            'cancelPrevious'   : cancelPrevious,
-            'CancelTokenSource': CancelTokenSource,
-        });
+        /* MyUtil.printConsole(true, 'log', 'LOG: myHTTP: ', {
+             'loginRequired'    : loginRequired,
+             'httpMethod'       : httpMethod,
+             'apiURL'           : apiURL,
+             'body'             : body,
+             'headers'          : headers,
+             'responseType'     : responseType,
+             'timeout'          : timeout,
+             'showLoader'       : showLoader,
+             'cancelPrevious'   : cancelPrevious,
+             'CancelTokenSource': CancelTokenSource,
+         });*/
 
         let response: any = {
             'type'        : MyConstant.RESPONSE.TYPE.error,
@@ -1126,6 +1489,9 @@ const MyUtil = {
             'errorType'   : null,
             'data'        : null,
         }
+
+        // Prepare data for API call:
+        const formData = new FormData();
 
         try {
 
@@ -1149,7 +1515,7 @@ const MyUtil = {
             let authReq: any = false;
             if (loginRequired !== false) {
                 const user = store.getState().auth.user;
-                MyUtil.printConsole(true, 'log', 'LOG: myHTTP: ', {'user': user});
+                // MyUtil.printConsole(true, 'log', 'LOG: myHTTP: ', {'user': user});
                 if (!user.id) {
                     response.errorType = 'auth';
                     throw new Error(MyLANG.PleaseLoginFirst);
@@ -1162,31 +1528,45 @@ const MyUtil = {
                 throw new Error(MyLANG.InternetConnectionNotAvailable);
             }
 
-            // Prepare data for API call:
-            let axiosData: any = null;
+            const deviceInfo = store.getState().app_info.deviceInfo;
 
             if (asForm === true) {
-                /*let formData = new FormData();
-                 for (let field in body) {
-                 if (files.hasOwnProperty(field)) {
-                 formData.append(field + '[]', files[i]);
-                 body[field] = null;
-                 }
-                 }
-                 formData.append('data', JSON.stringify(body));
-                 data = formData;
-                 const uploadPercentage = null;
-                 headers = {
-                 'content-type': 'multipart/form-data',
-                 }*/
-                // console.log('onModalFormSubmit: ', JSON.parse(formData.getAll('data')),
-                // JSON.parse(formData.getAll('dbInsert')), JSON.parse(formData.getAll('dbQuery')));
+
+                for (const key of Object.keys(body?.formFields)) {
+                    if (key) {
+                        formData.append(key, body?.formFields?.[key]);
+                    }
+                }
+                for (const key of Object.keys(body?.formFiles)) {
+                    if (key) {
+                        const value: any = {
+                            name: body.formFiles[key]?.fileName,
+                            type: body.formFiles[key]?.type,
+                            size: body.formFiles[key]?.fileSize,
+                            uri : MyStyle.platformOS === "android" ? body.formFiles[key]?.uri : body.formFiles[key]?.uri.replace("file://", "")
+                        };
+                        formData.append(key, value);
+                        MyUtil.printConsole(true, 'log', 'LOG: myHTTP: formData: ', {key, value});
+                    }
+                }
+                formData.append('device', deviceInfo);
+                headers = {
+                    'Accept'      : 'application/json',
+                    'Content-Type': 'multipart/form-data',
+                }
+
+                /*for (let [key, value] of formData.entries()) {
+                    MyUtil.printConsole(true, 'log', 'LOG: myHTTP: formData: ', {key, value});
+                }*/
+
             } else {
-                axiosData = body ? body : [];
-                headers   = {
-                    'content-type': MyConstant.HTTP_APPLICATION_JSON
+                body.device = deviceInfo;
+                headers     = {
+                    'Accept'      : 'application/json',
+                    'Content-Type': MyConstant.HTTP_APPLICATION_JSON
                 }
             }
+
 
             if (cancelPrevious === true && CancelTokenSource) {
                 CancelTokenSource.cancel(MyLANG.OperationCanceledByUser); // cancel the request (the message parameter is optional);
@@ -1196,22 +1576,44 @@ const MyUtil = {
             CancelTokenSource = CancelToken.source();
 
             const axiosResponse = await axios(apiURL, {
-                cancelToken : CancelTokenSource.token,
-                method      : httpMethod,
-                data        : axiosData,
-                responseType: responseType,
-                headers     : {
-                    // 'Authorization': 'Bearer ' + localStorage.getItem('token'),
+                cancelToken     : CancelTokenSource.token,
+                method          : httpMethod,
+                data            : asForm === true ? formData : body,
+                responseType    : responseType,
+                headers         : headers,
+                timeout         : timeout > 0 ? timeout : 0,
+                onUploadProgress: asForm === true ? (progressEvent: any) => {
+                    const uploadPercentage: any = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                    console.log('percentCompleted: ', uploadPercentage, progressEvent);
+                    if (uploadPercentage >= 100) {
+                        // uploadPercentage = 'Done';
+                    }
+                } : () => {
                 },
-                timeout     : timeout > 0 ? timeout : 0,
-                /*onUploadProgress: (progressEvent) => {
-                 const uploadPercentage = parseInt(Math.round((progressEvent.loaded * 100) / progressEvent.total));
-                 console.log('percentCompleted: ', uploadPercentage, progressEvent);
-                 if (uploadPercentage >= 100) {
-                 uploadPercentage = 'Done';
-                 }
-                 }*/
             });
+
+            MyUtil.printConsole(true, 'log', 'LOG: myHTTP: request: ', {
+                                    'apiURL'           : apiURL,
+                                    'method'           : httpMethod,
+                                    'data'             : asForm === true ? formData : body,
+                                    'responseType'     : responseType,
+                                    'headers'          : headers,
+                                    'timeout'          : timeout,
+                                    'CancelTokenSource': CancelTokenSource.token,
+                                    'param'            : {
+                                        'loginRequired'    : loginRequired,
+                                        'httpMethod'       : httpMethod,
+                                        'apiURL'           : apiURL,
+                                        'body'             : body,
+                                        'headers'          : headers,
+                                        'responseType'     : responseType,
+                                        'timeout'          : timeout,
+                                        'showLoader'       : showLoader,
+                                        'cancelPrevious'   : cancelPrevious,
+                                        'CancelTokenSource': CancelTokenSource,
+                                    }
+                                }
+            );
 
             response = {
                 'type'        : MyConstant.RESPONSE.TYPE.data,
@@ -1223,7 +1625,28 @@ const MyUtil = {
             }
 
         } catch (error) {
-            MyUtil.printConsole(true, 'log', 'LOG: myHTTP: TRY-CATCH: ', {'apiURL': apiURL, 'error': error});
+            MyUtil.printConsole(true, 'log', 'LOG: myHTTP: TRY-CATCH: ', {
+                'apiURL'           : apiURL,
+                'method'           : httpMethod,
+                'data'             : asForm === true ? formData : body,
+                'responseType'     : responseType,
+                'headers'          : headers,
+                'timeout'          : timeout,
+                'CancelTokenSource': CancelTokenSource.token,
+                'error'            : error,
+                'param'            : {
+                    'loginRequired'    : loginRequired,
+                    'httpMethod'       : httpMethod,
+                    'apiURL'           : apiURL,
+                    'body'             : body,
+                    'headers'          : headers,
+                    'responseType'     : responseType,
+                    'timeout'          : timeout,
+                    'showLoader'       : showLoader,
+                    'cancelPrevious'   : cancelPrevious,
+                    'CancelTokenSource': CancelTokenSource,
+                },
+            });
 
             const errors: any = [];
 
@@ -1332,14 +1755,15 @@ const MyUtil = {
         /*const response: any = await MyUtil
             .myHTTP(true, MyConstant.HTTP_POST, MyAPI.login,
                 {
-                    "app_ver"            : MyConfig.app_version,
-                    "app_build_ver"      : MyConfig.app_build_version,
-                    "platform"           : MyConstant.APP_PLATFORM,
-                    "device"             : null,
+
                     [MyConstant.PHONE]   : username,
                     [MyConstant.PASSWORD]: password,
                     "role"               : MyConfig.UserRole.customer,
                     "db_key"             : 'app_build_ver_android',
+                    'app_ver'      : MyConfig.app_version,
+                        'app_build_ver': MyConfig.app_build_version,
+                        'platform'     : MyConfig.app_platform,
+                        'device'       : null,
                 }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, showLoader, true, false);
 
         MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
@@ -1569,7 +1993,7 @@ const MyUtil = {
             })*/
     },
 
-    imagePicker: async (options: any, openType: string, showMessage: any): Promise<any> => {
+    imagePicker: async (options: any, openType: string, showMessage: any) => {
 
         MyUtil.printConsole(true, 'log', 'LOG: imagePicker:', {
             'options'    : options,
@@ -1577,7 +2001,7 @@ const MyUtil = {
             'showMessage': showMessage
         });
 
-        return new Promise(async (resolve, reject) => {
+        const response = new Promise(async (resolve, reject) => {
             switch (openType) {
                 case MyConstant.IMAGE_PICKER.OPEN_TYPE.Camera:
                     await ImagePicker.launchCamera(options, (response) => {
@@ -1586,13 +2010,13 @@ const MyUtil = {
 
                             MyUtil.showMessage(showMessage, MyLANG.ImagePickerCanceled, false);
 
-                            reject({'didCancel': response.didCancel});
+                            reject(response.didCancel);
 
                         } else if (response.error) {
 
                             MyUtil.showMessage(showMessage, MyLANG.ImagePickerError, false);
 
-                            reject({'error': response.error});
+                            reject(response.error);
 
                         } else if (response.customButton) {
                             // console.log('User tapped custom button: ', response.customButton);
@@ -1612,13 +2036,13 @@ const MyUtil = {
 
                             MyUtil.showMessage(showMessage, MyLANG.ImagePickerCanceled, false);
 
-                            reject({'didCancel': response.didCancel});
+                            reject(response.didCancel);
 
                         } else if (response.error) {
 
                             MyUtil.showMessage(showMessage, MyLANG.ImagePickerError, false);
 
-                            reject({'error': response.error});
+                            reject(response.error);
 
                         } else if (response.customButton) {
                             // console.log('User tapped custom button: ', response.customButton);
@@ -1642,13 +2066,13 @@ const MyUtil = {
 
                             MyUtil.showMessage(showMessage, MyLANG.ImagePickerCanceled, false);
 
-                            reject({'didCancel': response.didCancel});
+                            reject(response.didCancel);
 
                         } else if (response.error) {
 
                             MyUtil.showMessage(showMessage, MyLANG.ImagePickerError, false);
 
-                            reject({'error': response.error});
+                            reject(response.error);
 
                         } else if (response.customButton) {
                             // console.log('User tapped custom button: ', response.customButton);
@@ -1661,25 +2085,36 @@ const MyUtil = {
                     });
                     break;
             }
-        })
+        });
 
-        /*MyUtil.imagePicker(MyConfig.DefatulImagePickerOptions, MyConstant.IMAGE_PICKER.OPEN_TYPE.Camera, MyConstant.SHOW_MESSAGE.TOAST)
+        return response
             .then((result: any) => {
-
-                MyUtil.printConsole(true, 'log', 'LOG: imagePicker: resolve-then: ', {
-                    'result': result,
-                    'uri'   : result.uri,
-                    'base64': 'data:image/jpeg;base64,' + result.data
-                });
+                return {
+                    'type' : MyConstant.RESPONSE.TYPE.data,
+                    'error': null,
+                    'data' : result,
+                }
 
             })
             .catch((error: any) => {
-                MyUtil.printConsole(true, 'log', 'LOG: imagePicker: reject-catch: ', {
-                    'error': error,
-                });
-            });*/
-    },
+                MyUtil.printConsole(true, 'log', 'LOG: imagePicker: TRY-CATCH: ', {'error': error});
 
+                // MyUtil.showMessage(showMessage, MyLANG.DeviceInfoFailed, false);
+
+                return {
+                    'type' : MyConstant.RESPONSE.TYPE.error,
+                    'error': error,
+                    'data' : null,
+                }
+            });
+        /*const response: any = await MyUtil.imagePicker(MyConfig.DefatulImagePickerOptions,
+                                                       MyConstant.IMAGE_PICKER.OPEN_TYPE.ALL,
+                                                       MyConstant.SHOW_MESSAGE.TOAST
+        );
+
+        MyUtil.printConsole(true, 'log', 'LOG: imagePicker: await-response: ', {'image': response});*/
+
+    },
 
     showMessage: (showMessage: any, message: any, retry: boolean = false) => {
         switch (showMessage) {
@@ -1759,7 +2194,7 @@ const MyUtil = {
     },
 
     showTinyToast: (message: any, duration: any, position: any, containerStyle: any, textStyle: any, textColor: string, imgSource: any, imgStyle: any, shadow: boolean, mask: boolean, loading: boolean, timeout: number, show: string, toastName: any = 'loading') => {
-        MyUtil.printConsole(true, 'log', 'LOG: showTinyToast: ', {
+        /*MyUtil.printConsole(true, 'log', 'LOG: showTinyToast: ', {
             'message'       : message,
             'duration'      : duration,
             'position'      : position,
@@ -1774,7 +2209,7 @@ const MyUtil = {
             'timeout'       : timeout,
             'show'          : show,
             'toastName'     : toastName,
-        });
+        });*/
 
         if (show === MyConstant.TINY_TOAST.HIDE_AND_SHOW || show === MyConstant.TINY_TOAST.HIDE) {
             if (loading === true) {
@@ -1968,28 +2403,32 @@ const MyUtil = {
             );
         })
 
-        /*const facebook = <MyIcon.SimpleLineIcons name='people' color={'#333333'} size={16}/>;
-         const instagram = <MyIcon.SimpleLineIcons name='people' color={'#333333'} size={16}/>;
-         let items = [
-         {title: 'Facebook', value: 'fb', subTitle: 'Facebook Description', icon: facebook},
-         {title: 'Instagram', value: 'insta', subTitle: 'Instagram Description', icon: instagram},
-         ];
+        /*const facebook  = <MyIcon.SimpleLineIcons name = "people"
+        color = {'#333333'}
+        size = {16}/>;
+        const instagram = <MyIcon.SimpleLineIcons name = "people"
+        color = {'#333333'}
+        size = {16}/>;
+        let items       = [
+            {title: 'Facebook', value: 'fb', subTitle: 'Facebook Description', icon: facebook},
+            {title: 'Instagram', value: 'insta', subTitle: 'Instagram Description', icon: instagram},
+        ];
 
-         MyUtil.showActionSheet(MyConstant.ACTION_SHEET.TYPE.GRID, 'Awesome5!', MyConstant.ACTION_SHEET.THEME.light, items, {
-         message: 'Show This',
-         })
-         .then((result: any) => {
+        MyUtil.showActionSheet(MyConstant.ACTION_SHEET.TYPE.SHEET, 'Awesome5!', MyConstant.ACTION_SHEET.THEME.light, items, {
+            message: 'Show This',
+        })
+              .then((result: any) => {
 
-         MyUtil.printConsole(true, 'log', 'LOG: showActionSheet: resolve-then: ', {
-         'result': result,
-         });
+                  MyUtil.printConsole(true, 'log', 'LOG: showActionSheet: resolve-then: ', {
+                      'result': result,
+                  });
 
-         })
-         .catch((error: any) => {
-         MyUtil.printConsole(true, 'log', 'LOG: showActionSheet: reject-catch: ', {
-         'error': error,
-         });
-         })*/
+              })
+              .catch((error: any) => {
+                  MyUtil.printConsole(true, 'log', 'LOG: showActionSheet: reject-catch: ', {
+                      'error': error,
+                  });
+              })*/
     },
 
 
@@ -2167,13 +2606,13 @@ const MyUtil = {
     },
 
 
-    momentFormat: (date: any, format: string, parse: any = null) => {
-        MyUtil.printConsole(true, 'log', 'LOG: momentFormat: ', {
+    momentFormat: (date: any, format: any = null, parse: any = null) => {
+        /*MyUtil.printConsole(true, 'log', 'LOG: momentFormat: ', {
             'date'  : date,
             'format': format,
             'parse' : parse,
             'Moment': Moment(date, parse).format(format)
-        });
+        });*/
         return Moment(date, parse).format(format);
 
         // {MyUtil.momentFormat('2016-05-02T00:00:00', MyConstant.MomentFormat["1st Jan, 1970 12:01:01 am"])}

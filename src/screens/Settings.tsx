@@ -19,8 +19,9 @@ import {getMyIcon, StatusBarLight} from '../components/MyComponent';
 import MyMaterialRipple from "../components/MyMaterialRipple";
 
 import MyAuth from "../common/MyAuth";
-import {appDataUpdate} from "../store/AppDataRedux";
+import {appInfoUpdate} from "../store/AppInfoRedux";
 import MyFunction from "../shared/MyFunction";
+import {MyFastImage} from "../components/MyFastImage";
 
 let renderCount = 0;
 
@@ -37,14 +38,14 @@ const SettingsScreen = ({route, navigation}: any) => {
 
     const dispatch = useDispatch();
 
-    const app_data: any = useSelector((state: any) => state.app_data);
+    const app_info: any = useSelector((state: any) => state.app_info);
 
     const user: any                    = useSelector((state: any) => state.auth.user);
     const [settings, setSettings]: any = useState([]);
 
     useEffect(() => {
 
-        MyUtil.printConsole(true, 'log', `LOG: ${SettingsScreen.name}. useEffect: `, {user, app_data});
+        MyUtil.printConsole(true, 'log', `LOG: ${SettingsScreen.name}. useEffect: `, {user, app_info});
 
         if (user.id) {
             const settingsItem = [
@@ -104,6 +105,16 @@ const SettingsScreen = ({route, navigation}: any) => {
                     ripple   : MyStyle.MaterialRipple.drawer,
                     imageLeft: null,
                     iconLeft : null,
+                    textLeft : {text: MyLANG.ReferAndEarn},
+                    textRight: null,
+                    iconRight: {name: 'arrow-right'},
+                    onPress  : {loginRequired: true, actionType: MyConstant.DrawerOnPress.Navigate, routeName: MyConfig.routeName.ReferAndEarn},
+                },
+                {
+                    gradient : MyStyle.LGDrawerItem,
+                    ripple   : MyStyle.MaterialRipple.drawer,
+                    imageLeft: null,
+                    iconLeft : null,
                     textLeft : {text: MyLANG.RateApp},
                     textRight: null,
                     iconRight: {name: 'arrow-right'},
@@ -130,7 +141,7 @@ const SettingsScreen = ({route, navigation}: any) => {
                     onPress  : {
                         actionType: MyConstant.DrawerOnPress.Navigate,
                         routeName : MyConfig.routeName.InfoPage,
-                        params    : {title: MyLANG.ContactUs, text: app_data?.contact_us}
+                        params    : {title: MyLANG.ContactUs, text: app_info?.contact_us}
                     },
                 },
                 {
@@ -145,7 +156,7 @@ const SettingsScreen = ({route, navigation}: any) => {
                         loginRequired: false,
                         actionType   : MyConstant.DrawerOnPress.Navigate,
                         routeName    : MyConfig.routeName.InfoPage,
-                        params       : {title: MyLANG.AboutUs, text: app_data?.about_us}
+                        params       : {title: MyLANG.AboutUs, text: app_info?.about_us}
                     },
                 },
                 {
@@ -160,7 +171,7 @@ const SettingsScreen = ({route, navigation}: any) => {
                         loginRequired: false,
                         actionType   : MyConstant.DrawerOnPress.Navigate,
                         routeName    : MyConfig.routeName.InfoPage,
-                        params       : {title: MyLANG.TermsAndCondition, text: app_data?.term_services}
+                        params       : {title: MyLANG.TermsAndCondition, text: app_info?.term_services}
                     },
                 },
                 {
@@ -175,7 +186,7 @@ const SettingsScreen = ({route, navigation}: any) => {
                         loginRequired: false,
                         actionType   : MyConstant.DrawerOnPress.Navigate,
                         routeName    : MyConfig.routeName.InfoPage,
-                        params       : {title: MyLANG.RefundPolicy, text: app_data?.refund_policy}
+                        params       : {title: MyLANG.RefundPolicy, text: app_info?.refund_policy}
                     },
                 },
                 {
@@ -250,6 +261,16 @@ const SettingsScreen = ({route, navigation}: any) => {
                     ripple   : MyStyle.MaterialRipple.drawer,
                     imageLeft: null,
                     iconLeft : null,
+                    textLeft : {text: MyLANG.ReferAndEarn},
+                    textRight: null,
+                    iconRight: {name: 'arrow-right'},
+                    onPress  : {loginRequired: true, actionType: MyConstant.DrawerOnPress.Navigate, routeName: MyConfig.routeName.ReferAndEarn},
+                },
+                {
+                    gradient : MyStyle.LGDrawerItem,
+                    ripple   : MyStyle.MaterialRipple.drawer,
+                    imageLeft: null,
+                    iconLeft : null,
                     textLeft : {text: MyLANG.RateApp},
                     textRight: null,
                     iconRight: {name: 'arrow-right'},
@@ -276,7 +297,7 @@ const SettingsScreen = ({route, navigation}: any) => {
                     onPress  : {
                         actionType: MyConstant.DrawerOnPress.Navigate,
                         routeName : MyConfig.routeName.InfoPage,
-                        params    : {title: MyLANG.ContactUs, text: app_data?.contact_us}
+                        params    : {title: MyLANG.ContactUs, text: app_info?.contact_us}
                     },
                 },
                 {
@@ -290,7 +311,7 @@ const SettingsScreen = ({route, navigation}: any) => {
                     onPress  : {
                         actionType: MyConstant.DrawerOnPress.Navigate,
                         routeName : MyConfig.routeName.InfoPage,
-                        params    : {title: MyLANG.AboutUs, text: app_data?.about_us}
+                        params    : {title: MyLANG.AboutUs, text: app_info?.about_us}
                     },
                 },
                 {
@@ -305,7 +326,7 @@ const SettingsScreen = ({route, navigation}: any) => {
                         loginRequired: false,
                         actionType   : MyConstant.DrawerOnPress.Navigate,
                         routeName    : MyConfig.routeName.InfoPage,
-                        params       : {title: MyLANG.TermsAndCondition, text: app_data?.term_services}
+                        params       : {title: MyLANG.TermsAndCondition, text: app_info?.term_services}
                     },
                 },
                 {
@@ -320,7 +341,7 @@ const SettingsScreen = ({route, navigation}: any) => {
                         loginRequired: false,
                         actionType   : MyConstant.DrawerOnPress.Navigate,
                         routeName    : MyConfig.routeName.InfoPage,
-                        params       : {title: MyLANG.RefundPolicy, text: app_data?.refund_policy}
+                        params       : {title: MyLANG.RefundPolicy, text: app_info?.refund_policy}
                     },
                 },
                 {
@@ -339,7 +360,7 @@ const SettingsScreen = ({route, navigation}: any) => {
             setSettings(settingsItem);
         }
 
-    }, [user, app_data]);
+    }, [user, app_info]);
 
     useEffect(() => {
 
@@ -363,10 +384,9 @@ const SettingsScreen = ({route, navigation}: any) => {
                         <View style = {settingsItem.viewProfileSection}>
 
                             <View style = {settingsItem.viewImageProfile}>
-                                <Image
+                                <MyFastImage
+                                    source = {[user?.customers_picture?.length > 9 ? {'uri': user?.customers_picture} : MyImage.defaultAvatar, MyImage.defaultAvatar]}
                                     style = {settingsItem.imageProfile}
-                                    source = {MyImage.defaultAvatar}
-                                    resizeMode = "contain"
                                 />
                             </View>
                             <TouchableWithoutFeedback
@@ -415,7 +435,7 @@ const SettingsScreen = ({route, navigation}: any) => {
                                 <LinearGradient
                                     key = {key}
                                     style = {settingsItem.linearGradientStyles}
-                                    {...prop['gradient']}
+                                    {...prop.gradient}
                                 >
                                     <MyMaterialRipple
                                         style = {settingsItem.materialRipple}

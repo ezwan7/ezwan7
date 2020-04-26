@@ -102,6 +102,10 @@ const HomeScreen = ({route, navigation}: any) => {
         );
 
         MyFunction.appUpdateCheck();
+        // MyFunction.fetchAppData(false); // in settings page
+        MyFunction.fetchCountries(); // in address page
+        // MyFunction.fetchNotification(false);
+        MyFunction.updateDeviceInfo();
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);

@@ -7,6 +7,7 @@ import {
     FlatList,
     RefreshControl,
 } from 'react-native';
+import {useDispatch, useSelector} from "react-redux";
 
 import MyUtil from '../common/MyUtil';
 import {MyStyle, MyStyleSheet} from '../common/MyStyle';
@@ -27,8 +28,8 @@ import {
     ListItemSeparator,
     CategoryListItem,
 } from "../shared/MyContainer";
+
 import {categorySave} from "../store/CategoryRedux";
-import {useDispatch, useSelector} from "react-redux";
 
 
 let renderCount = 0;
@@ -48,12 +49,12 @@ const CategoryListScreen = ({}) => {
     const [loading, setLoading]                                                   = useState(true);
     const [loadingMore, setLoadingMore]                                           = useState(false);
     const [refreshing, setRefreshing]                                             = useState(false);
-    const [onEndReachedCalledDuringMomentum, setOnEndReachedCalledDuringMomentum] = useState(true);
+    const [onEndReachedCalledDuringMomentum, setOnEndReachedCalledDuringMomentum] = useState(false);
 
     useEffect(() => {
         MyUtil.printConsole(true, 'log', `LOG: ${CategoryListScreen.name}. useEffect: `, {category: category});
 
-        fetchCategory(category && category.length > 0 ? category.length : 0,
+        fetchCategory(0,
                       MyConfig.ListLimit.categoryList,
                       false,
                       false,
@@ -69,10 +70,16 @@ const CategoryListScreen = ({}) => {
 
         setRefreshing(true);
 
-        fetchCategory(0, MyConfig.ListLimit.categoryList, MyLANG.Loading + '...', true, {
-            'showMessage': MyConstant.SHOW_MESSAGE.TOAST,
-            'message'    : MyLANG.PageRefreshed
-        }, MyConstant.DataSetType.fresh);
+        fetchCategory(0,
+                      MyConfig.ListLimit.categoryList,
+                      false,
+                      true,
+                      {
+                          'showMessage': MyConstant.SHOW_MESSAGE.TOAST,
+                          'message'    : MyLANG.PageRefreshed
+                      },
+                      MyConstant.DataSetType.fresh
+        );
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -112,8 +119,8 @@ const CategoryListScreen = ({}) => {
         />;
     }
 
-    const ListFooter = () => {
-        MyUtil.printConsole(true, 'log', 'LOG: ListFooter: ', {'loadingMore': loadingMore});
+    const ListFooterComponent = () => {
+        MyUtil.printConsole(true, 'log', 'LOG: ListFooterComponent: ', {'loadingMore': loadingMore});
 
         if (!loadingMore) return null;
 
@@ -200,7 +207,7 @@ const CategoryListScreen = ({}) => {
                         }
                         keyExtractor = {(item: any) => String(item?.id)}
                         ListEmptyComponent = {ListEmptyComponent}
-                        ListFooterComponent = {ListFooter}
+                        ListFooterComponent = {ListFooterComponent}
                         onEndReachedThreshold = {0.2}
                         onEndReached = {onEndReached}
                         onMomentumScrollBegin = {() => {

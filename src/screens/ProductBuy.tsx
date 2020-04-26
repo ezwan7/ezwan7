@@ -65,7 +65,7 @@ const ProductBuyScreen = ({route, navigation}: any) => {
     const cart: any                   = useSelector((state: any) => state.cart);
     const [refreshing, setRefreshing] = useState(false);
 
-    const {register, getValues, setValue, handleSubmit, formState, errors}: any = useForm(MyConfig.defaultUseForm);
+    const {register, getValues, setValue, handleSubmit, formState, errors}: any = useForm(MyConfig.useFormDefault);
 
     useEffect(() => {
         MyUtil.printConsole(true, 'log', `LOG: ${ProductBuyScreen.name}. useEffect: `, cart);
@@ -175,10 +175,10 @@ const ProductBuyScreen = ({route, navigation}: any) => {
         )
     }
     const onNext = () => {
-        MyUtil.commonAction(false,
+        MyUtil.commonAction(true,
                             null,
                             MyConstant.CommonAction.navigate,
-                            MyConfig.routeName.ProductBuyDelivery,
+                            MyConfig.routeName.ProductBuyPayment,
                             null,
                             null
         )
@@ -317,14 +317,21 @@ const ProductBuyScreen = ({route, navigation}: any) => {
                                     style = {{backgroundColor: MyColor.Material.WHITE, paddingBottom: MyStyle.paddingVerticalLogin}}
                                 />
 
+                                <MyButton
+                                    color = {MyStyle.LGButtonPrimary}
+                                    title = {MyLANG.Next}
+                                    linearGradientStyle = {{marginVertical: MyStyle.marginVerticalPage, marginHorizontal: MyStyle.marginHorizontalPage}}
+                                    onPress = {onNext}
+                                />
+
                             </ScrollView>
 
-                            <CartPageBottomButtons
+                            {/*<CartPageBottomButtons
                                 textBackButton = {MyLANG.Back}
                                 onPressBack = {onBack}
                                 textNextButton = {MyLANG.NextStep}
                                 onPressNext = {onNext}
-                            />
+                            />*/}
 
                         </>
                                                                                                                    :

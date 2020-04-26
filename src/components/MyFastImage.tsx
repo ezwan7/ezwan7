@@ -15,8 +15,8 @@ export const MyFastImage = (props: any) => {
 
     const [index, setIndex]: any = useState(0);
 
-    const onError = (error: any) => {
-        // console.log(`LOG: ${MyFastImage.name}. onError: `, error);
+    const onError = () => {
+        // console.log(`LOG: ${MyFastImage.name}. onError: `, '');
         // props.onError?.(error);
         const next = index + 1;
         if (next < props.source.length) {
@@ -29,7 +29,6 @@ export const MyFastImage = (props: any) => {
             source = {props.source[index]}
             resizeMode = {props.resizeMode || FastImage.resizeMode.contain}
             style = {props.style || styles.image}
-            // @ts-ignore
             onError = {onError}
         />
     )

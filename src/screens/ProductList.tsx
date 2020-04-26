@@ -42,7 +42,7 @@ const ProductListScreen = ({route, navigation}: any) => {
     const [loading, setLoading]                                                   = useState(true);
     const [refreshing, setRefreshing]                                             = useState(false);
     const [loadingMore, setLoadingMore]                                           = useState(false);
-    const [onEndReachedCalledDuringMomentum, setOnEndReachedCalledDuringMomentum] = useState(true);
+    const [onEndReachedCalledDuringMomentum, setOnEndReachedCalledDuringMomentum] = useState(false);
     const [product, setProduct]: any                                              = useState([]);
 
     useLayoutEffect(() => {
@@ -59,7 +59,7 @@ const ProductListScreen = ({route, navigation}: any) => {
     useEffect(() => {
         MyUtil.printConsole(true, 'log', `LOG: ${ProductListScreen.name}. useEffect: `, '');
 
-        fetchProduct(product?.length > 0 ? product.length : 0,
+        fetchProduct( 0,
                      MyConfig.ListLimit.productList,
                      false,
                      false,
@@ -124,8 +124,8 @@ const ProductListScreen = ({route, navigation}: any) => {
         />;
     }
 
-    const ListFooter = () => {
-        MyUtil.printConsole(true, 'log', 'LOG: ListFooter: ', {'loadingMore': loadingMore});
+    const ListFooterComponent = () => {
+        MyUtil.printConsole(true, 'log', 'LOG: ListFooterComponent: ', {'loadingMore': loadingMore});
 
         if (!loadingMore) return null;
 
@@ -247,13 +247,14 @@ const ProductListScreen = ({route, navigation}: any) => {
                         keyExtractor = {(item: any) => String(item?.id)}
                         ListEmptyComponent = {ListEmptyComponent}
                         ItemSeparatorComponent = {ListItemSeparator}
-                        ListFooterComponent = {ListFooter}
+                        ListFooterComponent = {ListFooterComponent}
                         onEndReachedThreshold = {0.2}
                         onEndReached = {onEndReached}
                         onMomentumScrollBegin = {() => {
                             setOnEndReachedCalledDuringMomentum(false);
                         }}
                     />
+
                 </View>
             </SafeAreaView>
         </Fragment>

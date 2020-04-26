@@ -5,9 +5,12 @@ import {MyConstant} from "../common/MyConstant";
 import MyUtil from "../common/MyUtil";
 
 import {store} from "../store/MyStore";
-import {appDataUpdate} from "../store/AppDataRedux";
+import {appInfoUpdate} from "../store/AppInfoRedux";
 import {appInputUpdate} from "../store/AppInputRedux";
 import {userLocationUpdate} from "../store/UserLocation";
+import {updateUser} from "../store/AuthRedux";
+import {switchAppNavigator} from "../store/AppRedux";
+import {addressSave} from "../store/AddressRedux";
 
 
 const MyFunction = {
@@ -60,7 +63,7 @@ const MyFunction = {
         }
     },
 
-    appUpdateCheck: async (promptAlert: boolean = true, showLoader: any = false, showInfoMessage: any = false, showErrorMessage: any = true) => {
+    appUpdateCheck: async (promptAlert: boolean = true, showLoader: any = false, showInfoMessage: any = false, showErrorMessage: any = false) => {
         const response: any = await MyUtil
             .myHTTP(false, MyConstant.HTTP_POST, MyAPI.app_update_check,
                     {
@@ -100,7 +103,9 @@ const MyFunction = {
                         }
                     },
                 ])
+
             } else if (showInfoMessage !== false) {
+
                 MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message, false);
             }
 
@@ -111,9 +116,9 @@ const MyFunction = {
         }
     },
 
-    fetchAppData: async (showLoader: any = MyLANG.PleaseWait + '...', showInfoMessage: any = false, showErrorMessage: any = true) => {
+    fetchAppData: async (showLoader: any = MyLANG.PleaseWait + '...', showInfoMessage: any = false, showErrorMessage: any = false) => {
         const response: any = await MyUtil
-            .myHTTP(false, MyConstant.HTTP_POST, MyAPI.app_data,
+            .myHTTP(false, MyConstant.HTTP_POST, MyAPI.app_info,
                     {
                         'language_id': MyConfig.LanguageActive,
 
@@ -125,13 +130,13 @@ const MyFunction = {
             );
 
         MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
-            'apiURL': MyAPI.app_data, 'response': response
+            'apiURL': MyAPI.app_info, 'response': response
         });
 
         if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.status === 200 && response.data?.data?.pages_data?.[0]) {
 
             const data     = response.data.data.pages_data;
-            const app_data = {
+            const app_info = {
                 about_us      : data.find((e: any) => e.slug === 'about-us')?.description,
                 contact_us    : data.find((e: any) => e.slug === 'contact-us')?.description,
                 privacy_policy: data.find((e: any) => e.slug === 'privacy-policy')?.description,
@@ -139,7 +144,7 @@ const MyFunction = {
                 refund_policy : data.find((e: any) => e.slug === 'refund-policy')?.description,
             }
 
-            store.dispatch(appDataUpdate(app_data, 'all'));
+            store.dispatch(appInfoUpdate(app_info, 'all'));
 
         } else {
             if (showInfoMessage !== false) {
@@ -148,7 +153,78 @@ const MyFunction = {
         }
     },
 
-    fetchPaymentMethod: async (showLoader: any = MyLANG.PleaseWait + '...', showInfoMessage: any = false, showErrorMessage: any = true) => {
+    fetchCountries: async (showLoader: any = MyLANG.PleaseWait + '...', showInfoMessage: any = false, showErrorMessage: any = false) => {
+        const response: any = await MyUtil
+            .myHTTP(false, MyConstant.HTTP_POST, MyAPI.countries,
+                    {
+                        'language_id': MyConfig.LanguageActive,
+
+                        'app_ver'      : MyConfig.app_version,
+                        'app_build_ver': MyConfig.app_build_version,
+                        'platform'     : MyConfig.app_platform,
+                        'device'       : null,
+                    }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, showLoader, true, false
+            );
+
+        MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
+            'apiURL': MyAPI.countries, 'response': response
+        });
+
+        if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.status === 200) {
+
+            const data = response.data?.data?.data;
+            if (data.length > 0) {
+
+                store.dispatch(appInputUpdate(data, 'countries'));
+
+            } else {
+
+                if (showInfoMessage !== false) {
+                    MyUtil.showMessage(showInfoMessage.showMessage, MyLANG.GetDataError, false);
+                }
+            }
+
+        } else {
+
+            if (showErrorMessage !== false) {
+                MyUtil.showMessage(showErrorMessage.showMessage, showErrorMessage.message, false);
+            }
+        }
+    },
+
+    fetchStates: async (country_id: number, showLoader: any = MyLANG.PleaseWait + '...', showInfoMessage: any = false, showErrorMessage: any = false) => {
+        const response: any = await MyUtil
+            .myHTTP(false, MyConstant.HTTP_POST, MyAPI.states,
+                    {
+                        'language_id'    : MyConfig.LanguageActive,
+                        'zone_country_id': country_id,
+
+                        'app_ver'      : MyConfig.app_version,
+                        'app_build_ver': MyConfig.app_build_version,
+                        'platform'     : MyConfig.app_platform,
+                        'device'       : null,
+                    }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, showLoader, true, false
+            );
+
+        MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
+            'apiURL': MyAPI.states, 'response': response
+        });
+
+        if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.status === 200 && response.data?.data?.data?.length > 0) {
+
+            return response.data.data.data;
+
+        } else {
+
+            if (showErrorMessage !== false) {
+                MyUtil.showMessage(showErrorMessage.showMessage, showErrorMessage.message, false);
+            }
+        }
+
+        return false;
+    },
+
+    fetchPaymentMethod: async (showLoader: any = MyLANG.PleaseWait + '...', showInfoMessage: any = false, showErrorMessage: any = false) => {
         const response: any = await MyUtil
             .myHTTP(false, MyConstant.HTTP_POST, MyAPI.payment_methods,
                     {
@@ -174,12 +250,127 @@ const MyFunction = {
 
             } else {
 
-                MyUtil.showMessage(MyConstant.SHOW_MESSAGE.TOAST, MyLANG.GetDataError, false);
+                if (showInfoMessage !== false) {
+                    MyUtil.showMessage(showInfoMessage.showMessage, MyLANG.GetDataError, false);
+                }
             }
 
         } else {
-            if (showInfoMessage !== false) {
-                MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message, false);
+
+            if (showErrorMessage !== false) {
+                MyUtil.showMessage(showErrorMessage.showMessage, showErrorMessage.message, false);
+            }
+        }
+    },
+
+    fetchDeliveryMethod: async (formParam: any, showLoader: any = MyLANG.PleaseWait + '...', showInfoMessage: any = false, showErrorMessage: any = false) => {
+        const response: any = await MyUtil
+            .myHTTP(false, MyConstant.HTTP_POST, MyAPI.delivery_method_rate,
+                    {
+                        'language_id': MyConfig.LanguageActive,
+
+                        "tax_zone_id": formParam?.zone_id,
+                        "products"   : [{
+                            "final_price": 500,
+                            "products_id": "1"
+                        }],
+                        "country_id" : formParam?.country_id,
+                        "postcode"   : formParam?.postal_code,
+                        "city"       : formParam?.city_id,
+                        "state"      : formParam?.state_id,
+
+                        'app_ver'      : MyConfig.app_version,
+                        'app_build_ver': MyConfig.app_build_version,
+                        'platform'     : MyConfig.app_platform,
+                        'device'       : null,
+                    }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, showLoader, true, false
+            );
+
+        MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
+            'apiURL': MyAPI.delivery_method_rate, 'response': response
+        });
+
+        if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.status === 200 && response.data?.data?.success === '1') {
+
+            const data = response.data?.data?.data;
+            if (data?.length > 0) {
+                return data;
+            }
+
+        } else {
+
+            if (showErrorMessage !== false) {
+                MyUtil.showMessage(showErrorMessage.showMessage, showErrorMessage.message, false);
+            }
+        }
+
+        return false;
+    },
+
+    placeOrder: async (formParam: any, showLoader: any = MyLANG.PleaseWait + '...', showInfoMessage: any = false, showErrorMessage: any = false) => {
+        const response: any = await MyUtil
+            .myHTTP(false, MyConstant.HTTP_POST, MyAPI.order_place,
+                    {
+                        'language_id': MyConfig.LanguageActive,
+
+                        'app_ver'      : MyConfig.app_version,
+                        'app_build_ver': MyConfig.app_build_version,
+                        'platform'     : MyConfig.app_platform,
+                        'device'       : null,
+                    }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, showLoader, true, false
+            );
+
+        MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
+            'apiURL': MyAPI.order_place, 'response': response
+        });
+
+        if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.status === 200 && response.data?.data?.success === '1') {
+
+            const data = response.data?.data?.data;
+            if (data?.length > 0) {
+                return true;
+            }
+
+        } else {
+
+            if (showErrorMessage !== false) {
+                MyUtil.showMessage(showErrorMessage.showMessage, showErrorMessage.message, false);
+            }
+        }
+
+        return false;
+    },
+
+    fetchNotification: async (user_id: number, showLoader: any = MyLANG.PleaseWait + '...', showInfoMessage: any = false, showErrorMessage: any = false) => {
+        const response: any = await MyUtil
+            .myHTTP(true, MyConstant.HTTP_POST, MyAPI.notifications,
+                    {
+                        'language_id': MyConfig.LanguageActive,
+
+                        'customers_id': user_id,
+
+                        'app_ver'      : MyConfig.app_version,
+                        'app_build_ver': MyConfig.app_build_version,
+                        'platform'     : MyConfig.app_platform,
+                        'device'       : null,
+                    }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, showLoader, true, false
+            );
+
+        MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
+            'apiURL': MyAPI.notifications, 'response': response
+        });
+
+        if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.status === 200 && response.data?.data?.success === '1') {
+
+            const data = response.data?.data?.data;
+            if (data?.length > 0) {
+                store.dispatch(appInputUpdate(data, 'payment_method'));
+            }
+
+        } else {
+
+            if (showErrorMessage !== false) {
+                MyUtil.showMessage(showErrorMessage.showMessage, showErrorMessage.message, false);
             }
         }
     },
@@ -237,6 +428,208 @@ const MyFunction = {
         return false;
     },
 
+    fetchAddress: async (user_id: number, showLoader: any = false, showInfoMessage: any = false, showErrorMessage: any = false) => {
+        const response: any = await MyUtil
+            .myHTTP(true, MyConstant.HTTP_POST, MyAPI.user_addresses,
+                    {
+                        'language_id' : MyConfig.LanguageActive,
+                        'customers_id': user_id,
+
+                        'app_ver'      : MyConfig.app_version,
+                        'app_build_ver': MyConfig.app_build_version,
+                        'platform'     : MyConfig.app_platform,
+                        'device'       : null,
+                    }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, showLoader, true, false
+            );
+
+        MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
+            'apiURL': MyAPI.user_addresses, 'response': response
+        });
+
+        if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.status === 200 && response.data?.data?.data) {
+
+            const data = response.data.data.data;
+            if (data.length > 0) {
+                store.dispatch(addressSave(data, MyConstant.DataSetType.fresh));
+            }
+
+            if (showInfoMessage !== false) {
+                MyUtil.showMessage(showInfoMessage.showMessage, response.data?.data?.message || showInfoMessage.message, false);
+            }
+
+        } else {
+
+            if (showErrorMessage !== false) {
+                MyUtil.showMessage(showErrorMessage.showMessage, showErrorMessage.message, false);
+            }
+        }
+    },
+
+    saveAddress: async (formParam: any, showLoader: any = false, showInfoMessage: any = false, showErrorMessage: any = false, navigationActions: any = false) => {
+
+        MyUtil.printConsole(true, 'log', 'LOG: saveAddress: ', {
+            'formParam'        : formParam,
+            'showLoader'       : showLoader,
+            'showInfoMessage'  : showInfoMessage,
+            'showErrorMessage' : showErrorMessage,
+            'navigationActions': navigationActions,
+        });
+
+        const response: any = await MyUtil
+            .myHTTP({required: true, promptLogin: true}, MyConstant.HTTP_POST, formParam?.apiUrl,
+                    {
+                        'language_id': MyConfig.LanguageActive,
+
+                        'customers_id'        : formParam?.user_id,
+                        'entry_firstname'     : formParam?.full_name?.split(" ")?.[0],
+                        'entry_lastname'      : formParam?.full_name?.split(" ")?.[1],
+                        'entry_street_address': formParam?.street_address,
+                        'entry_suburb'        : formParam?.city,
+                        'entry_postcode'      : formParam?.postal_code,
+                        'entry_city'          : formParam?.city,
+                        'entry_zone_id'       : formParam?.state,
+                        'entry_country_id'    : formParam?.country,
+                        'entry_company'       : formParam?.address_title,
+                        'is_default'          : formParam?.is_default === true ? 1 : 0,
+                        'entry_latitude'      : formParam?.latitude,
+                        'entry_longitude'     : formParam?.longitude,
+
+                        'app_ver'      : MyConfig.app_version,
+                        'app_build_ver': MyConfig.app_build_version,
+                        'platform'     : MyConfig.app_platform,
+                        'device'       : null,
+                    }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, showLoader, true, false
+            );
+
+        MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
+            'apiURL': formParam?.apiUrl, 'response': response
+        });
+
+        if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.status === 200 && response.data?.data?.success === '1') {
+
+            if (showInfoMessage !== false) {
+                MyUtil.showMessage(showInfoMessage.showMessage, response.data?.data?.message || showInfoMessage.message, false);
+            }
+
+            if (navigationActions !== false) {
+                MyFunction.handleNavigationActions(navigationActions);
+            }
+
+        } else {
+
+            if (showErrorMessage !== false) {
+                MyUtil.showMessage(showErrorMessage.showMessage, showErrorMessage.message ? showErrorMessage.message : MyLANG.Error, false);
+            }
+        }
+    },
+
+    updateAddress: async (formParam: any, showLoader: any = false, showInfoMessage: any = false, showErrorMessage: any = false, navigationActions: any = false) => {
+
+        MyUtil.printConsole(true, 'log', 'LOG: updateAddress: ', {
+            'formParam'        : formParam,
+            'showLoader'       : showLoader,
+            'showInfoMessage'  : showInfoMessage,
+            'showErrorMessage' : showErrorMessage,
+            'navigationActions': navigationActions,
+        });
+
+        const response: any = await MyUtil
+            .myHTTP({required: true, promptLogin: true}, MyConstant.HTTP_POST, formParam?.apiUrl,
+                    {
+                        'language_id': MyConfig.LanguageActive,
+
+                        'address_id'          : formParam?.id,
+                        'customers_id'        : formParam?.user_id,
+                        'entry_firstname'     : formParam?.full_name?.split(" ")?.[0],
+                        'entry_lastname'      : formParam?.full_name?.split(" ")?.[1],
+                        'entry_street_address': formParam?.street_address,
+                        'entry_suburb'        : formParam?.city,
+                        'entry_postcode'      : formParam?.postal_code,
+                        'entry_city'          : formParam?.city,
+                        'entry_zone_id'       : formParam?.state,
+                        'entry_country_id'    : formParam?.country,
+                        'entry_company'       : formParam?.address_title,
+                        'is_default'          : formParam?.is_default === true ? 1 : 0,
+                        'entry_latitude'      : formParam?.latitude,
+                        'entry_longitude'     : formParam?.longitude,
+
+                        'app_ver'      : MyConfig.app_version,
+                        'app_build_ver': MyConfig.app_build_version,
+                        'platform'     : MyConfig.app_platform,
+                        'device'       : null,
+                    }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, showLoader, true, false
+            );
+
+        MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
+            'apiURL': formParam?.apiUrl, 'response': response
+        });
+
+        if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.status === 200 && response.data?.data?.success === '1') {
+
+            if (showInfoMessage !== false) {
+                MyUtil.showMessage(showInfoMessage.showMessage, response.data?.data?.message || showInfoMessage.message, false);
+            }
+
+            if (navigationActions !== false) {
+                MyFunction.handleNavigationActions(navigationActions);
+            }
+
+        } else {
+
+            if (showErrorMessage !== false) {
+                MyUtil.showMessage(showErrorMessage.showMessage, showErrorMessage.message ? showErrorMessage.message : MyLANG.Error, false);
+            }
+        }
+    },
+
+    deleteAddress: async (formParam: any, showLoader: any = false, showInfoMessage: any = false, showErrorMessage: any = false, navigationActions: any = false) => {
+
+        MyUtil.printConsole(true, 'log', 'LOG: deleteAddress: ', {
+            'formParam'        : formParam,
+            'showLoader'       : showLoader,
+            'showInfoMessage'  : showInfoMessage,
+            'showErrorMessage' : showErrorMessage,
+            'navigationActions': navigationActions,
+        });
+
+        const response: any = await MyUtil
+            .myHTTP({required: true, promptLogin: true}, MyConstant.HTTP_POST, formParam?.apiUrl,
+                    {
+                        'language_id': MyConfig.LanguageActive,
+
+                        'address_id'  : formParam?.id,
+                        'customers_id': formParam?.user_id,
+
+                        'app_ver'      : MyConfig.app_version,
+                        'app_build_ver': MyConfig.app_build_version,
+                        'platform'     : MyConfig.app_platform,
+                        'device'       : null,
+                    }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, showLoader, true, false
+            );
+
+        MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
+            'apiURL': formParam?.apiUrl, 'response': response
+        });
+
+        if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.status === 200 && response.data?.data?.success === '1') {
+
+            if (showInfoMessage !== false) {
+                MyUtil.showMessage(showInfoMessage.showMessage, response.data?.data?.message || showInfoMessage.message, false);
+            }
+
+            if (navigationActions !== false) {
+                MyFunction.handleNavigationActions(navigationActions);
+            }
+
+        } else {
+
+            if (showErrorMessage !== false) {
+                MyUtil.showMessage(showErrorMessage.showMessage, showErrorMessage.message ? showErrorMessage.message : MyLANG.Error, false);
+            }
+        }
+
+    },
+
     getUserLocation: async (type: string, options: any, askPermission: boolean = true, showLoader: any = false, showMessage: any) => {
 
         const position: any = await MyUtil.GetCurrentPosition(options, askPermission, showLoader, showMessage);
@@ -277,6 +670,150 @@ const MyFunction = {
                                                                MyLANG.PleaseWait + '...',
                                                                MyConstant.SHOW_MESSAGE.ALERT
         );*/
+    },
+
+    updateDeviceInfo: async (type: string = 'ALL', storeInRedux: boolean = true, updateBackend: boolean = true, askPermission: boolean = true, showLoader: any = false, showErrorMessage: any = false) => {
+
+        const device: any = await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getDeviceToken);
+
+        const deviceInfo: any = {
+            systemName     : await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getSystemName),
+            systemVersion  : await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getSystemVersion),
+            apiLevel       : await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getApiLevel),
+            model          : await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getModel),
+            manufacturer   : await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getManufacturer),
+            deviceId       : await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getDeviceId),
+            uniqueId       : await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getUniqueId),
+            applicationName: await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getApplicationName),
+            buildNumber    : await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getBuildNumber),
+            bundleId       : await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getBundleId),
+            totalMemory    : await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getTotalMemory),
+            userAgent      : await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getUserAgent),
+        }
+        MyUtil.printConsole(true, 'log', 'LOG: GetDeviceInfo: await-response: ', {'deviceInfo': deviceInfo});
+
+        if (storeInRedux === true) {
+            store.dispatch(appInfoUpdate(deviceInfo, 'deviceInfo'));
+        }
+
+        if (updateBackend) {
+
+            const {user, device_token} = store.getState().auth;
+            const user_location        = store.getState().user_location;
+
+            const response: any = await MyUtil
+                .myHTTP(true, MyConstant.HTTP_POST, MyAPI.register_device,
+                        {
+                            'language_id' : MyConfig.LanguageActive,
+                            'device_type' : deviceInfo.systemName,
+                            'ram'         : deviceInfo.totalMemory,
+                            'processor'   : null,
+                            'device_os'   : deviceInfo.systemName,
+                            'device_model': deviceInfo.model,
+                            'manufacturer': deviceInfo.manufacturer,
+
+                            'customers_id': user?.id,
+                            'device_id'   : device_token,
+                            'location'    : user_location?.formatted_address,
+
+                            'app_ver'      : MyConfig.app_version,
+                            'app_build_ver': MyConfig.app_build_version,
+                            'platform'     : MyConfig.app_platform,
+                            'device'       : null,
+                        }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, showLoader, true, false
+                );
+
+            MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
+                'apiURL': MyAPI.register_device, 'response': response
+            });
+
+            if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.status === 200 && response.data?.data?.success === '1') {
+
+                // MyUtil.showMessage(MyConstant.SHOW_MESSAGE.TOAST, response.data?.data?.message || MyLANG.Success, false);
+
+            } else {
+
+                if (showErrorMessage !== false) {
+                    MyUtil.showMessage(showErrorMessage.showMessage, showErrorMessage.message, false);
+                }
+            }
+        }
+    },
+
+    uploadFile: async (formParam: any, showLoader: any = MyLANG.PleaseWait + '...', showInfoMessage: any = false, showErrorMessage: any = false) => {
+        const response: any = await MyUtil
+            .myHTTP(true, MyConstant.HTTP_POST, formParam?.apiUrl,
+                    {
+                        'language_id': MyConfig.LanguageActive,
+
+                        formFields: {
+                            'customers_id': formParam?.user_id,
+                        },
+                        formFiles : {
+                            'customers_picture': formParam?.file,
+                        },
+
+                        'app_ver'      : MyConfig.app_version,
+                        'app_build_ver': MyConfig.app_build_version,
+                        'platform'     : MyConfig.app_platform,
+                        'device'       : null,
+                    }, {}, true, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, showLoader, true, false
+            );
+
+        MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
+            'apiURL': formParam?.apiUrl, 'response': response
+        });
+
+        if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.status === 200 && response.data?.data?.length > 0) {
+
+            // store.dispatch(updateUser('customers_picture', 'payment_method'));
+            if (showInfoMessage !== false) {
+                MyUtil.showMessage(showInfoMessage.showMessage, MyLANG.GetDataError, false);
+            }
+
+        } else {
+
+            if (showErrorMessage !== false) {
+                MyUtil.showMessage(showErrorMessage.showMessage, showErrorMessage.message, false);
+            }
+        }
+    },
+
+    handleNavigationActions: (navigationActions: any) => {
+        switch (navigationActions?.actionType) {
+            case MyConstant.NAVIGATION_ACTIONS.SWITCH_APP_NAVIGATOR:
+                store.dispatch(switchAppNavigator(MyConfig.appNavigation.HomeNavigator));
+                break;
+            case MyConstant.NAVIGATION_ACTIONS.POP_TO_ROOT:
+                MyUtil.stackAction(navigationActions?.loginRequired,
+                                   navigationActions?.navigation,
+                                   MyConstant.StackAction.popToTop,
+                                   navigationActions?.routeName,
+                                   navigationActions?.params,
+                                   null
+                );
+                break;
+            case MyConstant.NAVIGATION_ACTIONS.NAVIGATE:
+                MyUtil.commonAction(navigationActions?.loginRequired,
+                                    navigationActions?.navigation,
+                                    MyConstant.CommonAction.navigate,
+                                    navigationActions?.routeName,
+                                    navigationActions?.params,
+                                    null
+                );
+                break;
+            case MyConstant.NAVIGATION_ACTIONS.GO_BACK:
+                MyUtil.stackAction(navigationActions?.loginRequired,
+                                   navigationActions?.navigation,
+                                   MyConstant.StackAction.pop,
+                                   navigationActions?.routeName,
+                                   navigationActions?.params,
+                                   null
+                );
+                break;
+            default:
+                break;
+        }
     },
 
     getName: (user: any) => {

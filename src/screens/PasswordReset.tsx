@@ -26,6 +26,11 @@ const PasswordResetSchema: any = yup.object().shape(
                              .required(MyLANG.Code + ' ' + MyLANG.isRequired)
                              .min(4, MyLANG.Code + ' ' + MyLANG.mustBeMinimum + ' 4 ' + MyLANG.character)
                              .max(8, MyLANG.Code + ' ' + MyLANG.mustBeMaximum + ' 8 ' + MyLANG.character),
+        email           : yup.string()
+                             .required(MyLANG.Email + ' ' + MyLANG.isRequired)
+                             .min(2, MyLANG.Email + ' ' + MyLANG.mustBeMinimum + ' 2 ' + MyLANG.character)
+                             .max(64, MyLANG.Email + ' ' + MyLANG.mustBeMaximum + ' 64 ' + MyLANG.character)
+                             .email(MyLANG.InvalidEmail),
         password        : yup.string()
                              .required(MyLANG.Password + ' ' + MyLANG.isRequired)
                              .min(4, MyLANG.Code + ' ' + MyLANG.mustBeMinimum + ' 4 ' + MyLANG.character)
@@ -35,7 +40,10 @@ const PasswordResetSchema: any = yup.object().shape(
                              .min(4, MyLANG.ConfirmPassword + ' ' + MyLANG.mustBeMinimum + ' 4 ' + MyLANG.character)
                              .max(24, MyLANG.ConfirmPassword + ' ' + MyLANG.mustBeMaximum + ' 24 ' + MyLANG.character)
                              .oneOf([yup.ref('password'), null], MyLANG.PasswordMustMatch),
-    });
+    }
+);
+
+// const defaultValues: any = {};
 
 const passwordResetForm: any = {
     code            : {
@@ -94,6 +102,16 @@ const PasswordResetScreen = ({route, navigation}: any) => {
         }
     }, [register]);
 
+    useEffect(() => {
+        MyUtil.printConsole(true, 'log', `LOG: ${PasswordResetScreen.name}. useEffect: `, route?.params);
+
+        if (route?.params?.email) {
+            setValue('email', route?.params?.email, true);
+        }
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     const resendCode = async () => {
         if (route?.params?.email) {
             MyAuth.passwordForgot({email: route?.params?.email},
@@ -112,11 +130,15 @@ const PasswordResetScreen = ({route, navigation}: any) => {
         const formValue: any = await MyUtil.formProcess(e, getValues, handleSubmit, formState, errors);
         MyUtil.printConsole(true, 'log', 'LOG: formProcess: await-response: ', {'formValue': formValue});
         if (formValue && formValue.type === MyConstant.RESPONSE.TYPE.data && formValue.data) {
-            MyAuth.passwordReset({email: formValue.data.email},
+            MyAuth.passwordReset({
+                                     code    : formValue.data.code,
+                                     email   : formValue.data.email,
+                                     password: formValue.data.password,
+                                 },
                                  MyConstant.SHOW_MESSAGE.ALERT,
                                  MyLANG.PleaseWait + '...',
-                                 MyConfig.routeName.PasswordReset,
-                                 {'email': formValue.data.email},
+                                 MyConfig.routeName.Login,
+                                 null,
                                  null
             );
         } else {
@@ -138,11 +160,8 @@ const PasswordResetScreen = ({route, navigation}: any) => {
                                 locations = {MyStyle.LGWhitish.locations}
                                 colors = {MyStyle.LGWhitish.colors}>
                     <ScrollView contentInsetAdjustmentBehavior = "automatic">
-                        <View style = {[MyStyleSheet.mainView, {
-                            alignItems      : "center",
-                            marginBottom    : MyStyle.marginVerticalLogin,
-                            marginHorizontal: MyStyle.marginHorizontalLogin,
-                        }]}>
+
+                        <View style = {[MyStyleSheet.viewPageLogin, {alignItems: "center", marginTop: MyStyle.headerHeightAdjusted}]}>
                             <Image source = {MyImage.logo1024}
                                    resizeMode = "contain"
                                    style = {styles.imageLogo}
@@ -160,6 +179,13 @@ const PasswordResetScreen = ({route, navigation}: any) => {
                                 value = {getValues().code}
                                 iconLeft = {{name: 'key'}}
                                 helperText = {{message: errors.code?.message ? errors.code.message : null}}
+                            />
+                            <MyInput
+                                floatingLabel = {MyLANG.EnterYourEmail}
+                                onChangeText = {(text: any) => setValue('email', text, true)}
+                                value = {getValues().email}
+                                iconLeft = {{name: 'envelope'}}
+                                helperText = {{message: errors.email?.message ? errors.email.message : null}}
                             />
                             <MyInput
                                 floatingLabel = {MyLANG.EnterYourNewPassword}

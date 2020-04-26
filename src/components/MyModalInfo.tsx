@@ -1,13 +1,7 @@
 import React, {useState} from 'react';
-import {
-    Modal,
-    StyleSheet,
-    Text,
-    TouchableHighlight,
-    View
-} from "react-native";
+import {Modal, StyleSheet, Text, TouchableHighlight, View} from "react-native";
 import PropTypes from "prop-types";
-import {MyStyle, MyStyleSheet} from "../common/MyStyle";
+import {MyStyle} from "../common/MyStyle";
 
 let renderCount = 0;
 
@@ -100,4 +94,5 @@ const styles             = StyleSheet.create(
             marginBottom: 15,
             textAlign   : "center"
         }
-    });
+    }
+);

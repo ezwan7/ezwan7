@@ -13,6 +13,7 @@ import MyImage from "../shared/MyImage";
 import {ShadowBox} from "react-native-neomorph-shadows";
 import {MyConfig} from "../shared/MyConfig";
 import MyLANG from "../shared/MyLANG";
+import {MyButton} from "./MyButton";
 
 //
 const getMyIcon = (props: any) => {
@@ -194,17 +195,16 @@ const HeaderInputSearch = (props: any) => {
                     marginHorizontal: MyStyle.marginHorizontalPage,
                     marginBottom    : 6,
 
-                    borderWidth      : 1.0,
-                    borderRadius     : 50,
-                    borderColor      : MyColor.Primary.transparent40,
-                    paddingVertical  : 4,
-                    paddingHorizontal: 14,
-                    backgroundColor  : MyColor.Material.GREY["12"],
+                    borderWidth    : 1.0,
+                    borderRadius   : 50,
+                    borderColor    : MyColor.Primary.transparent40,
+                    backgroundColor: MyColor.Material.GREY["12"],
                 }}>
                     <MyIcon.AntDesign
                         name = "search1"
                         size = {17}
                         color = {MyColor.Material.BLACK}
+                        style = {{paddingLeft: 14, paddingVertical: 8.9}}
                     />
                     <TextInput
                         style = {{
@@ -224,17 +224,113 @@ const HeaderInputSearch = (props: any) => {
                         onSubmitEditing = {props.onSubmitEditing}
                         value = {props.value}
                     />
-                    <TouchableOpacity activeOpacity = {0.7}
-                                      onPress = {props.onRightIcon}
+                    <TouchableOpacity
+                        activeOpacity = {0.7}
+                        onPress = {props.onRightIcon}
+                        style = {{paddingVertical: 8.9}}
                     >
                         <MyIcon.Ionicons
                             name = "ios-options"
                             size = {17}
                             color = {MyColor.Material.BLACK}
-                            style = {{borderLeftWidth: 1, borderLeftColor: MyColor.Material.GREY["800"], paddingLeft: 10}}
+                            style = {{
+                                paddingRight   : 14,
+                                paddingLeft    : 10,
+                                borderLeftWidth: 1,
+                                borderLeftColor: MyColor.Material.GREY["800"]
+                            }}
                         />
                     </TouchableOpacity>
                 </View>
+            </LinearGradient>
+        </ShadowBox>
+    )
+}
+
+const HeaderInputSearchOptionPage = (props: any) => {
+    return (
+        <ShadowBox
+            useSvg
+            style = {{
+                shadowOffset : {width: 0, height: 2},
+                shadowOpacity: 0.5,
+                shadowColor  : "#000000",
+                shadowRadius : 5,
+                width        : MyStyle.screenWidth,
+                height       : MyStyle.headerHeight,
+                zIndex       : 1000,
+            }}
+        >
+            <LinearGradient
+                start = {MyStyle.LGHeaderPrimary.start}
+                end = {MyStyle.LGHeaderPrimary.end}
+                locations = {MyStyle.LGHeaderPrimary.locations}
+                colors = {MyStyle.LGHeaderPrimary.colors}
+                style = {{
+                    flex          : 1,
+                    flexDirection : "row",
+                    justifyContent: "center",
+                    alignItems    : "flex-end",
+                }}
+            >
+                {
+                    props?.allowSearch &&
+                    <View style = {{
+                        flexGrow      : 1,
+                        display       : "flex",
+                        flexDirection : "row",
+                        justifyContent: "flex-start",
+                        alignItems    : "center",
+
+                        marginHorizontal: MyStyle.marginHorizontalPage,
+                        marginLeft      : 50,
+                        marginBottom    : 6,
+
+                        borderWidth    : 1.0,
+                        borderRadius   : 50,
+                        borderColor    : MyColor.Primary.transparent40,
+                        backgroundColor: MyColor.Material.GREY["12"],
+                    }}>
+                        <MyIcon.AntDesign
+                            name = "search1"
+                            size = {17}
+                            color = {MyColor.Material.BLACK}
+                            style = {{paddingLeft: 14, paddingVertical: 10}}
+                        />
+                        <TextInput
+                            style = {{
+                                flex   : 1,
+                                padding: 0,
+
+                                marginLeft: 10,
+
+                                fontSize  : MyStyle.FontSize.small,
+                                fontFamily: MyStyle.FontFamily.Roboto.regular,
+                                color     : MyColor.Material.BLACK,
+                            }}
+                            numberOfLines = {1}
+                            placeholder = {MyLANG.SearchPlaceHolder}
+                            placeholderTextColor = {MyColor.Material.GREY["800"]}
+                            onChangeText = {props.onChangeText}
+                            onSubmitEditing = {props.onSubmitEditing}
+                            value = {props.value}
+                        />
+                        {
+                            props.value?.length > 0 &&
+                            <TouchableOpacity
+                                activeOpacity = {0.7}
+                                onPress = {props.onRightIcon}
+                            >
+                                <MyIcon.SimpleLineIcons
+                                    name = "close"
+                                    size = {17}
+                                    color = {MyColor.Material.BLACK}
+                                    style = {{paddingRight: 14, paddingVertical: 8, paddingLeft: 10}}
+                                />
+                            </TouchableOpacity>
+                        }
+                    </View>
+                }
             </LinearGradient>
         </ShadowBox>
     )
@@ -344,6 +440,7 @@ const TopTabBarGradientPrimary = (props: any) => {
     )
 }
 
+
 const MyHeaderBackButton = (props: any) => {
     return (
         <TouchableOpacity
@@ -373,6 +470,7 @@ const MyHeaderBackButton = (props: any) => {
         </TouchableOpacity>
     )
 }
+
 
 const Separator = () => {
     return (
@@ -476,7 +574,7 @@ const ListHeaderViewAll = (props: any) => {
         <View style = {{
             marginHorizontal: MyStyle.marginHorizontalList,
             marginTop       : MyStyle.marginVerticalList,
-            ...MyStyle.RowCenterBetween
+            ...MyStyle.RowBetweenCenter
         }}>
             <Text style = {{
                 ...MyStyleSheet.headerList,
@@ -499,6 +597,38 @@ const ListHeaderViewAll = (props: any) => {
     )
 }
 
+const ButtonPageFotter = (props: any) => {
+    return (
+        <ShadowBox
+            useSvg
+            style = {{
+                shadowOffset : {width: 0, height: -1},
+                shadowOpacity: 0.2,
+                shadowColor  : "#000000",
+                shadowRadius : 2,
+                height       : 46,
+                width        : MyStyle.screenWidth,
+            }}
+        >
+            <View
+                style = {{
+                    flexDirection  : "row",
+                    justifyContent : "space-between",
+                    alignItems     : "center",
+                    backgroundColor: MyColor.Material.WHITE,
+                }}
+            >
+                <MyButton
+                    shape = "square"
+                    shadow = "none"
+                    title = {props?.title || MyLANG.Submit}
+                    onPress = {props?.onPress}
+                />
+            </View>
+        </ShadowBox>
+    )
+}
+
 
 export {
     getMyIcon,
@@ -513,6 +643,7 @@ export {
     HeaderGradientPrimaryLogo,
 
     HeaderInputSearch,
+    HeaderInputSearchOptionPage,
     HeaderGoogleMapSearch,
 
     TopTabBarGradientPrimary,
@@ -530,6 +661,7 @@ export {
     IconWithBadge,
 
     ListHeaderViewAll,
+    ButtonPageFotter,
 };
 
 const styles = StyleSheet.create(

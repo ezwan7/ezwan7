@@ -28,12 +28,12 @@ const ProductBuySuccess = ({route, navigation}: any) => {
         useCallback(() => {
             const onBackPress = () => {
                 // Go back to Login page:
-                MyUtil.stackAction(false,
-                                   null,
-                                   MyConstant.StackAction.popToTop,
-                                   null,
-                                   null,
-                                   null
+                MyUtil.commonAction(false,
+                                    null,
+                                    MyConstant.CommonAction.navigate,
+                                    MyConfig.routeName.Home,
+                                    null,
+                                    null,
                 );
                 return true;
             };
@@ -54,7 +54,7 @@ const ProductBuySuccess = ({route, navigation}: any) => {
             <StatusBarDark/>
             <SafeAreaView style = {MyStyleSheet.SafeAreaView1}/>
             <SafeAreaView style = {MyStyleSheet.SafeAreaView2}>
-                <LinearGradient style = {[MyStyleSheet.SafeAreaView3, {}]}
+                <LinearGradient style = {[MyStyleSheet.SafeAreaView3, {paddingTop: 0}]}
                                 start = {MyStyle.LGWhitish.start}
                                 end = {MyStyle.LGWhitish.end}
                                 locations = {MyStyle.LGWhitish.locations}
@@ -69,94 +69,36 @@ const ProductBuySuccess = ({route, navigation}: any) => {
                             marginBottom    : MyStyle.marginVerticalLogin,
                             marginHorizontal: MyStyle.marginHorizontalLogin,
                         }]}>
-                            <LottieView source = {MyImage.lottie_confirmation}
+                            <LottieView source = {MyImage.lottie_check_in_success}
                                         autoPlay
                                         loop = {false}
                                         style = {styles.imageLottie}
                             />
-                            <Text style = {styles.textRegistrationCompleted}>
-                                {MyLANG.RegistrationCompleted}
+                            <Text style = {styles.textOrderCompleted}>
+                                {MyLANG.OrderCompleted}
                             </Text>
-                            <Text style = {styles.textRegistrationDescription}>
-                                {MyLANG.RegistrationCompletedTitleDescription}
+                            <Text style = {styles.textOrderCompletedDescription}>
+                                {MyLANG.OrderCompletedDescription}
                             </Text>
 
-                            {
-                                MyConfig.registrationAction === MyConstant.RegistrationAction.welcome_screen_only &&
-                                <>
-                                    <Text style = {styles.youMayLoginNow}>
-                                        {MyLANG.YouMayLoginNow}
-                                    </Text>
-                                    <MyButton
-                                        color = {MyStyle.LGButtonPrimary}
-                                        title = {MyLANG.Close}
-                                        linearGradientStyle = {{marginTop: 10}}
-                                        onPress = {(e: any) => {
-                                            MyUtil.commonAction(false,
-                                                                null,
-                                                                MyConstant.CommonAction.navigate,
-                                                                MyConfig.routeName.Login,
-                                                                null,
-                                                                null
-                                            );
-                                        }}
-                                    />
-                                </>
-                            }
-                            {
-                                MyConfig.registrationAction === MyConstant.RegistrationAction.verification_needed &&
-                                <>
-                                    <Text style = {styles.youMayLoginNow}>
-                                        {MyLANG.WeWillVerify}
-                                    </Text>
-                                    <MyButton
-                                        color = {MyStyle.LGButtonPrimary}
-                                        title = {MyLANG.Close}
-                                        linearGradientStyle = {{marginTop: 10}}
-                                        onPress = {(e: any) => {
-                                            MyUtil.stackAction(false,
-                                                               null,
-                                                               MyConstant.StackAction.popToTop,
-                                                               null,
-                                                               null,
-                                                               null
-                                            );
-                                        }}
-                                    />
-                                </>
-                            }
-                            {
-                                MyConfig.registrationAction === MyConstant.RegistrationAction.auto_login &&
-                                <>
-                                    <Text style = {styles.youMayLoginNow}>
-                                        {MyLANG.PressToLogin}
-                                    </Text>
-                                    <MyButton
-                                        color = {MyStyle.LGButtonPrimary}
-                                        title = {MyLANG.LoginNow}
-                                        linearGradientStyle = {{marginTop: 10}}
-                                        onPress = {(e: any) => {
-                                            route?.params?.login ?
-                                            MyAuth.processLogin(route?.params?.login?.formParam,
-                                                                route?.params?.login?.user,
-                                                                route?.params?.login?.showMessage,
-                                                                route?.params?.login?.showLoader,
-                                                                route?.params?.login?.doReRoute,
-                                                                route?.params?.login?.routeTo,
-                                                                route?.params?.login?.navigationActions
-                                            )
-                                                                 :
-                                            MyUtil.commonAction(false,
-                                                                null,
-                                                                MyConstant.CommonAction.navigate,
-                                                                MyConfig.routeName.Login,
-                                                                null,
-                                                                null
-                                            );
-                                        }}
-                                    />
-                                </>
-                            }
+                            <Text style = {styles.youOrderCompletedBackDesc}>
+                                {MyLANG.OrderCompletedBackDesc}
+                            </Text>
+
+                            <MyButton
+                                color = {MyStyle.LGButtonPrimary}
+                                title = {MyLANG.Close}
+                                linearGradientStyle = {{marginTop: 10}}
+                                onPress = {(e: any) => {
+                                    MyUtil.commonAction(false,
+                                                        null,
+                                                        MyConstant.CommonAction.navigate,
+                                                        MyConfig.routeName.Home,
+                                                        null,
+                                                        null,
+                                    );
+                                }}
+                            />
 
                         </View>
                     </ScrollView>
@@ -172,23 +114,23 @@ export default ProductBuySuccess;
 
 const styles = StyleSheet.create(
     {
-        imageLottie                : {
+        imageLottie                  : {
             width: MyStyle.screenWidth * 0.5,
 
             marginTop: 10,
         },
-        textRegistrationCompleted  : {
+        textOrderCompleted           : {
             marginTop: 44,
             alignSelf: "flex-start",
             ...MyStyleSheet.headerPageLarge
         },
-        textRegistrationDescription: {
+        textOrderCompletedDescription: {
             marginTop   : 2,
             marginBottom: 24,
             alignSelf   : "flex-start",
             ...MyStyleSheet.subHeaderPage
         },
-        youMayLoginNow             : {
+        youOrderCompletedBackDesc    : {
             marginTop: 60,
             textAlign: "center",
             ...MyStyleSheet.subHeaderPage

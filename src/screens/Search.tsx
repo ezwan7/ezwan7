@@ -46,7 +46,7 @@ const SearchScreen = ({route, navigation}: any) => {
     const [loading, setLoading]                                                   = useState(false);
     const [loadingMore, setLoadingMore]                                           = useState(false);
     const [refreshing, setRefreshing]                                             = useState(false);
-    const [onEndReachedCalledDuringMomentum, setOnEndReachedCalledDuringMomentum] = useState(true);
+    const [onEndReachedCalledDuringMomentum, setOnEndReachedCalledDuringMomentum] = useState(false);
     const [data, setData]: any                                                    = useState([]);
     const [count, setCount]: any                                                  = useState([]);
 
@@ -66,10 +66,16 @@ const SearchScreen = ({route, navigation}: any) => {
 
         if (searchText?.length > 1) {
             setRefreshing(true);
-            fetchData(0, MyConfig.ListLimit.searchList, MyLANG.Loading + '...', true, {
-                'showMessage': MyConstant.SHOW_MESSAGE.TOAST,
-                'message'    : MyLANG.PageRefreshed
-            }, MyConstant.DataSetType.fresh);
+            fetchData(0,
+                      MyConfig.ListLimit.searchList,
+                      false,
+                      true,
+                      {
+                          'showMessage': MyConstant.SHOW_MESSAGE.TOAST,
+                          'message'    : MyLANG.PageRefreshed
+                      },
+                      MyConstant.DataSetType.fresh
+            );
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -94,8 +100,8 @@ const SearchScreen = ({route, navigation}: any) => {
         }
     }
 
-    const ListFooter = () => {
-        MyUtil.printConsole(true, 'log', 'LOG: ListFooter: ', {'loadingMore': loadingMore});
+    const ListFooterComponent = () => {
+        MyUtil.printConsole(true, 'log', 'LOG: ListFooterComponent: ', {'loadingMore': loadingMore});
 
         if (!loadingMore) return null;
 
@@ -286,7 +292,7 @@ const SearchScreen = ({route, navigation}: any) => {
                                      &nbsp;{MyLANG.returned} {count} {MyLANG.Results}
                                  </Text>
                              }
-                             ListFooterComponent = {ListFooter}
+                             ListFooterComponent = {ListFooterComponent}
                              onEndReachedThreshold = {0.2}
                              onEndReached = {onEndReached}
                              onMomentumScrollBegin = {() => {

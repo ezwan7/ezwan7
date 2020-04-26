@@ -1,13 +1,20 @@
-const initialState: any = {}
-
-const types = {
-    UPDATE_APP_DATA: 'UPDATE_APP_DATA',
-    EMPTY_APP_DATA : 'EMPTY_APP_DATA',
+const initialState: any = {
+    deviceInfo    : null,
+    about_us      : null,
+    contact_us    : null,
+    privacy_policy: null,
+    term_services : null,
+    refund_policy : null,
 }
 
-export const appDataUpdate = (data: any, key: string) => {
+const types = {
+    UPDATE_APP_INFO_DATA: 'UPDATE_APP_INFO_DATA',
+    EMPTY_APP_INFO_DATA : 'EMPTY_APP_INFO_DATA',
+}
+
+export const appInfoUpdate = (data: any, key: string) => {
     return {
-        type   : types.UPDATE_APP_DATA,
+        type   : types.UPDATE_APP_INFO_DATA,
         payload: {
             data,
             key,
@@ -15,17 +22,17 @@ export const appDataUpdate = (data: any, key: string) => {
     }
 }
 
-export const appDataEmpty = () => {
+export const appInfoEmpty = () => {
     return {
-        type   : types.EMPTY_APP_DATA,
+        type   : types.EMPTY_APP_INFO_DATA,
         payload: null,
     }
 }
 
-const AppDataReducer = (state: string = initialState, action: any) => {
+const AppInfoReducer = (state: string = initialState, action: any) => {
     switch (action.type) {
 
-        case types.UPDATE_APP_DATA:
+        case types.UPDATE_APP_INFO_DATA:
             if (action.payload?.key === 'all') {
 
                 return action.payload?.data;
@@ -40,7 +47,7 @@ const AppDataReducer = (state: string = initialState, action: any) => {
                 return currentState;
             }
 
-        case types.EMPTY_APP_DATA:
+        case types.EMPTY_APP_INFO_DATA:
             return initialState;
 
         default:
@@ -48,5 +55,5 @@ const AppDataReducer = (state: string = initialState, action: any) => {
     }
 }
 
-export default AppDataReducer;
+export default AppInfoReducer;
 

@@ -1,6 +1,7 @@
 const initialState: any = {
     payment_method : [],
     delivery_method: [],
+    countries      : [],
 }
 
 const types = {

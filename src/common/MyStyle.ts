@@ -9,7 +9,8 @@ const screenHeight      = Dimensions.get('window').height;
 const screenWidth       = Dimensions.get('window').width;
 const screenAspectRatio = screenWidth / screenHeight;
 
-const isIphoneX = Platform.OS === "ios" && !Platform.isPad && !Platform.isTVOS && (screenHeight >= 812 || screenWidth >= 812);
+const platformOS = Platform.OS;
+const isIphoneX  = Platform.OS === "ios" && !Platform.isPad && !Platform.isTVOS && (screenHeight >= 812 || screenWidth >= 812);
 
 const statusBarHeight = Platform.select(
     {
@@ -27,6 +28,9 @@ const headerHeight    = Platform.select(
 );
 
 const MyStyle: any = {
+
+    platformOS: platformOS,
+
     screenHeight     : screenHeight,
     screenWidth      : screenWidth,
     screenAspectRatio: screenAspectRatio,
@@ -50,6 +54,13 @@ const MyStyle: any = {
     marginVerticalList   : 15,
     paddingHorizontalList: 12,
     paddingVerticalList  : 15,
+
+    marginHorizontalModal     : 28,
+    marginVerticalModal       : 28,
+    paddingHorizontalModal    : 28,
+    paddingVerticalModal      : 20,
+    paddingHorizontalModalItem: 28,
+    paddingVerticalModalItem  : 12,
 
     marginHorizontalTextsView: 10,
 
@@ -217,6 +228,9 @@ const MyStyle: any = {
     },
 
     Column            : {},
+    ColumnStart       : {
+        justifyContent: "flex-start",
+    },
     ColumnCenterStart : {
         justifyContent: "center",
         alignItems    : "flex-start",
@@ -253,6 +267,10 @@ const MyStyle: any = {
                 },
             }),
     },
+    RowStart          : {
+        flexDirection : "row",
+        justifyContent: "flex-start",
+    },
     RowStartCenter    : {
         flexDirection : "row",
         justifyContent: "flex-start",
@@ -281,10 +299,10 @@ const MyStyle: any = {
         alignItems    : "center",
         justifyContent: "flex-end",
     },
-    RowCenterBetween  : {
+    RowBetweenCenter  : {
         flexDirection : "row",
-        alignItems    : "center",
         justifyContent: "space-between",
+        alignItems    : "center",
     },
 
     logo: {
@@ -540,6 +558,35 @@ const MyStyleSheet = StyleSheet.create(
             paddingTop: MyStyle.statusBarHeight,
         },
 
+        viewPageLogin: {
+            display       : "flex",
+            flexDirection : "column",
+            justifyContent: "flex-start",
+
+            paddingHorizontal: MyStyle.paddingHorizontalLogin,
+            paddingVertical  : MyStyle.paddingVerticalLogin,
+        },
+        viewPageMain : {
+            display       : "flex",
+            flexDirection : "column",
+            justifyContent: "flex-start",
+
+            paddingHorizontal: MyStyle.paddingHorizontalPage,
+            paddingVertical  : MyStyle.paddingVerticalPage,
+        },
+
+        viewPageCard: {
+            display      : "flex",
+            flexDirection: "column",
+
+            paddingHorizontal: MyStyle.paddingHorizontalPage,
+            paddingVertical  : MyStyle.paddingVerticalPage,
+
+            marginBottom: MyStyle.marginViewGapCard,
+
+            backgroundColor: MyColor.Material.WHITE,
+        },
+
         mainView: {
             marginTop: MyStyle.headerHeightAdjusted,
 
@@ -592,32 +639,115 @@ const MyStyleSheet = StyleSheet.create(
             color     : MyColor.textDarkSecondary2,
         },
 
-        titleList               : {
-            fontFamily: MyStyle.FontFamily.OpenSans.semiBold,
-            fontSize  : 30,
-            color     : "#f0f0f0",
-        },
-        titlePage               : {
+        textPageTitle        : {
             fontFamily: MyStyle.FontFamily.OpenSans.bold,
             fontSize  : 18,
             color     : MyColor.textDarkPrimary,
         },
-        titlePricePage          : {
+        textPageTitleLarge   : {
+            fontFamily: MyStyle.FontFamily.OpenSans.bold,
+            fontSize  : 20,
+            color     : MyColor.textDarkPrimary,
+        },
+        textPageInfo         : {
+            fontFamily: MyStyle.FontFamily.OpenSans.regular,
+            fontSize  : 15,
+            color     : MyColor.textDarkPrimary,
+        },
+        textPageInfoSecondary: {
+            fontFamily: MyStyle.FontFamily.OpenSans.regular,
+            fontSize  : 14,
+            color     : MyColor.Material.GREY["700"],
+            textAlign : "justify",
+        },
+
+        textListTitle: {
+            fontFamily: MyStyle.FontFamily.OpenSans.semiBold,
+            fontSize  : 30,
+            color     : "#f0f0f0",
+        },
+
+        textListItemTitleAlt    : {
+            fontFamily: MyStyle.FontFamily.Roboto.regular,
+            fontSize  : 15,
+            color     : MyColor.textDarkPrimary
+        },
+        textListItemTitle       : {
+            fontFamily: MyStyle.FontFamily.OpenSans.regular,
+            fontSize  : 15,
+            color     : MyColor.Material.GREY["600"]
+        },
+        textListItemTitleDark   : {
+            fontFamily: MyStyle.FontFamily.OpenSans.regular,
+            fontSize  : 15,
+            color     : MyColor.textDarkPrimary
+        },
+        textListItemSubTitleAlt    : {
+            fontFamily: MyStyle.FontFamily.OpenSans.regular,
+            fontSize  : 13,
+            color     : MyColor.textDarkSecondary
+        },
+        textListItemSubTitle    : {
+            fontFamily: MyStyle.FontFamily.Roboto.regular,
+            fontSize  : 13,
+            color     : MyColor.textDarkSecondary
+        },
+        textListItemSubTitleDark: {
+            fontFamily: MyStyle.FontFamily.Roboto.regular,
+            fontSize  : 13,
+            color     : MyColor.textDarkSecondary
+        },
+
+        textPricePage          : {
             fontFamily: MyStyle.fontFamilyPriceBold,
             fontSize  : 22,
             color     : MyColor.Primary.first,
         },
-        titlePriceDiscountedPage: {
+        textPriceDiscountedPage: {
             fontFamily        : MyStyle.fontFamilyPrice,
             fontSize          : 14,
             color             : MyColor.textDarkSecondary2,
             textDecorationLine: "line-through",
         },
-        titleAlert              : {
+
+        textAlert: {
             fontFamily: MyStyle.FontFamily.OpenSans.semiBold,
             fontSize  : 30,
             color     : "#f0f0f0",
         },
+
+        MRButtonProductPage          : {
+            marginVertical  : 5,
+            marginHorizontal: 5,
+
+            borderRadius: 3,
+        },
+        textButtonProductPage        : {
+            fontFamily     : MyStyle.FontFamily.Roboto.regular,
+            fontSize       : 14,
+            color          : MyColor.textDarkPrimary,
+            backgroundColor: MyColor.Material.WHITE,
+
+            paddingHorizontal: 10,
+            paddingVertical  : 6,
+
+            borderRadius: 3,
+
+            // borderWidth: 1,
+            // borderColor: MyColor.textDarkSecondary,
+        },
+        textButtonProductPageSelected: {
+            fontFamily     : MyStyle.FontFamily.Roboto.regular,
+            fontSize       : 14,
+            color          : MyColor.Material.WHITE,
+            backgroundColor: MyColor.Primary.first,
+
+            paddingHorizontal: 10,
+            paddingVertical  : 6,
+
+            borderRadius: 3,
+        },
+
 
         imageListExtraSmall: {
             width          : MyStyle.screenWidth * 0.11,
@@ -649,23 +779,21 @@ const MyStyleSheet = StyleSheet.create(
             borderRadius   : 4,
             backgroundColor: MyColor.Material.GREY["100"],
         },
-        imageBackground    : {
+
+        imagePageCard: {
+            width          : MyStyle.screenWidth * 0.35,
+            height         : MyStyle.screenWidth * 0.35,
+            borderRadius   : 600,
+            backgroundColor: MyColor.Material.GREY["100"],
+        },
+
+        imageBackground: {
             width          : MyStyle.screenWidth,
             height         : MyStyle.screenWidth / 2,
             backgroundColor: MyColor.Material.GREY["100"],
         },
 
-        cardViewPage: {
-            display      : "flex",
-            flexDirection: "column",
 
-            paddingHorizontal: MyStyle.paddingHorizontalPage,
-            paddingVertical  : MyStyle.paddingVerticalPage,
-
-            marginBottom: 15,
-
-            backgroundColor: MyColor.Material.WHITE,
-        },
     })
 
 export {MyStyle, MyStyleCommon, MyStyleSheet};

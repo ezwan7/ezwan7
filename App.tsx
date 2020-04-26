@@ -33,7 +33,9 @@ export default App;
 
 // TODO: Increment/Decrement
 
+// TODO: Fast Image Issue
 // TODO: Back button break in jump or other
+// TODO: List loader not showing, change momumtun to true,
 
 // TODO: copy to cart page
 // TODO: white loader, allow style in toast loader,
@@ -47,6 +49,7 @@ export default App;
 // TODO: Filter page, price slider, Image Viewer,
 // TODO: Route Active using Redux, Pull to refresh on seach page, header blinking,
 
+// TODO: My Button Dependency remove
 // TODO: Search ontype list show, delay
 // TODO: Custom Header: back button, right button, scroll animation, list header,
 // TODO: Custom Bottom Tabs
@@ -54,6 +57,10 @@ export default App;
 // TODO: update cart api fetch all product by id, and calculate EVERYTHING,
 // TODO: Render Optimize Home screen, use event and redux,
 // TODO: No password change option for social login,
+// TODO: Multi line input,
+// TODO: Header padding, redo
+// TODO: Section List Content Loader
+// TODO: Options: Modal with search, BottomSheet with scroll button search, Option page search, multi select, button confirm,
 
 // No Internet Lottie
 // Validation delay, on type gone

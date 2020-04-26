@@ -29,14 +29,16 @@ const MyImage = {
 
     onError: "../../src/images/logo.png",
 
-    lottie_empty_lost    : require("../../src/images/lottie_empty_lost.json"),
-    lottie_bus           : require("../../src/images/lottie_bus.json"),
-    lottie_confirmation  : require("../../src/images/lottie_confirmation.json"),
-    lottie_searching_file: require("../../src/images/lottie_searching_file.json"),
-    lottie_developer     : require("../../src/images/lottie_developer.json"),
-    lottie_box_open      : require("../../src/images/lottie_box_open.json"),
-    lottie_map_marker    : require("../../src/images/lottie_map_marker.json"),
-    lottie_location      : require("../../src/images/lottie_location.json"),
+    lottie_empty_lost      : require("../../src/images/lottie_empty_lost.json"),
+    lottie_bus             : require("../../src/images/lottie_bus.json"),
+    lottie_confirmation    : require("../../src/images/lottie_confirmation.json"),
+    lottie_check_in_success: require("../../src/images/lottie_check_in_success.json"),
+    lottie_searching_file  : require("../../src/images/lottie_searching_file.json"),
+    lottie_developer       : require("../../src/images/lottie_developer.json"),
+    lottie_box_open        : require("../../src/images/lottie_box_open.json"),
+    lottie_map_marker      : require("../../src/images/lottie_map_marker.json"),
+    lottie_location        : require("../../src/images/lottie_location.json"),
+    lottie_love            : require("../../src/images/lottie_love.json"),
 };
 
 export default MyImage;

@@ -30,7 +30,6 @@ import CartScreen from "./screens/Cart";
 import ProductBuyScreen from "./screens/ProductBuy";
 import ProductBuyPayment from "./screens/ProductBuyPayment";
 import ProductBuySuccess from "./screens/ProductBuySuccess";
-import ProductBuyDelivery from "./screens/ProductBuyDelivery";
 
 import EditProfile from './screens/EditProfile';
 import MyAddress from "./screens/MyAddress";
@@ -49,6 +48,10 @@ import {MyStyle, MyStyleCommon} from "./common/MyStyle";
 import MyColor from "./common/MyColor";
 import MyImage from "./shared/MyImage";
 import {View} from "react-native";
+import MyAddressForm from "./screens/MyAddressForm";
+import ReferAndEarn from "./screens/ReferAndEarn";
+import OptionPage from "./screens/OptionPage";
+import MyWebViewScreen from "./screens/MyWebView";
 
 
 let lastTimeBackPress: number = 0;
@@ -293,19 +296,6 @@ const HomeScreens =
                   options = {{
                       title           : MyLANG.Cart,
                       headerBackground: HeaderGradientPrimary,
-                      /* headerLeft: () => {
-                       },*/
-                      ...MyStyleCommon.StackOptions.BottomTabStack,
-                  }}
-              />
-              <HomeStack.Screen
-                  name = {MyConfig.routeName.ProductBuyDelivery}
-                  component = {ProductBuyDelivery}
-                  options = {{
-                      title           : MyLANG.Delivery,
-                      headerBackground: HeaderGradientPrimary,
-                      /* headerLeft: () => {
-                       },*/
                       ...MyStyleCommon.StackOptions.BottomTabStack,
                   }}
               />
@@ -315,8 +305,6 @@ const HomeScreens =
                   options = {{
                       title           : MyLANG.Payment,
                       headerBackground: HeaderGradientPrimary,
-                      /* headerLeft: () => {
-                       },*/
                       ...MyStyleCommon.StackOptions.BottomTabStack,
                   }}
               />
@@ -324,11 +312,24 @@ const HomeScreens =
                   name = {MyConfig.routeName.ProductBuySuccess}
                   component = {ProductBuySuccess}
                   options = {{
-                      title           : MyLANG.OrderCompleted,
-                      headerBackground: HeaderGradientPrimary,
-                      /* headerLeft: () => {
-                       },*/
+                      title          : "",
+                      headerLeft     : () => (
+                          <HeaderBackButton
+                              onPress = {
+                                  () =>
+                                      MyUtil.commonAction(false,
+                                                          null,
+                                                          MyConstant.CommonAction.navigate,
+                                                          MyConfig.routeName.Home,
+                                                          null,
+                                                          null,
+                                      )
+                              }
+                              tintColor = {MyColor.Material.BLACK}
+                          />
+                      ),
                       ...MyStyleCommon.StackOptions.BottomTabStack,
+                      headerTintColor: MyColor.Material.BLACK,
                   }}
               />
 
@@ -336,7 +337,17 @@ const HomeScreens =
                   name = {MyConfig.routeName.EditProfile}
                   component = {EditProfile}
                   options = {{
-                      title           : MyLANG.EditProfile,
+                      title          : "",
+                      // headerBackground: HeaderGradientPrimary,
+                      ...MyStyleCommon.StackOptions.BottomTabStack,
+                      headerTintColor: MyColor.Material.BLACK,
+                  }}
+              />
+              <HomeStack.Screen
+                  name = {MyConfig.routeName.MyPoints}
+                  component = {NotificationViewScreen}
+                  options = {{
+                      title           : MyLANG.MyPoints,
                       headerBackground: HeaderGradientPrimary,
                       ...MyStyleCommon.StackOptions.BottomTabStack,
                   }}
@@ -360,12 +371,40 @@ const HomeScreens =
                   }}
               />
               <HomeStack.Screen
+                  name = {MyConfig.routeName.MyAddressForm}
+                  component = {MyAddressForm}
+                  options = {{
+                      title           : '',
+                      headerBackground: HeaderGradientPrimary,
+                      ...MyStyleCommon.StackOptions.BottomTabStack,
+                  }}
+              />
+              <HomeStack.Screen
                   name = {MyConfig.routeName.Notifications}
-                  component = {NotificationViewScreen}
+                  component = {NotificationScreen}
                   options = {{
                       title           : MyLANG.Notifications,
                       headerBackground: HeaderGradientPrimary,
                       ...MyStyleCommon.StackOptions.BottomTabStack,
+                  }}
+              />
+              <HomeStack.Screen
+                  name = {MyConfig.routeName.NotificationView}
+                  component = {NotificationViewScreen}
+                  options = {{
+                      title           : MyLANG.NotificationsDetails,
+                      headerBackground: HeaderGradientPrimary,
+                      ...MyStyleCommon.StackOptions.BottomTabStack,
+                  }}
+              />
+              <HomeStack.Screen
+                  name = {MyConfig.routeName.ReferAndEarn}
+                  component = {ReferAndEarn}
+                  options = {{
+                      title          : "",
+                      // headerBackground: HeaderGradientPrimary,
+                      ...MyStyleCommon.StackOptions.BottomTabStack,
+                      headerTintColor: MyColor.Material.BLACK,
                   }}
               />
               <HomeStack.Screen
@@ -408,6 +447,33 @@ const HomeScreens =
               <HomeStack.Screen
                   name = {MyConfig.routeName.GoogleMap}
                   component = {GoogleMapScreen}
+                  options = {{
+                      title                    : "",
+                      // headerBackground: HeaderGradientPrimary,
+                      headerLeft               : null,
+                      ...MyStyleCommon.StackOptions.BottomTabStack,
+                      headerTintColor          : MyColor.Material.BLACK,
+                      headerTitleContainerStyle: { // important
+                          // right: 0,
+                      },
+                  }}
+              />
+
+              <HomeStack.Screen
+                  name = {MyConfig.routeName.OptionPage}
+                  component = {OptionPage}
+                  options = {{
+                      title                    : "",
+                      // headerBackground: HeaderGradientPrimary,
+                      ...MyStyleCommon.StackOptions.BottomTabStack,
+                      headerTitleContainerStyle: { // important
+                          // right: 0,
+                      },
+                  }}
+              />
+              <HomeStack.Screen
+                  name = {MyConfig.routeName.MyWebViewPage}
+                  component = {MyWebViewScreen}
                   options = {{
                       title                    : "",
                       // headerBackground: HeaderGradientPrimary,
