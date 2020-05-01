@@ -96,6 +96,44 @@ const MyAddressForm = ({route, navigation}: any) => {
 
     const [pageType, setPageType]: any = useState(null);
 
+    const {register, getValues, setValue, handleSubmit, formState, errors, reset, triggerValidation, watch}: any = useForm(
+        {
+            mode                : 'onSubmit',
+            reValidateMode      : 'onChange',
+            defaultValues       : route?.params?.pageType === 'EDIT' ? {
+                id            : route?.params?.item?.id,
+                address_title : route?.params?.item?.company || '',
+                full_name     : (route?.params?.item?.firstname + ' ' + route?.params?.item?.lastname) || '',
+                phone         : route?.params?.item?.phone || '',
+                street_address: route?.params?.item?.street || '',
+                // country       : null,
+                // state         : null,
+                city          : route?.params?.item?.city || '',
+                postal_code   : route?.params?.item?.postcode || '',
+                note          : route?.params?.item?.note || '',
+                is_default    : route?.params?.item?.default_address === route?.params?.item?.id ? true : false,
+                // location      : null,
+            } : {},
+            validationSchema    : addressFormSchema,
+            validateCriteriaMode: 'all',
+            submitFocusError    : true,
+        }
+    );
+
+    useEffect(() => {
+        MyUtil.printConsole(true, 'log', `LOG: ${MyAddressForm.name}. useEffect: `, 'register');
+
+        for (const key of Object.keys(addressFormSchema['fields'])) {
+            if (key) {
+                register({name: key});
+            }
+        }
+
+    }, [register]);
+
+    const values                       = getValues();
+    const {country, state, is_default} = watch(['country', 'state', 'is_default']);
+
     useFocusEffect(
         useCallback(() => {
 
@@ -137,7 +175,7 @@ const MyAddressForm = ({route, navigation}: any) => {
         // Populate for Edit Address:
         const item = route?.params?.item;
         if (route?.params?.pageType === 'EDIT' && item?.countries_id) {
-            const country_find = countries.find((e: any) => e.id === item?.countries_id);
+            const country_find: any = countries.find((e: any) => e.id === item?.countries_id);
             if (country_find?.id) {
                 if (item?.zone_name) {
                     populateState(country_find, item?.zone_name);
@@ -148,50 +186,13 @@ const MyAddressForm = ({route, navigation}: any) => {
             } else {
                 setValue('country', {}, true);
             }
+
+            MyUtil.printConsole(true, 'log', `LOG: ${MyAddressForm.name}. useEffect: `, {countries, country_find, params: route?.params});
         }
 
-        MyUtil.printConsole(true, 'log', `LOG: ${MyAddressForm.name}. useEffect: `, {countries, params: route?.params});
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
-
-    const {register, getValues, setValue, handleSubmit, formState, errors, reset, triggerValidation, watch}: any = useForm(
-        {
-            mode                : 'onSubmit',
-            reValidateMode      : 'onChange',
-            defaultValues       : route?.params?.pageType === 'EDIT' ? {
-                id            : route?.params?.item?.address_id,
-                address_title : route?.params?.item?.company,
-                full_name     : route?.params?.item?.firstname + ' ' + route?.params?.item?.lastname,
-                phone         : route?.params?.item?.phone,
-                street_address: route?.params?.item?.street,
-                // country       : null,
-                // state         : null,
-                city          : route?.params?.item?.city,
-                postal_code   : route?.params?.item?.postcode,
-                note          : route?.params?.item?.note,
-                is_default    : route?.params?.item?.default_address === route?.params?.item?.address_id ? true : false,
-                // location      : null,
-            } : {},
-            validationSchema    : addressFormSchema,
-            validateCriteriaMode: 'all',
-            submitFocusError    : true,
-        }
-    );
-
-    useEffect(() => {
-        MyUtil.printConsole(true, 'log', `LOG: ${MyAddressForm.name}. useEffect: `, 'register');
-
-        for (const key of Object.keys(addressFormSchema['fields'])) {
-            if (key) {
-                register({name: key});
-            }
-        }
-
-    }, [register]);
-
-    const values                       = getValues();
-    const {country, state, is_default} = watch(['country', 'state', 'is_default']);
 
     const openGoogleMap = () => {
         MyUtil.commonAction(false,
@@ -220,13 +221,13 @@ const MyAddressForm = ({route, navigation}: any) => {
 
         const street_address: any = location?.address?.street_number?.length > 0 && location?.address?.street?.length > 0 ? (location.address.street_number + ', ' + location.address.street) : location?.address?.street_number?.length > 0 ? location.address.street_number : location?.address?.street?.length > 0 ? location.address.street : '';
 
-        setValue('street_address', street_address, true);
-        setValue('city', location?.address?.city, true);
-        setValue('postal_code', location?.address?.postal_code, true);
-        setValue('location', location, true);
+        setValue('street_address', street_address || '', true);
+        setValue('city', location?.address?.city || '', true);
+        setValue('postal_code', location?.address?.postal_code || '', true);
+        setValue('location', location || {}, true);
 
         if (location?.address?.country) {
-            const country_find = countries.find((e: any) => e.countries_name === location?.address?.country);
+            const country_find: any = countries.find((e: any) => e.countries_name === location?.address?.country);
             if (country_find?.id) {
                 if (location?.address?.state) {
                     populateState(country_find, location?.address?.state);
@@ -239,10 +240,10 @@ const MyAddressForm = ({route, navigation}: any) => {
 
     const populateState = async (country_find: any, state: any) => {
 
-        const states = await MyFunction.fetchStates(country_find.id);
+        const states: any = await MyFunction.fetchStates(country_find.id);
 
         if (states?.length > 0) {
-            const state_find = states.find((e: any) => e.zone_name === state);
+            const state_find: any = states.find((e: any) => e.zone_name === state);
 
             if (state_find?.id) {
                 setValue('country', {...country_find, states: states}, false);
@@ -288,7 +289,7 @@ const MyAddressForm = ({route, navigation}: any) => {
                                         resetValue: [
                                             {
                                                 name          : 'state',
-                                                value         : null,
+                                                value         : {},
                                                 shouldValidate: false,
                                             }
                                         ]
@@ -545,10 +546,10 @@ const MyAddressForm = ({route, navigation}: any) => {
 
                     <ScrollView
                         contentInsetAdjustmentBehavior = "automatic"
-                        contentContainerStyle = {{paddingTop: MyStyle.headerHeightAdjusted, flexGrow: 1}}
+                        contentContainerStyle = {{paddingTop: MyStyle.headerHeightAdjusted}}
                     >
 
-                        <View style = {[MyStyleSheet.viewPageCard, {marginTop: MyStyle.marginViewGapCard}]}>
+                        <View style = {[MyStyleSheet.viewPageCard, {marginTop: MyStyle.marginViewGapCardTop}]}>
 
                             <MyInput
                                 mode = "line"
@@ -648,7 +649,7 @@ const MyAddressForm = ({route, navigation}: any) => {
                         </View>
 
                         <MyMaterialRipple
-                            style = {[MyStyleSheet.viewPageCard, MyStyle.RowStartCenter]}
+                            style = {[MyStyleSheet.viewPageCard, MyStyle.RowLeftCenter]}
                             {...MyStyle.MaterialRipple.drawer}
                             onPress = {openGoogleMap}
                         >
@@ -658,7 +659,7 @@ const MyAddressForm = ({route, navigation}: any) => {
                                 color = {MyColor.attentionDark}
                                 style = {{}}
                             />
-                            <View style = {[MyStyle.ColumnCenterStart, {flex: 1, marginHorizontal: 14}]}>
+                            <View style = {[MyStyle.ColumnCenterStart, {flex: 1, marginHorizontal: MyStyle.marginHorizontalList}]}>
                                 <Text style = {[MyStyleSheet.textListItemTitleDark]}>
                                     {MyLANG.SelectLocation}
                                 </Text>

@@ -49,7 +49,7 @@ const SettingsScreen = ({route, navigation}: any) => {
 
         if (user.id) {
             const settingsItem = [
-                {
+                /*{
                     gradient : MyStyle.LGDrawerItem,
                     ripple   : MyStyle.MaterialRipple.drawer,
                     imageLeft: null,
@@ -58,7 +58,7 @@ const SettingsScreen = ({route, navigation}: any) => {
                     textRight: {text: MyLANG.DummyPoints},
                     iconRight: {name: 'arrow-right'},
                     onPress  : {loginRequired: true, actionType: MyConstant.DrawerOnPress.Navigate, routeName: MyConfig.routeName.MyPoints},
-                },
+                },*/
                 {
                     gradient : MyStyle.LGDrawerItem,
                     ripple   : MyStyle.MaterialRipple.drawer,
@@ -77,7 +77,12 @@ const SettingsScreen = ({route, navigation}: any) => {
                     textLeft : {text: MyLANG.MyAddress},
                     textRight: null,
                     iconRight: {name: 'arrow-right'},
-                    onPress  : {loginRequired: true, actionType: MyConstant.DrawerOnPress.Navigate, routeName: MyConfig.routeName.MyAddress},
+                    onPress  : {
+                        loginRequired: true,
+                        actionType   : MyConstant.DrawerOnPress.Navigate,
+                        routeName    : MyConfig.routeName.MyAddress,
+                        params       : {routeName: MyConfig.routeName.Settings, params: null}
+                    },
                 },
                 {
                     gradient : MyStyle.LGDrawerItem,
@@ -86,7 +91,7 @@ const SettingsScreen = ({route, navigation}: any) => {
                     iconLeft : null,
                     textLeft : {text: MyLANG.Notifications},
                     textRight: {
-                        text : MyLANG.DummyNotification,
+                        text : Number(user?.unread_notifications) > 0 ? user?.unread_notifications : null,
                         style: {
                             fontFamily       : MyStyle.FontFamily.OpenSans.semiBold,
                             fontSize         : 11,
@@ -99,6 +104,21 @@ const SettingsScreen = ({route, navigation}: any) => {
                     },
                     iconRight: {name: 'arrow-right'},
                     onPress  : {loginRequired: true, actionType: MyConstant.DrawerOnPress.Navigate, routeName: MyConfig.routeName.Notifications},
+                },
+                {
+                    gradient : MyStyle.LGDrawerItem,
+                    ripple   : MyStyle.MaterialRipple.drawer,
+                    imageLeft: null,
+                    iconLeft : null,
+                    textLeft : {text: MyLANG.MyWishList},
+                    textRight: null,
+                    iconRight: {name: 'arrow-right'},
+                    onPress  : {
+                        loginRequired: true,
+                        actionType   : MyConstant.DrawerOnPress.Navigate,
+                        routeName    : MyConfig.routeName.ProductList,
+                        params       : {'title': MyLANG.MyWishList, 'id': null, 'apiURL': MyAPI.wishlist, 'user_id': user?.id, 'type': 'wishlist'},
+                    },
                 },
                 {
                     gradient : MyStyle.LGDrawerItem,
@@ -233,7 +253,12 @@ const SettingsScreen = ({route, navigation}: any) => {
                     textLeft : {text: MyLANG.MyAddress},
                     textRight: null,
                     iconRight: {name: 'arrow-right'},
-                    onPress  : {loginRequired: true, actionType: MyConstant.DrawerOnPress.Navigate, routeName: MyConfig.routeName.MyAddress},
+                    onPress  : {
+                        loginRequired: true,
+                        actionType   : MyConstant.DrawerOnPress.Navigate,
+                        routeName    : MyConfig.routeName.MyAddress,
+                        params       : {routeName: MyConfig.routeName.Settings, params: null}
+                    },
                 },
                 {
                     gradient : MyStyle.LGDrawerItem,
@@ -242,7 +267,7 @@ const SettingsScreen = ({route, navigation}: any) => {
                     iconLeft : null,
                     textLeft : {text: MyLANG.Notifications},
                     textRight: {
-                        text : MyLANG.DummyNotification,
+                        text : Number(user?.unread_notifications) > 0 ? user?.unread_notifications : null,
                         style: {
                             fontFamily       : MyStyle.FontFamily.OpenSans.semiBold,
                             fontSize         : 11,
@@ -255,6 +280,21 @@ const SettingsScreen = ({route, navigation}: any) => {
                     },
                     iconRight: {name: 'arrow-right'},
                     onPress  : {loginRequired: true, actionType: MyConstant.DrawerOnPress.Navigate, routeName: MyConfig.routeName.Notifications},
+                },
+                {
+                    gradient : MyStyle.LGDrawerItem,
+                    ripple   : MyStyle.MaterialRipple.drawer,
+                    imageLeft: null,
+                    iconLeft : null,
+                    textLeft : {text: MyLANG.MyWishList},
+                    textRight: null,
+                    iconRight: {name: 'arrow-right'},
+                    onPress  : {
+                        loginRequired: true,
+                        actionType   : MyConstant.DrawerOnPress.Navigate,
+                        routeName    : MyConfig.routeName.ProductList,
+                        params       : {'title': MyLANG.MyWishList, 'id': null, 'apiURL': MyAPI.wishlist, 'user_id': user?.id, 'type': 'wishlist'},
+                    },
                 },
                 {
                     gradient : MyStyle.LGDrawerItem,
@@ -375,7 +415,7 @@ const SettingsScreen = ({route, navigation}: any) => {
             <StatusBarLight/>
             <SafeAreaView style = {MyStyleSheet.SafeAreaView1}/>
             <SafeAreaView style = {MyStyleSheet.SafeAreaView2}>
-                <View style = {[MyStyleSheet.SafeAreaView3, {backgroundColor: MyColor.Material.WHITE}]}>
+                <View style = {[MyStyleSheet.SafeAreaView3, {backgroundColor: MyColor.backgroundGrey}]}>
 
                     <ScrollView
                         contentInsetAdjustmentBehavior = "automatic"
@@ -426,8 +466,6 @@ const SettingsScreen = ({route, navigation}: any) => {
                                 </View>
                             </TouchableWithoutFeedback>
                         </View>
-
-                        <View style = {settingsItem.viewGap}></View>
 
                         <View style = {settingsItem.viewSettingsSection}>
                             {settings.map((prop: any, key: any) => (
@@ -558,7 +596,8 @@ const settingsItemOnPress = (loginRequired: boolean, navigation: any, actionType
                 )
                 break;
             case MyConstant.DrawerOnPress.PromptLogout:
-                MyAuth.showLogoutConfirmation(MyConstant.SHOW_MESSAGE.ALERT,
+                MyAuth.showLogoutConfirmation(MyConstant.SHOW_MESSAGE.TOAST,
+                                              MyConstant.SHOW_MESSAGE.ALERT,
                                               MyLANG.LogginOut + '...',
                                               true,
                                               null,
@@ -590,10 +629,14 @@ const settingsItem = StyleSheet.create(
             flexDirection : "row",
             justifyContent: "flex-start",
             alignItems    : "center",
-            marginVertical: 24,
 
+            backgroundColor: MyColor.Material.WHITE,
 
-            marginLeft: 14,
+            marginTop   : MyStyle.marginVerticalList / 2,
+            marginBottom: MyStyle.marginViewGapCard,
+
+            paddingVertical  : MyStyle.paddingVerticalPage,
+            paddingHorizontal: MyStyle.paddingHorizontalList,
         },
         viewImageProfile  : {
             width       : 90,
@@ -633,12 +676,6 @@ const settingsItem = StyleSheet.create(
             fontFamily: MyStyle.FontFamily.OpenSans.regular,
             fontSize  : 14,
             color     : MyColor.textDarkSecondary,
-        },
-
-        viewGap: {
-            height         : MyStyle.marginViewGapCard,
-            width          : MyStyle.screenWidth,
-            backgroundColor: MyColor.Material.GREY["100"]
         },
 
         viewSettingsSection : {

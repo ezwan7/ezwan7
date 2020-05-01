@@ -103,6 +103,7 @@ const HomeScreen = ({route, navigation}: any) => {
 
         MyFunction.appUpdateCheck();
         // MyFunction.fetchAppData(false); // in settings page
+        MyFunction.fetchFilterMethod(false);
         MyFunction.fetchCountries(); // in address page
         // MyFunction.fetchNotification(false);
         MyFunction.updateDeviceInfo();
@@ -201,7 +202,6 @@ const HomeScreen = ({route, navigation}: any) => {
         return <ActivityIndicatorLarge style = {{flex: 1}}/>;
     }
 
-    // Refresh All existing on Component Visibile, Show Placeholder on start and loadmore, No Data Found Design
     const fetchCategory   = async (showLoader: any = MyLANG.Loading + '...', setRefresh: boolean = false, showInfoMessage: any = false) => {
 
         const response: any = await MyUtil

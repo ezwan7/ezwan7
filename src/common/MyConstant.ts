@@ -1,15 +1,17 @@
 import {PermissionsAndroid} from "react-native";
 import Share from "react-native-share";
+import DocumentPicker from "react-native-document-picker";
 
 const MyConstant = {
 
-    HTTP_GET             : 'GET',
-    HTTP_POST            : 'POST',
-    HTTP_PUT             : 'PUT',
-    HTTP_PATCH           : 'PATCH',
-    HTTP_DELETE          : 'DELETE',
-    HTTP_JSON            : 'json',
-    HTTP_APPLICATION_JSON: 'application/json',
+    HTTP_GET                : 'GET',
+    HTTP_POST               : 'POST',
+    HTTP_PUT                : 'PUT',
+    HTTP_PATCH              : 'PATCH',
+    HTTP_DELETE             : 'DELETE',
+    HTTP_JSON               : 'json',
+    HTTP_APPLICATION_JSON   : 'application/json',
+    HTTP_MULTIPART_FORM_DATA: 'multipart/form-data',
 
     TIMEOUT: {
         VeryShort: 1000,
@@ -41,6 +43,16 @@ const MyConstant = {
         addToEndUnique  : 'addToEndUnique',
         addToStart      : 'addToStart',
         addToStartUnique: 'addToStartUnique',
+    },
+
+    OrderStatus: {
+        Pending           : 1,
+        Completed         : 2,
+        Cancelled         : 3,
+        Return            : 4,
+        Processing        : 5,
+        ReadyForCollection: 6,
+        DeliveryInProgress: 7,
     },
 
     LOGIN_MODE: {
@@ -124,8 +136,11 @@ const MyConstant = {
     },
 
     CLEAR_STORAGE: {
+        'KEYCHAIN'         : 'KEYCHAIN',
+        //
         'TOKEN'            : 'TOKEN',
-        'CREDENTIAL'       : 'CREDENTIAL',
+        //
+        'REDUX'            : 'REDUX',
         //
         'ALL_ASYNC_STORAGE': 'ALL_ASYNC_STORAGE',
     },
@@ -255,6 +270,21 @@ const MyConstant = {
         WRITE_EXTERNAL_STORAGE: PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
     },
 
+    DocumentPickerType: {
+        allFiles : DocumentPicker.types.allFiles,
+        images   : DocumentPicker.types.images,
+        plainText: DocumentPicker.types.plainText,
+        audio    : DocumentPicker.types.audio,
+        pdf      : DocumentPicker.types.pdf,
+        zip      : DocumentPicker.types.zip,
+    },
+
+    BiometryTypes: {
+        FaceID     : 'FaceID',
+        TouchID    : 'TouchID',
+        Fingerprint: 'Fingerprint',
+    },
+
     DeviceInfo: {
         getAndroidId                 : 'getAndroidId',
         getApiLevel                  : 'getApiLevel',
@@ -351,6 +381,7 @@ const MyConstant = {
     },
 
     FetchBlobType: {
+        fs   : 'fs',
         fetch: 'fetch',
     },
     FetchFileType: {

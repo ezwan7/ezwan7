@@ -77,6 +77,7 @@ const SplashScreen = ({}) => {
 
             // Check if Have Saved Login and Call Silent Background Login:
             MyAuth.isSavedLogin(false,
+                                false,
                                 MyLANG.Loading + '...',
                                 true,
                                 null,

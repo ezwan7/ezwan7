@@ -12,6 +12,7 @@ import AppDataReducer from "./AppDataRedux";
 import CartReducer from "./CartRedux";
 import CategoryReducer from "./CategoryRedux";
 import AddressReducer from "./AddressRedux";
+import OrderReducer from "./OrderRedux";
 import NotificationReducer from "./NotificationRedux";
 
 const persistConfig: any = {
@@ -34,6 +35,7 @@ const persistConfig: any = {
         'cart',
         'category',
         'addresses',
+        'orders',
         'notification',
     ]
 }
@@ -49,6 +51,7 @@ const myReducer = persistCombineReducers(persistConfig, {
     cart         : CartReducer,
     category     : CategoryReducer,
     addresses    : AddressReducer,
+    orders       : OrderReducer,
     notification : NotificationReducer,
 });
 

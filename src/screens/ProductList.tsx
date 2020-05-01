@@ -59,7 +59,7 @@ const ProductListScreen = ({route, navigation}: any) => {
     useEffect(() => {
         MyUtil.printConsole(true, 'log', `LOG: ${ProductListScreen.name}. useEffect: `, '');
 
-        fetchProduct( 0,
+        fetchProduct(0,
                      MyConfig.ListLimit.productList,
                      false,
                      false,
@@ -132,7 +132,6 @@ const ProductListScreen = ({route, navigation}: any) => {
         return <ActivityIndicatorLarge/>;
     }
 
-    // Refresh All existing on Component Visibile, Show Placeholder on start and loadmore, No Data Found Design
     const fetchProduct = async (skip: number = 0, take: number = MyConfig.ListLimit.productList, showLoader: any = MyLANG.Loading + '...', setRefresh: boolean = false, showInfoMessage: any = false, DataSetType: string = MyConstant.DataSetType.fresh) => {
 
         setLoading(true);
@@ -141,7 +140,11 @@ const ProductListScreen = ({route, navigation}: any) => {
         const response: any = await MyUtil
             .myHTTP(false, MyConstant.HTTP_POST, apiURL,
                     {
-                        'language_id'  : MyConfig.LanguageActive,
+                        'language_id': MyConfig.LanguageActive,
+
+                        'type'        : route?.params?.type,
+                        'customers_id': route?.params?.user_id,
+
                         'categories_id': route?.params?.id,
                         'skip'         : skip,
                         'take'         : take,
@@ -221,7 +224,7 @@ const ProductListScreen = ({route, navigation}: any) => {
                     {firstLoad && product?.length === 0 &&
                      <ScrollView
                          contentInsetAdjustmentBehavior = "automatic"
-                         contentContainerStyle = {{paddingTop: MyStyle.headerHeightAdjusted, flexGrow: 1}}
+                         contentContainerStyle = {{paddingTop: MyStyle.headerHeightAdjusted}}
                      >
                          {ProductListItemContentLoader(8)}
                      </ScrollView>

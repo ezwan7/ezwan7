@@ -623,8 +623,8 @@ const styles = StyleSheet.create(
             marginTop    : 0,
             marginBottom : 0,
 
-            fontSize  : MyStyle.FontSize.input,
             fontFamily: MyStyle.FontFamily.Roboto.medium,
+            fontSize  : MyStyle.FontSize.input,
             color     : MyColor.Material.BLACK,
 
         },

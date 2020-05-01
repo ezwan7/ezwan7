@@ -142,7 +142,7 @@ export const cartItemQuantityDecrement = (key: string) => {
 export const cartEmpty                 = () => {
     return {
         type   : types.EMPTY_CART,
-        payload: '',
+        payload: null,
     }
 }
 
@@ -251,33 +251,72 @@ const calculateTotal = (state: any) => {
         for (const key of Object.keys(state.items)) {
             // console.log('LOG: cartCalculatePrice: ', {key, item: state.items[key]});
 
-            const quantity: number       = Number(state.items[key]?.quantity) > 0 ? Number(state.items[key]?.quantity) : 0;
-            const discount_price: number = Number(state.items[key]?.item?.discount_price) > 0 ? Number(state.items[key]?.item?.discount_price) : 0;
-            const products_price: number = Number(state.items[key]?.item?.products_price) > 0 ? Number(state.items[key]?.item?.products_price) : 0;
-            const price: number          = discount_price > 0 ? discount_price : products_price;
+            const quantity: number         = Number(state.items[key]?.quantity) > 0 ? Number(state.items[key]?.quantity) : 0;
+            const discounted_price: number = Number(state.items[key]?.item?.discount_price) > 0 ? Number(state.items[key]?.item?.discount_price) : 0;
+            const product_price: number    = Number(state.items[key]?.item?.products_price) > 0 ? Number(state.items[key]?.item?.products_price) : 0;
+            const price: number            = discounted_price > 0 ? discounted_price : product_price;
+
+            let attribute_amount: number                                = 0;
+            let price_with_attribute_amount: number                     = 0;
+            let attribute_total: number                                 = 0;
+            let subtotal_before_discounted_with_attribute_total: number = 0;
+            let discount: number                                        = 0;
 
             if (price > 0 && quantity > 0) {
-                /*console.log('LOG: cartCalculatePrice: ', {
-                                price   : price,
-                                quantity: quantity
+                // console.log('LOG: cartCalculatePrice: ', {price   : price, quantity: quantity});
+
+                if (state.items[key]?.item?.attributes?.length > 0) {
+                    for (const [i, attribute] of state.items[key]?.item?.attributes?.entries()) {
+                        if (attribute?.values?.length > 0) {
+                            for (const [i, value] of attribute?.values?.entries()) {
+                                if (value?.cart_selected === true && Number.isFinite(Number(value?.price))) {
+                                    if (value?.price_prefix === '+') {
+                                        attribute_amount += Number(value?.price);
+                                    } else if (value?.price_prefix === '-') {
+                                        attribute_amount -= Number(value?.price);
+                                    }
+                                }
                             }
-                );*/
+                        }
+                    }
+                }
 
-                calculatedCart.items[key].subtotal = products_price * quantity;
-                calculatedCart.items[key].discount = discount_price > 0 ? ((products_price - discount_price) * quantity) : 0;
-                calculatedCart.items[key].total    = price * quantity;
+                price_with_attribute_amount = price + attribute_amount;
+                attribute_total             = attribute_amount * quantity;
 
+                subtotal_before_discounted_with_attribute_total = (product_price * quantity) + attribute_total;
+
+                discount = discounted_price > 0 ? ((product_price - discounted_price) * quantity) : 0
+
+                calculatedCart.items[key].price = price; // either base price or discounted price(if exist)
+
+                calculatedCart.items[key].attribute_amount            = attribute_amount; // Sum of all selected perks price
+                calculatedCart.items[key].price_with_attribute_amount = price_with_attribute_amount; // price + attribute_amount
+
+                calculatedCart.items[key].attribute_total = attribute_total;
+
+                calculatedCart.items[key].subtotal_price                      = price * quantity; // Based on base or discounted price
+                calculatedCart.items[key].subtotal_price_with_attribute_total = (price * quantity) + attribute_total; // Based on base or discounted price with attribute_amount
+
+                calculatedCart.items[key].subtotal_before_discounted                      = product_price * quantity; // Based on Product's Actual Price
+                calculatedCart.items[key].subtotal_before_discounted_with_attribute_total = subtotal_before_discounted_with_attribute_total; // Based on Product's Actual Price with attribute_amount
+
+                calculatedCart.items[key].discount = discount;
+
+                calculatedCart.items[key].total = price_with_attribute_amount * quantity;
+
+                //
                 calculatedCart.count    = Number(calculatedCart.count) > 0 ? Number(calculatedCart.count) + 1 : 1;
                 calculatedCart.subtotal = Number(calculatedCart.subtotal) > 0 ?
                                           Number(calculatedCart.subtotal) +
-                                          Number(calculatedCart.items[key].total)
+                                          Number(subtotal_before_discounted_with_attribute_total)
                                                                               :
-                                          Number(calculatedCart.items[key].total);
+                                          Number(subtotal_before_discounted_with_attribute_total);
                 calculatedCart.discount = Number(calculatedCart.discount) > 0 ?
                                           Number(calculatedCart.discount) +
-                                          Number(calculatedCart.items[key].discount)
+                                          Number(discount)
                                                                               :
-                                          Number(calculatedCart.items[key].discount);
+                                          Number(discount);
 
             }
         }
@@ -318,6 +357,8 @@ const calculateTotal = (state: any) => {
     }
 }
 
+// base price, discounted price, ... price: base/discounted, attribute_total, price_with_attribute, subtotal: price*qty, subtotal_with_attribute:price+ta*qty, discount, total
+
 // REDUCER:
 const CartReducer = (state: any = initialState, action: any) => {
     // console.log('Redux CartReducer: ', state, action);
@@ -332,7 +373,7 @@ const CartReducer = (state: any = initialState, action: any) => {
 
                 if (addCartItem[itemId]) {
 
-                    if (Number(action.payload?.products_liked) > Number(addCartItem[itemId]?.quantity)) {
+                    if (Number(action.payload?.current_stock) > Number(addCartItem[itemId]?.quantity)) {
                         addCartItem[itemId].item     = action.payload;
                         addCartItem[itemId].quantity = Number(addCartItem[itemId].quantity) > 0 ? Number(addCartItem[itemId].quantity) + 1 : 1;
                     } else {
@@ -341,7 +382,7 @@ const CartReducer = (state: any = initialState, action: any) => {
 
                 } else {
 
-                    if (Number(action.payload?.products_liked) > 0) {
+                    if (Number(action.payload?.current_stock) > 0) {
 
                         const discount_price: number = Number(action.payload?.discount_price) > 0 ? Number(action.payload?.discount_price) : 0;
                         const products_price: number = Number(action.payload?.products_price) > 0 ? Number(action.payload?.products_price) : 0;
@@ -351,9 +392,20 @@ const CartReducer = (state: any = initialState, action: any) => {
                         addCartItem[itemId] = {
                             item    : action.payload,
                             quantity: 1,
-                            subtotal: products_price,
+
+                            /*price: price,
+
+                            attribute_amount           : price,
+                            price_with_attribute_amount: price,
+
+                            subtotal_price                     : price,
+                            subtotal_price_with_attribute_amount: price,
+
+                            subtotal_before_discounted                     : price,
+                            subtotal_before_discounted_with_attribute_amount: price,
+
                             discount: discount_price > 0 ? (products_price - discount_price) : 0,
-                            total   : price > 0 ? price : 0,
+                            total   : price > 0 ? price : 0,*/
                         };
                     } else {
                         return state;

@@ -26,7 +26,6 @@ import SettingsScreen from "./screens/Settings";
 
 import ProductListScreen from "./screens/ProductList";
 import ProductDetailsScreen from "./screens/ProductDetails";
-import CartScreen from "./screens/Cart";
 import ProductBuyScreen from "./screens/ProductBuy";
 import ProductBuyPayment from "./screens/ProductBuyPayment";
 import ProductBuySuccess from "./screens/ProductBuySuccess";
@@ -52,6 +51,8 @@ import MyAddressForm from "./screens/MyAddressForm";
 import ReferAndEarn from "./screens/ReferAndEarn";
 import OptionPage from "./screens/OptionPage";
 import MyWebViewScreen from "./screens/MyWebView";
+import MyOrdersScreen from "./screens/MyOrders";
+import OrderDetailsScreen from "./screens/OrderDetails";
 
 
 let lastTimeBackPress: number = 0;
@@ -225,7 +226,7 @@ const HomeScreens =
               />
               <HomeStack.Screen
                   name = {MyConfig.routeName.Cart}
-                  component = {CartScreen}
+                  component = {ProductBuyScreen}
                   options = {({route, navigation}: any) => ({
                       title           : "",
                       headerLeft      : (props: any) =>
@@ -354,9 +355,18 @@ const HomeScreens =
               />
               <HomeStack.Screen
                   name = {MyConfig.routeName.MyOrders}
-                  component = {NotificationViewScreen}
+                  component = {MyOrdersScreen}
                   options = {{
                       title           : MyLANG.MyOrders,
+                      headerBackground: HeaderGradientPrimary,
+                      ...MyStyleCommon.StackOptions.BottomTabStack,
+                  }}
+              />
+              <HomeStack.Screen
+                  name = {MyConfig.routeName.OrderDetails}
+                  component = {OrderDetailsScreen}
+                  options = {{
+                      title           : MyLANG.OrderDetails,
                       headerBackground: HeaderGradientPrimary,
                       ...MyStyleCommon.StackOptions.BottomTabStack,
                   }}
@@ -393,6 +403,15 @@ const HomeScreens =
                   component = {NotificationViewScreen}
                   options = {{
                       title           : MyLANG.NotificationsDetails,
+                      headerBackground: HeaderGradientPrimary,
+                      ...MyStyleCommon.StackOptions.BottomTabStack,
+                  }}
+              />
+              <HomeStack.Screen
+                  name = {MyConfig.routeName.MyWishList}
+                  component = {NotificationViewScreen}
+                  options = {{
+                      title           : MyLANG.MyWishList,
                       headerBackground: HeaderGradientPrimary,
                       ...MyStyleCommon.StackOptions.BottomTabStack,
                   }}
@@ -561,7 +580,7 @@ const BottomTabNavigator = () => {
                             name = focused ? 'magnifier' : 'magnifier';
                             break;
                         case MyConfig.routeName.BottomTab4:
-                            name = focused ? 'basket' : 'basket';
+                            name = focused ? 'handbag' : 'handbag';
                             return (
                                 <CartIconWithBadge
                                     fontFamily = {fontFamily}

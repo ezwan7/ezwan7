@@ -21,6 +21,7 @@ import {MyButton} from "../components/MyButton";
 
 import auth from '@react-native-firebase/auth';
 import MyFunction from "../shared/MyFunction";
+import MyIcon from "../components/MyIcon";
 
 
 let renderCount = 0;
@@ -196,6 +197,7 @@ const SigninScreen = ({route, navigation}: any) => {
                              email   : formValue.data.email,
                              password: formValue.data.password,
                          },
+                         MyConstant.SHOW_MESSAGE.TOAST,
                          MyConstant.SHOW_MESSAGE.ALERT,
                          MyLANG.Login + '...',
                          false,
@@ -254,13 +256,16 @@ const SigninScreen = ({route, navigation}: any) => {
                             />
 
                             <TouchableOpacity activeOpacity = {0.7}
-                                              onPress = {() => MyUtil.commonAction(false,
-                                                                                   null,
-                                                                                   MyConstant.CommonAction.navigate,
-                                                                                   MyConfig.routeName.PasswordForgot,
-                                                                                   null,
-                                                                                   null
-                                              )}
+                                              onPress = {
+                                                  () =>
+                                                      MyUtil.commonAction(false,
+                                                                          null,
+                                                                          MyConstant.CommonAction.navigate,
+                                                                          MyConfig.routeName.PasswordForgot,
+                                                                          null,
+                                                                          null
+                                                      )
+                                              }
                                               style = {{alignSelf: "flex-end"}}>
                                 <Text style = {styles.textForgetPassword}>
                                     {MyLANG.ForgotYourPassword}
@@ -275,6 +280,35 @@ const SigninScreen = ({route, navigation}: any) => {
                                     formSubmit(e);
                                 }}
                             />
+
+                            {
+                                // If already logged in using any kind of method, check which id available, disable auto ask, call the id, hide if none
+                                // Icon change based on available biometry type
+                                <TouchableOpacity
+                                    activeOpacity = {0.7}
+                                    onPress = {
+                                        () =>
+                                            MyAuth.biometricLogin(MyConstant.SHOW_MESSAGE.TOAST,
+                                                                  MyConstant.SHOW_MESSAGE.ALERT,
+                                                                  MyLANG.PleaseWait + '...',
+                                                                  false,
+                                                                  null,
+                                                                  MyConstant.NAVIGATION_ACTIONS.POP_TO_ROOT,
+                                            )
+                                    }
+                                    style = {{marginTop: 40}}
+                                >
+                                    <MyIcon.Ionicons
+                                        name = "md-finger-print"
+                                        size = {40}
+                                        color = {MyColor.textDarkPrimary2}
+                                        style = {{textAlign: "center"}}
+                                    />
+                                    <Text style = {styles.textTouchID}>
+                                        {MyLANG.LoginUsingFingerPrint}
+                                    </Text>
+                                </TouchableOpacity>
+                            }
 
                             <Text style = {styles.textOrConnectUsing}>
                                 {MyLANG.OrConnectUsing}
@@ -356,8 +390,11 @@ const styles = StyleSheet.create(
             fontSize  : 13,
             color     : MyColor.attentionDark,
         },
+        textTouchID         : {
+            ...MyStyleSheet.textListItemSubTitle
+        },
         textOrConnectUsing  : {
-            marginTop   : 32,
+            marginTop   : 40,
             marginBottom: 7,
             ...MyStyleSheet.subHeaderPage
         },

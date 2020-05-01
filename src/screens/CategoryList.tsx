@@ -110,7 +110,7 @@ const CategoryListScreen = ({}) => {
             'firstLoad'      : firstLoad,
         });
 
-        if (firstLoad || (category && category.length > 0)) return null;
+        if (firstLoad || category?.length > 0) return null;
 
         return <ListEmptyViewLottie
             source = {MyImage.lottie_empty_lost}
@@ -127,7 +127,6 @@ const CategoryListScreen = ({}) => {
         return <ActivityIndicatorLarge/>;
     }
 
-    // Refresh All existing on Component Visibile, Show Placeholder on start and loadmore, No Data Found Design
     const fetchCategory = async (skip: number = 0, take: number = MyConfig.ListLimit.categoryList, showLoader: any = MyLANG.Loading + '...', setRefresh: boolean = false, showInfoMessage: any = false, DataSetType: string = MyConstant.DataSetType.fresh) => {
 
         setLoading(true);
@@ -179,10 +178,10 @@ const CategoryListScreen = ({}) => {
             <SafeAreaView style = {MyStyleSheet.SafeAreaView2}>
                 <View style = {[MyStyleSheet.SafeAreaView3, {backgroundColor: MyColor.Material.WHITE}]}>
 
-                    {firstLoad && category && category.length === 0 &&
+                    {firstLoad && category?.length === 0 &&
                      <ScrollView
                          contentInsetAdjustmentBehavior = "automatic"
-                         contentContainerStyle = {{paddingTop: MyStyle.headerHeightAdjusted, flexGrow: 1}}
+                         contentContainerStyle = {{paddingTop: MyStyle.headerHeightAdjusted}}
                      >
                          {CategoryListItemContentLoader(4)}
                      </ScrollView>

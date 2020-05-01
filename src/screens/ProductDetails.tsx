@@ -1,4 +1,4 @@
-import React, {Fragment, useCallback, useEffect, useLayoutEffect, useState} from 'react';
+import React, {Fragment, useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 
 import {
     View,
@@ -46,9 +46,25 @@ import {
 import {cartEmpty, cartItemAdd, cartItemQuantityIncrement} from "../store/CartRedux";
 import {MyImageViewer} from "../components/MyImageViewer";
 import MyMaterialRipple from "../components/MyMaterialRipple";
+import {MyFastImage} from "../components/MyFastImage";
+import LinearGradient from "react-native-linear-gradient";
+import * as yup from "yup";
+import {useForm} from "react-hook-form";
+import NumberFormat from "react-number-format";
 
 
 let renderCount = 0;
+
+const productFormSchema: any = yup.object().shape(
+    {
+        product: yup.object()
+                    .required(MyLANG.Product + ' ' + MyLANG.isRequired),
+        total  : yup.number()
+                    .required(MyLANG.Price + ' ' + MyLANG.isRequired)
+                    .min(0, MyLANG.Price + ' ' + MyLANG.mustBeMinimum + ' 0 ' + MyLANG.character)
+                    .max(1000000, MyLANG.Price + ' ' + MyLANG.mustBeMaximum + ' 1000000 ' + MyLANG.character),
+    }
+);
 
 const ProductDetailsScreen = ({route, navigation}: any) => {
 
@@ -59,19 +75,45 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
 
     const dispatch = useDispatch();
 
-    const user: any          = useSelector((state: any) => state.auth.user);
-    const app_input: any     = useSelector((state: any) => state.app_input);
-    const cart: any          = useSelector((state: any) => state.cart);
-    const user_location: any = useSelector((state: any) => state.user_location);
+    const user: any = useSelector((state: any) => state.auth.user);
+    const cart: any = useSelector((state: any) => state.cart);
 
     const [refreshing, setRefreshing] = useState(false);
     const [firstLoad, setFirstLoad]   = useState(true);
-    const [product, setProduct]: any  = useState([]);
 
     const [imageViewerVisible, setImageViewerVisible] = useState(false);
 
+    const scrollRef: any                  = useRef();
+    const [segmentIndex, setSegmentIndex] = useState(0);
+
+    const {register, getValues, setValue, handleSubmit, formState, errors, reset, triggerValidation, watch}: any = useForm(
+        {
+            mode                : 'onSubmit',
+            reValidateMode      : 'onChange',
+            // defaultValues       : defaultValues,
+            validationSchema    : productFormSchema,
+            validateCriteriaMode: 'all',
+            submitFocusError    : true,
+        }
+    );
+
     useEffect(() => {
-        MyUtil.printConsole(true, 'log', `LOG: ${ProductDetailsScreen.name}. useEffect: `, {user, user_location, cart, app_input});
+        MyUtil.printConsole(true, 'log', `LOG: ${ProductDetailsScreen.name}. useEffect: register: `, {product, total});
+
+        for (const key of Object.keys(productFormSchema['fields'])) {
+            if (key) {
+                register({name: key});
+            }
+        }
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [register]);
+
+    const values           = getValues();
+    const {product, total} = watch(['product', 'total']);
+
+    useEffect(() => {
+        MyUtil.printConsole(true, 'log', `LOG: ${ProductDetailsScreen.name}. useEffect: `, {user, cart, product, total});
 
         fetchProduct(false, false, false);
 
@@ -115,7 +157,9 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
 
                 const data = response.data.data.product_data[0];
                 if (data.id > 0) {
-                    setProduct(data);
+                    setValue('product', data, true);
+
+                    calculateTotal(data, false);
                 }
 
             } else {
@@ -133,11 +177,120 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
         }
     }
 
+    const segmentChange = (index: number, width: number) => {
+        // MyUtil.printConsole(true, 'log', 'LOG: segmentChange: ', {index, width});
+
+        setSegmentIndex(index);
+
+        scrollRef?.current?.scrollTo(
+            {
+                x        : index * width,
+                animation: true,
+            });
+    }
+
+    const calculateTotal = (item: any, updateProduct: boolean) => {
+
+        try {
+            const discounted_price: number = Number(item?.discount_price) > 0 ? Number(item?.discount_price) : 0;
+            const product_price: number    = Number(item?.products_price) > 0 ? Number(item?.products_price) : 0;
+            let calculated_total: number   = discounted_price > 0 ? discounted_price : product_price;
+
+            let calculated_attribute: number = 0;
+
+            for (const [i, attribute] of item?.attributes?.entries()) {
+                for (const [i, value] of attribute?.values?.entries()) {
+                    if (value?.cart_selected === true && Number.isFinite(Number(value?.price))) {
+                        if (value?.price_prefix === '+') {
+                            calculated_attribute += Number(value?.price);
+                        } else if (value?.price_prefix === '-') {
+                            calculated_attribute -= Number(value?.price);
+                        }
+                    }
+                }
+            }
+
+            if (Number.isFinite(calculated_attribute)) {
+                calculated_total = calculated_total + calculated_attribute;
+            }
+
+            setValue('total', calculated_total, true);
+
+            if (updateProduct) {
+                setValue('product', item, true);
+            }
+
+            MyUtil.printConsole(true, 'log', 'LOG: calculateTotal: ', {item, product, total, calculated_total, calculated_attribute, updateProduct});
+
+        } catch (e) {
+            MyUtil.printConsole(true, 'log', 'LOG: calculateTotal: ', {item, e});
+
+            calculateTotalFallback(item);
+        }
+
+    }
+
+    // TODO
+    const calculateTotalFallback = (item: any) => {
+        MyUtil.printConsole(true, 'log', 'LOG: calculateTotalFallback: ', {item, product, total});
+
+        // Reset Attribute Selection and update product:
+        /*const updatedProduct = {
+            ...product,
+            // isLiked: likeUnlike,
+        }
+        setValue('product', updatedProduct, true);*/
+
+        let calculated_total: number = Number(item?.products_price) > 0 ? Number(item?.products_price) : 0;
+
+        if (Number(calculated_total) > 0) {
+
+        } else {
+            let calculated_total: number = Number(product?.products_price) > 0 ? Number(product?.products_price) : 0;
+        }
+
+        if (Number(calculated_total) > 0) {
+            setValue('total', calculated_total, true);
+        } else {
+            // go back or refresh
+        }
+    }
+
+    const onAttribute = (item: any, i: number, j: number) => {
+
+        const selected_option: any = item?.attributes?.[i]?.values?.[j];
+
+        const cart_selected: boolean = selected_option?.cart_selected === true ? false : true;
+
+        const updated_values: any = [];
+
+        for (const [k, value] of item?.attributes?.[i]?.values?.entries()) {
+            if (k === j) {
+                updated_values[k] = {...value, cart_selected: cart_selected};
+            } else {
+                updated_values[k] = {...value, cart_selected: false};
+            }
+        }
+
+        const updated_attribute: any = [...item?.attributes];
+        updated_attribute[i]         = {...item?.attributes?.[i], values: updated_values};
+
+        const updatedProduct: any = {
+            ...item,
+            attributes: updated_attribute
+        }
+
+        MyUtil.printConsole(true, 'log', 'LOG: onAttribute: ', {item, i, j, product, total, selected_option, cart_selected, updatedProduct});
+
+        calculateTotal(updatedProduct, true);
+
+    }
+
     const onBuyNow = () => {
         const itemId: string = '_' + product?.id;
         // MyUtil.printConsole(true, 'log', 'LOG: onBuyNow: ', {itemId, product});
         if (cart?.items[itemId]) {
-            if (Number(product?.products_liked) > Number(cart?.items[itemId]?.quantity)) {
+            if (Number(product?.current_stock) > Number(cart?.items[itemId]?.quantity)) {
                 dispatch(cartItemAdd(product));
             } else {
                 MyUtil.showMessage(MyConstant.SHOW_MESSAGE.TOAST, MyLANG.OutOfStock, false);
@@ -150,7 +303,7 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                                 null
             )
         } else {
-            if (Number(product?.products_liked) > 0) {
+            if (Number(product?.current_stock) > 0) {
                 dispatch(cartItemAdd(product));
                 MyUtil.commonAction(false,
                                     navigation,
@@ -163,8 +316,6 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                 MyUtil.showMessage(MyConstant.SHOW_MESSAGE.TOAST, MyLANG.OutOfStock, false);
             }
         }
-
-
     };
 
     const onProductLikeUnlike = async () => {
@@ -176,9 +327,10 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                 ...product,
                 isLiked: likeUnlike,
             }
-            setProduct(updatedProduct);
+            setValue('product', updatedProduct, true);
         }
     }
+
 
     return (
         <Fragment>
@@ -202,167 +354,318 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                              }
                          >
 
-                             <View>
-                                 <ScrollView
-                                     horizontal = {true}
-                                     pagingEnabled = {true}
-                                     decelerationRate = "fast"
-                                     snapToInterval = {MyStyle.screenWidth}
-                                     snapToAlignment = "center"
-                                 >
-                                     <ImageSliderBanner
-                                         item = {(Array.isArray(product?.images) && product?.images?.length > 0) ? product?.images : [{image: product?.image}]}
-                                         onPress = {(prop: any) => prop?.image?.length ? setImageViewerVisible(true) : null}
-                                         style = {{height: MyStyle.screenWidth / 1.5}}
-                                     />
-                                 </ScrollView>
+                             <ScrollView
+                                 horizontal = {true}
+                                 pagingEnabled = {true}
+                                 decelerationRate = "fast"
+                                 snapToInterval = {MyStyle.screenWidth}
+                                 snapToAlignment = "center"
+                             >
+                                 <ImageSliderBanner
+                                     item = {(Array.isArray(product?.images) && product?.images?.length > 0) ? product?.images : [{image: product?.image}]}
+                                     onPress = {(prop: any) => prop?.image?.length ? setImageViewerVisible(true) : null}
+                                     style = {{height: MyStyle.screenWidth / 1.5}}
+                                 />
+                             </ScrollView>
 
+                             <View style = {MyStyleSheet.viewPageCard}>
                                  <Text
                                      numberOfLines = {2}
                                      style = {[MyStyleSheet.textPageTitle, {
                                          textAlign       : 'center',
                                          marginHorizontal: MyStyle.marginHorizontalPage,
-                                         marginTop       : 15,
+                                         marginTop       : 2
                                      }]}
                                  >
                                      {product?.products_name}
                                  </Text>
 
-                                 <View
-                                     style = {{
-                                         marginHorizontal: MyStyle.marginHorizontalPage,
-                                         marginTop       : 5,
-                                         ...MyStyle.RowCenter
-                                     }}
-                                 >
-                                     {product?.discount_price &&
-                                      <Text numberOfLines = {1}
-                                            style = {[MyStyleSheet.textPriceDiscountedPage, {marginRight: 5}]}
-                                      >
-                                          {MyConfig.Currency.MYR.symbol} {product?.products_price}
-                                      </Text>
-                                     }
-                                     <Text numberOfLines = {1}
-                                           style = {[MyStyleSheet.textPricePage, {}]}
-                                     >
-                                         {MyConfig.Currency.MYR.symbol} {product?.discount_price ? product?.discount_price : product?.products_price}
-                                     </Text>
-                                 </View>
+                                 <View style = {{marginTop: 13, ...MyStyle.RowBetweenTop}}>
 
-                                 <View style = {{
-                                     marginHorizontal: MyStyle.marginHorizontalPage,
-                                     marginTop       : 10,
-                                     ...MyStyle.RowCenter
-                                 }}>
-                                     {Array(5)
-                                         .fill('')
-                                         .map((rating: any, key: any) => (
-                                                  Number(key) < Number(product?.rating) ?
-                                                  <IconStar
-                                                      key = {key}
-                                                      solid
-                                                      style = {{marginRight: 3}}
-                                                  /> :
-                                                  <IconStar
-                                                      key = {key}
-                                                      solid
-                                                      color = {MyColor.Material.GREY["200"]}
-                                                      style = {{marginRight: 3}}
-                                                  />
-                                              )
-                                         )
-                                     }
-                                     <Text
-                                         style = {{
-                                             fontFamily: MyStyle.FontFamily.OpenSans.semiBold,
-                                             fontSize  : 15,
-                                             color     : MyColor.Material.GREY["800"],
-                                             marginLeft: 5,
-                                         }}
-                                     >
-                                         {product?.rating > 0 ? product?.rating : '0'}
-                                     </Text>
-                                 </View>
-
-                                 <View style = {{...MyStyle.RowStartCenter}}>
-                                     <Text
-                                         style = {{
-                                             fontFamily: MyStyle.FontFamily.Roboto.medium,
-                                             fontSize  : 16,
-                                             color     : MyColor.textDarkPrimary,
-
-                                             paddingVertical  : 10,
-                                             paddingHorizontal: 10,
-                                             backgroundColor  : MyColor.backgroundGrey,
-                                         }}
-                                     >
-                                         Color
-                                     </Text>
-                                     <View style = {{flexDirection: "row", justifyContent: "flex-start", flexWrap: "wrap"}}>
-
-                                         <MyMaterialRipple
-                                             style = {MyStyleSheet.MRButtonProductPage}
-                                             {...MyStyle.MaterialRipple.drawer}
-                                             onPress = {''}
-                                         >
-                                             <Text style = {MyStyleSheet.textButtonProductPage}>
-                                                 Red
+                                     <View style = {MyStyle.ColumnTopLeft}>
+                                         <View style = {MyStyle.RowLeftCenter}>
+                                             {Array(5).fill('').map(
+                                                 (rating: any, key: any) => (
+                                                     Number(key) < Number(product?.rating) ?
+                                                     <IconStar
+                                                         key = {key}
+                                                         solid
+                                                         style = {{marginRight: 3}}
+                                                     /> :
+                                                     <IconStar
+                                                         key = {key}
+                                                         solid
+                                                         color = {MyColor.Material.GREY["200"]}
+                                                         style = {{marginRight: 3}}
+                                                     />
+                                                 ))
+                                             }
+                                             <Text
+                                                 style = {[MyStyleSheet.textListItemTitle2, {marginLeft: 5}]}>
+                                                 {product?.rating > 0 ? product?.rating : '0'}
                                              </Text>
-                                         </MyMaterialRipple>
-                                         <MyMaterialRipple
-                                             style = {MyStyleSheet.MRButtonProductPage}
-                                             {...MyStyle.MaterialRipple.drawer}
-                                             onPress = {''}
-                                         >
-                                             <Text style = {MyStyleSheet.textButtonProductPageSelected}>
-                                                 Green
+                                         </View>
+                                         <Text style = {[MyStyleSheet.textListItemSubTitleAlt, {marginTop: 2}]}>
+                                             {product?.reviewed_customers?.length > 0 ? `${product?.reviewed_customers?.length}` : '0'} {MyLANG['Review(s)']}
+                                         </Text>
+                                         <View style = {[MyStyle.RowLeft, {marginTop: 10}]}>
+                                             <MyIcon.SimpleLineIcons
+                                                 name = "handbag"
+                                                 size = {15}
+                                                 color = {MyColor.textDarkPrimary}
+                                                 style = {{marginRight: 5}}
+                                             />
+                                             <Text style = {[MyStyleSheet.textListItemTitle2Dark, {}]}>
+                                                 {product?.products_ordered > 0 ? product?.products_ordered : '0'} {MyLANG.Sold}
                                              </Text>
-                                         </MyMaterialRipple>
-                                         <MyMaterialRipple
-                                             style = {MyStyleSheet.MRButtonProductPage}
-                                             {...MyStyle.MaterialRipple.drawer}
-                                             onPress = {''}
-                                         >
-                                             <Text style = {MyStyleSheet.textButtonProductPage}>
-                                                 Yellow
-                                             </Text>
-                                         </MyMaterialRipple>
+                                         </View>
                                      </View>
+
+                                     <View style = {MyStyle.ColumnTopRight}>
+                                         <View style = {MyStyle.ColumnTopRight}>
+                                             <Text style = {[MyStyleSheet.textPricePage, {lineHeight: 25}]}>
+                                                 {MyConfig.Currency.MYR.symbol} {product?.discount_price ? product?.discount_price : product?.products_price}
+                                             </Text>
+                                             {product?.discount_price &&
+                                              <Text style = {[MyStyleSheet.textPriceDiscountedPage, {lineHeight: 16}]}>
+                                                  {MyConfig.Currency.MYR.symbol} {product?.products_price}
+                                              </Text>
+                                             }
+                                         </View>
+                                         {product?.current_stock > 0 ?
+                                          <View style = {[MyStyle.RowLeftBottom, {marginTop: 10}]}>
+                                              <MyIcon.SimpleLineIcons
+                                                  name = "check"
+                                                  size = {15}
+                                                  color = {MyColor.Material.GREEN["600"]}
+                                                  style = {{marginRight: 4}}
+                                              />
+                                              <Text style = {[MyStyleSheet.textListItemTitle2Dark, {color: MyColor.Material.GREEN["600"]}]}>
+                                                  {MyLANG.InStock}
+                                              </Text>
+                                          </View>
+                                                                      :
+                                          <View style = {[MyStyle.RowLeftBottom, {marginTop: 7}]}>
+                                              <MyIcon.SimpleLineIcons
+                                                  name = "close"
+                                                  size = {15}
+                                                  color = {MyColor.Material.RED["600"]}
+                                                  style = {{marginRight: 4}}
+                                              />
+                                              <Text style = {[MyStyleSheet.textListItemTitle2Dark, {color: MyColor.Material.RED["600"]}]}>
+                                                  {MyLANG.OutOfStock}
+                                              </Text>
+                                          </View>
+                                         }
+                                         {/*<View style = {[MyStyle.RowLeftBottom, {marginTop: 5}]}>
+                                             <MyIcon.SimpleLineIcons
+                                                 name = "layers"
+                                                 size = {15}
+                                                 color = {MyColor.textDarkPrimary}
+                                                 style = {{marginRight: 5}}
+                                             />
+                                             <Text style = {[MyStyleSheet.textListItemTitle2Dark]}>
+                                                 {MyLANG.AvailableStock} {product?.current_stock > 0 ? product?.current_stock : '0'}
+                                             </Text>
+                                         </View>*/}
+                                     </View>
+
                                  </View>
+
+                             </View>
+
+                             <View style = {MyStyleSheet.viewGap}></View>
+
+                             {product?.attributes?.length > 0 && product.attributes.map(
+                                 (attribute: any, i: number) => (
+                                     <View key = {i}>
+                                         <View style = {[MyStyleSheet.viewPageCard, MyStyle.ColumnStart, {paddingVertical: MyStyle.paddingVerticalPage / 2}]}>
+                                             <Text style = {[MyStyleSheet.textListItemTitleDark, {paddingVertical: 10}]}>
+                                                 {MyLANG.Available} {attribute.option?.name}
+                                             </Text>
+                                             <View style = {[MyStyle.RowLeftCenter, {flexWrap: "wrap"}]}>
+                                                 {attribute?.values?.length > 0 && attribute.values.map(
+                                                     (item: any, j: number) => (
+                                                         <LinearGradient
+                                                             key = {j}
+                                                             style = {[MyStyle.ColumnStart, MyStyleSheet.LGButtonProductPage]}
+                                                             {...
+                                                                 item?.cart_selected === true ? {...MyStyle.LGButtonPrimary} : {...MyStyle.LGGrey}
+                                                             }
+                                                         >
+                                                             <MyMaterialRipple
+                                                                 style = {MyStyleSheet.MRButtonProductPage}
+                                                                 {...MyStyle.MaterialRipple.drawerRounded}
+                                                                 onPress = {() => onAttribute(product, i, j)}
+                                                             >
+                                                                 <Text style = {[MyStyleSheet.textListItemTitle2Dark, item?.cart_selected === true && {
+                                                                     color: MyColor.textLightPrimary,
+                                                                 }]}>
+                                                                     {item.value}
+                                                                 </Text>
+                                                                 {
+                                                                     (item.price_prefix && item.price) &&
+                                                                     <Text style = {[MyStyleSheet.textListItemSubTitle2, item?.cart_selected === true && {
+                                                                         color: MyColor.textLightPrimary2,
+                                                                     }]}>
+                                                                         {item.price_prefix} {item.price}
+                                                                     </Text>
+                                                                 }
+                                                             </MyMaterialRipple>
+                                                         </LinearGradient>
+                                                     ))
+                                                 }
+                                             </View>
+                                         </View>
+                                         <View style = {MyStyleSheet.viewGap}></View>
+                                     </View>
+                                 ))
+                             }
+
+                             <View style = {MyStyleSheet.viewGap}></View>
+
+                             <View>
 
                                  <ScrollView
+                                     horizontal = {true}
+                                     showsHorizontalScrollIndicator = {false}
+                                     contentContainerStyle = {[MyStyle.RowLeftCenter, {
+                                         flexGrow       : 1,
+                                         backgroundColor: MyColor.backgroundGrey,
+                                     }]}
+                                 >
+                                     {MyConfig?.productDetailsSegments.map(
+                                         (prop: any, index: any) => (
+                                             <MyMaterialRipple
+                                                 key = {index}
+                                                 style = {[
+                                                     index === 0 && {paddingLeft: MyStyle.marginHorizontalPage},
+                                                     index === segmentIndex && {backgroundColor: MyColor.Material.WHITE},
+                                                     {
+                                                         paddingVertical  : MyStyle.marginVerticalList,
+                                                         paddingHorizontal: MyStyle.marginHorizontalList,
+                                                     }
+                                                 ]}
+                                                 {...MyStyle.MaterialRipple.drawer}
+                                                 onPress = {() => segmentChange(index, MyStyle.screenWidth)}
+                                             >
+                                                 <Text style = {[MyStyleSheet.textListItemTitle2Dark, {}]}>
+                                                     {prop.name}{prop.key === 'Review' ? product?.reviewed_customers?.length > 0 ? ` (${product?.reviewed_customers?.length})` : ' (0)' : ''}
+                                                 </Text>
+                                             </MyMaterialRipple>
+                                         ))
+                                     }
+
+                                 </ScrollView>
+
+                                 <ScrollView
+                                     ref = {scrollRef}
                                      horizontal = {true}
                                      pagingEnabled = {true}
                                      decelerationRate = "fast"
                                      snapToInterval = {MyStyle.screenWidth}
                                      snapToAlignment = "center"
                                      showsHorizontalScrollIndicator = {false}
-                                     contentContainerStyle = {{
-                                         marginVertical : MyStyle.marginVerticalPage,
-                                         paddingVertical: MyStyle.marginVerticalPage,
-                                         backgroundColor: MyColor.Material.GREY["150"]
-                                     }}
+                                     contentContainerStyle = {{}}
+                                     onMomentumScrollEnd = {(event: any) =>
+                                         setSegmentIndex(Math.round(event.nativeEvent.contentOffset.x / MyStyle.screenWidth))
+                                     }
                                  >
-                                     <View style = {{width: MyStyle.screenWidth}}>
-                                         <HTML
-                                             html = {product?.products_description ? product.products_description : MyLANG.NoText}
-                                             tagsStyles = {MyStyle.textHTMLBody}
-                                             ignoredTags = {MyStyle.IGNORED_TAGS}
-                                             containerStyle = {{marginHorizontal: MyStyle.marginHorizontalPage}}
-                                         />
+                                     <View style = {[{width: MyStyle.screenWidth, paddingVertical: MyStyle.marginVerticalPage}]}>
+                                         <Text style = {[MyStyleSheet.textListItemTitle2Dark, {marginHorizontal: MyStyle.marginHorizontalPage}]}>
+                                             {product?.products_short_description || MyLANG.NoDescriptionFound}
+                                         </Text>
                                      </View>
-                                     <View style = {{width: MyStyle.screenWidth}}>
+                                     <View style = {{width: MyStyle.screenWidth, paddingVertical: MyStyle.marginVerticalPage}}>
                                          <HTML
-                                             html = {product?.products_description ? product.products_description : MyLANG.NoText}
+                                             html = {product?.products_description ? product.products_description : MyLANG.NoInformationFound}
                                              tagsStyles = {MyStyle.textHTMLBody}
                                              ignoredTags = {MyStyle.IGNORED_TAGS}
                                              containerStyle = {{marginHorizontal: MyStyle.marginHorizontalPage}}
                                              textSelectable = {true}
                                          />
                                      </View>
-                                 </ScrollView>
+                                     <View style = {{width: MyStyle.screenWidth, paddingVertical: MyStyle.marginVerticalPage}}>
+                                         <Text style = {[MyStyleSheet.textListItemTitle2Dark, {marginHorizontal: MyStyle.marginHorizontalPage}]}>
+                                             {product?.products_warranty || MyLANG.NoInformationFound}
+                                         </Text>
+                                     </View>
+                                     <View style = {{width: MyStyle.screenWidth}}>
+                                         {
+                                             product?.reviewed_customers?.length > 0 ?
+                                             <ScrollView
+                                                 contentContainerStyle = {{
+                                                     marginHorizontal: MyStyle.marginHorizontalPage,
+                                                     // flexGrow    : 0
+                                                 }}
+                                             >
+                                                 {product.reviewed_customers.map(
+                                                     (item: any, index: any) => (
+                                                         <View
+                                                             key = {index}
+                                                             style = {[MyStyle.RowLeftCenter, {
+                                                                 marginVertical   : MyStyle.marginVerticalPage,
+                                                                 borderBottomColor: MyColor.dividerDark,
+                                                                 borderBottomWidth: index === (product.reviewed_customers?.length - 1) ? 0 : 0.9,
+                                                             }]}
+                                                         >
+                                                             <MyFastImage
+                                                                 source = {[item?.customers_picture?.length > 9 ? {'uri': item?.customers_picture} : MyImage.defaultAvatar, MyImage.defaultAvatar]}
+                                                                 style = {[MyStyleSheet.imageListSmall, {borderRadius: 100}]}
+                                                             />
+                                                             <View style = {[MyStyle.ColumnBetween, {marginHorizontal: MyStyle.marginHorizontalTextsView}]}>
+                                                                 <Text style = {MyStyleSheet.textListItemTitle2Dark}>
+                                                                     {item?.customers_name}
+                                                                 </Text>
+                                                                 <View style = {[MyStyle.RowLeftCenter, {marginVertical: 2}]}>
+                                                                     {Array(5).fill('').map(
+                                                                         (rating: any, key: any) => (
+                                                                             Number(key) < Number(item?.reviews_rating) ?
+                                                                             <IconStar
+                                                                                 key = {key}
+                                                                                 size = {10}
+                                                                                 color = {MyColor.Material.YELLOW['600']}
+                                                                                 solid
+                                                                                 style = {{marginRight: 3}}
+                                                                             /> :
+                                                                             <IconStar
+                                                                                 key = {key}
+                                                                                 size = {10}
+                                                                                 color = {MyColor.Material.GREY['200']}
+                                                                                 solid
+                                                                                 style = {{marginRight: 3}}
+                                                                             />
+                                                                         )
+                                                                     )}
+                                                                     <Text style = {[MyStyleSheet.textListItemSubTitle, {marginLeft: 4}]}>
+                                                                         {Number(item?.reviews_rating) > 0 ? item.reviews_rating : '0'}
+                                                                     </Text>
+                                                                 </View>
+                                                                 <Text style = {[MyStyleSheet.textListItemSubTitle2, {alignSelf: "flex-end"}]}>
+                                                                     {MyUtil.momentFormat(item?.last_modified,
+                                                                                          MyConstant.MomentFormat["1st Jan, 1970 12:01 am"]
+                                                                     )}
+                                                                 </Text>
+                                                             </View>
+                                                         </View>
+                                                     )
+                                                 )}
 
+                                             </ScrollView>
+                                                                                     :
+                                             <Text style = {[MyStyleSheet.textListItemTitle2Dark, {
+                                                 paddingVertical : MyStyle.marginVerticalPage,
+                                                 marginHorizontal: MyStyle.marginHorizontalPage
+                                             }]}>
+                                                 {MyLANG.NoReviewsYet}
+                                             </Text>
+                                         }
+                                     </View>
+                                 </ScrollView>
                              </View>
+
+                             <View style = {MyStyleSheet.viewGap}></View>
+
                          </ScrollView>
 
                          <ShadowBox
@@ -386,7 +689,7 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                              >
                                  <View
                                      style = {{
-                                         flex          : 1,
+                                         flex          : 0.50,
                                          flexDirection : "row",
                                          justifyContent: "space-around",
                                          alignItems    : "center",
@@ -449,18 +752,47 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                                          }
                                      />
                                  </View>
-                                 <View style = {{flex: 1}}>
-                                     <MyButton
-                                         shape = "square"
-                                         shadow = "none"
-                                         title = {MyLANG.BuyNow}
-                                         textStyle = {{
-                                             fontFamily: MyStyle.FontFamily.Roboto.medium,
-                                             fontSize  : 14,
-                                         }}
-                                         onPress = {onBuyNow}
-                                     />
-                                 </View>
+
+                                 <LinearGradient
+                                     style = {[MyStyle.ColumnCenter, {flex: 0.50, height: 46}]}
+                                     {...MyStyle.LGButtonPrimary}
+                                 >
+                                     <MyMaterialRipple
+                                         style = {[MyStyle.ColumnCenterRight, {height: 46, paddingHorizontal: MyStyle.paddingHorizontalPage}]}
+                                         {...MyStyle.MaterialRipple.drawer}
+                                         onPress = {() => onBuyNow()}
+                                     >
+                                         <NumberFormat
+                                             value = {total}
+                                             defaultValue = {0}
+                                             displayType = {'text'}
+                                             thousandSeparator = {true}
+                                             decimalScale = {2}
+                                             fixedDecimalScale = {true}
+                                             decimalSeparator = {'.'}
+                                             renderText = {
+                                                 (value: any) => <Text style = {{
+                                                     fontFamily: MyStyle.FontFamily.Roboto.regular,
+                                                     fontSize  : 16,
+                                                     color     : MyColor.textLightPrimary,
+                                                 }}>
+                                                     {MyConfig.Currency.MYR.symbol} {value}
+                                                 </Text>
+                                             }
+                                         />
+
+                                         <Text style = {{
+                                             fontFamily   : MyStyle.FontFamily.Roboto.regular,
+                                             fontSize     : 12,
+                                             color        : MyColor.textLightSecondary,
+                                             lineHeight   : 13,
+                                             textTransform: "uppercase",
+                                         }}>
+                                             {MyLANG.BuyNow}
+                                         </Text>
+                                     </MyMaterialRipple>
+                                 </LinearGradient>
+
                              </View>
                          </ShadowBox>
 

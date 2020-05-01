@@ -37,7 +37,7 @@ import MyFunction from "../shared/MyFunction";
 import {RadioButton} from 'react-native-paper';
 import MyMaterialRipple from "../components/MyMaterialRipple";
 import {MyModal} from "../components/MyModal";
-import {ModalRadioList} from "../shared/MyContainer";
+import {ModalNotFullScreen, ModalRadioList} from "../shared/MyContainer";
 
 let renderCount = 0;
 
@@ -70,12 +70,12 @@ const passwordFormSchema: any = yup.object().shape(
     {
         password_current    : yup.string()
                                  .required(MyLANG.CurrentPassword + ' ' + MyLANG.isRequired)
-                                 .min(4, MyLANG.Code + ' ' + MyLANG.mustBeMinimum + ' 4 ' + MyLANG.character)
-                                 .max(24, MyLANG.Code + ' ' + MyLANG.mustBeMaximum + ' 24 ' + MyLANG.character),
+                                 .min(4, MyLANG.CurrentPassword + ' ' + MyLANG.mustBeMinimum + ' 4 ' + MyLANG.character)
+                                 .max(24, MyLANG.CurrentPassword + ' ' + MyLANG.mustBeMaximum + ' 24 ' + MyLANG.character),
         password_new        : yup.string()
                                  .required(MyLANG.NewPassword + ' ' + MyLANG.isRequired)
-                                 .min(4, MyLANG.Code + ' ' + MyLANG.mustBeMinimum + ' 4 ' + MyLANG.character)
-                                 .max(24, MyLANG.Code + ' ' + MyLANG.mustBeMaximum + ' 24 ' + MyLANG.character),
+                                 .min(4, MyLANG.NewPassword + ' ' + MyLANG.mustBeMinimum + ' 4 ' + MyLANG.character)
+                                 .max(24, MyLANG.NewPassword + ' ' + MyLANG.mustBeMaximum + ' 24 ' + MyLANG.character),
         password_new_confirm: yup.string()
                                  .required(MyLANG.ConfirmNewPassword + ' ' + MyLANG.isRequired)
                                  .min(4, MyLANG.ConfirmPassword + ' ' + MyLANG.mustBeMinimum + ' 4 ' + MyLANG.character)
@@ -92,8 +92,9 @@ const EditProfile = ({route, navigation}: any) => {
 
     const user: any = useSelector((state: any) => state.auth.user);
 
-    const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
-    const [modalVisible, setModalVisible]                = useState(false);
+    const [isDatePickerVisible, setDatePickerVisibility]      = useState(false);
+    const [modalVisible, setModalVisible]                     = useState(false);
+    const [modalVisibleFileSource, setModalVisibleFileSource] = useState(false);
 
     const {register, getValues, setValue, handleSubmit, formState, errors, watch}: any                                                                                                                                                            = useForm(
         {
@@ -282,31 +283,89 @@ const EditProfile = ({route, navigation}: any) => {
         }
     };
 
-    const openCamrea = async () => {
+    const onModalItem = async (item: any) => {
 
-        const response: any = await MyUtil.imagePicker(MyConfig.DefatulImagePickerOptions,
-                                                       MyConstant.IMAGE_PICKER.OPEN_TYPE.ALL,
-                                                       MyConstant.SHOW_MESSAGE.TOAST
-        );
+        setModalVisibleFileSource(false);
 
-        MyUtil.printConsole(true, 'log', 'LOG: imagePicker: await-response: ', {'response': response});
+        let response: any = null;
 
-        if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.fileName && response.data?.fileSize > 0) {
-
-            MyFunction.uploadFile(
-                {apiUrl: MyAPI.upload_profile_photo, user_id: user?.id, file: response.data},
-                MyLANG.PleaseWait + '...',
-                {
-                    'showMessage': MyConstant.SHOW_MESSAGE.TOAST,
-                    'message'    : MyLANG.ProfilePhotoUploadedSuccessfully
-                },
-                {
-                    'showMessage': MyConstant.SHOW_MESSAGE.ALERT,
-                    'message'    : MyLANG.FileUploadFailed
-                }
-            );
+        switch (item?.key) {
+            case 'Camera':
+                response = await MyUtil.imagePicker(MyConfig.DefatulImagePickerOptions,
+                                                    MyConstant.IMAGE_PICKER.OPEN_TYPE.Camera,
+                                                    MyConstant.SHOW_MESSAGE.TOAST,
+                )
+                break;
+            case 'Gallery':
+                response = await MyUtil.imagePicker(MyConfig.DefatulImagePickerOptions,
+                                                    MyConstant.IMAGE_PICKER.OPEN_TYPE.ImageLibrary,
+                                                    MyConstant.SHOW_MESSAGE.TOAST,
+                )
+                break;
+            default:
+                break;
         }
 
+        if (response) {
+
+            MyUtil.printConsole(true, 'log', 'LOG: imagePicker: await-response: ', {'response': response});
+
+            if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.fileName && response.data?.fileSize > 0) {
+
+                uploadProfilePhoto(response.data);
+
+            }
+        }
+    };
+
+    const uploadProfilePhoto = async (data: any) => {
+
+        const response: any = await MyUtil
+            .myHTTP(true, MyConstant.HTTP_POST, MyAPI.upload_profile_photo,
+                    {
+                        'language_id': MyConfig.LanguageActive,
+
+                        'customers_id'     : user?.id,
+                        'customers_picture': `data:${data?.type};base64,` + data?.data,
+
+                        'app_ver'      : MyConfig.app_version,
+                        'app_build_ver': MyConfig.app_build_version,
+                        'platform'     : MyConfig.app_platform,
+                        'device'       : null,
+                    }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, MyLANG.PleaseWait + '...', true, false
+            );
+
+        MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
+            'apiURL': MyAPI.upload_profile_photo, 'response': response
+        });
+
+        if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.status === 200 && response.data?.data?.success === '1') {
+
+            const data = response.data?.data?.data?.[0];
+            if (data?.id > 0) {
+
+                store.dispatch(updateUser(data, 'all'));
+
+                MyUtil.showMessage(MyConstant.SHOW_MESSAGE.TOAST, MyLANG.ProfilePhotoUploadedSuccessfully, false);
+            }
+
+        } else {
+
+            MyUtil.showMessage(MyConstant.SHOW_MESSAGE.ALERT, MyLANG.FileUploadFailed, false);
+        }
+
+        /*MyFunction.uploadFile(
+            {apiUrl: MyAPI.upload_profile_photo, user_id: user?.id, file: response.data},
+            MyLANG.PleaseWait + '...',
+            {
+                'showMessage': MyConstant.SHOW_MESSAGE.TOAST,
+                'message'    : MyLANG.ProfilePhotoUploadedSuccessfully
+            },
+            {
+                'showMessage': MyConstant.SHOW_MESSAGE.ALERT,
+                'message'    : MyLANG.FileUploadFailed
+            }
+        );*/
     };
 
     const openGenderModal = () => {
@@ -358,7 +417,11 @@ const EditProfile = ({route, navigation}: any) => {
 
                     <ScrollView contentInsetAdjustmentBehavior = "automatic">
 
-                        <View style = {[MyStyleSheet.viewPageLogin, {alignItems: "center", marginTop: 15}]}>
+                        <View style = {[MyStyleSheet.viewPageLogin, {
+                            alignItems   : "center",
+                            marginTop    : MyStyle.marginVerticalPage,
+                            paddingBottom: MyStyle.paddingVerticalList
+                        }]}>
 
                             <MyFastImage
                                 source = {[user?.customers_picture?.length > 9 ? {'uri': user?.customers_picture} : MyImage.defaultAvatar, MyImage.defaultAvatar]}
@@ -369,9 +432,9 @@ const EditProfile = ({route, navigation}: any) => {
                                 color = {MyColor.Primary.first}
                                 shadow = "none"
                                 title = {MyLANG.ChangePhoto}
-                                linearGradientStyle = {{marginTop: 5}}
+                                linearGradientStyle = {{marginTop: 15}}
                                 textStyle = {{fontFamily: MyStyle.FontFamily.OpenSans.semiBold}}
-                                onPress = {openCamrea}
+                                onPress = {() => setModalVisibleFileSource(true)}
                             />
                         </View>
                         <View style = {{height: MyStyle.marginViewGapCard, backgroundColor: MyColor.Material.WHITE}}></View>
@@ -470,38 +533,38 @@ const EditProfile = ({route, navigation}: any) => {
                                         {MyLANG.ChangePasswordCurrent}
                                     </Text>
                                     <MyInput
-                                        floatingLabel = {MyLANG.EnterYourPassword}
+                                        floatingLabel = {MyLANG.EnterYourCurrentPassword}
                                         inputProps = {{secureTextEntry: true}}
                                         onChangeText = {(text: any) => setValuePasswordForm('password_current', text, true)}
                                         value = {passwordFormValue.password_current}
                                         iconLeft = {{name: 'lock'}}
                                         iconRight = {{name: 'eye'}}
                                         iconRightOnPress = {{type: MyConstant.InputIconRightOnPress.secureTextEntry}}
-                                        helperText = {{message: errors.password_current?.message ? errors.password_current.message : null}}
+                                        helperText = {{message: errorsPasswordForm.password_current?.message ? errorsPasswordForm.password_current.message : null}}
                                     />
 
                                     <Text style = {editProfile.textNewPasswordSection}>
                                         {MyLANG.ChangePasswordNew}
                                     </Text>
                                     <MyInput
-                                        floatingLabel = {MyLANG.EnterYourPassword}
+                                        floatingLabel = {MyLANG.EnterYourNewPassword}
                                         inputProps = {{secureTextEntry: true}}
                                         onChangeText = {(text: any) => setValuePasswordForm('password_new', text, true)}
                                         value = {passwordFormValue.password_new}
                                         iconLeft = {{name: 'lock'}}
                                         iconRight = {{name: 'eye'}}
                                         iconRightOnPress = {{type: MyConstant.InputIconRightOnPress.secureTextEntry}}
-                                        helperText = {{message: errors.password_new?.message ? errors.password_new.message : null}}
+                                        helperText = {{message: errorsPasswordForm.password_new?.message ? errorsPasswordForm.password_new.message : null}}
                                     />
                                     <MyInput
-                                        floatingLabel = {MyLANG.EnterYourConfirmPassword}
+                                        floatingLabel = {MyLANG.ConfirmYourNewPassword}
                                         inputProps = {{secureTextEntry: true}}
                                         onChangeText = {(text: any) => setValuePasswordForm('password_new_confirm', text, true)}
                                         value = {passwordFormValue.password_new_confirm}
                                         iconLeft = {{name: 'lock'}}
                                         iconRight = {{name: 'eye'}}
                                         iconRightOnPress = {{type: MyConstant.InputIconRightOnPress.secureTextEntry}}
-                                        helperText = {{message: errors.password_new_confirm?.message ? errors.password_new_confirm.message : null}}
+                                        helperText = {{message: errorsPasswordForm.password_new_confirm?.message ? errorsPasswordForm.password_new_confirm.message : null}}
                                     />
 
                                     <MyButton
@@ -532,12 +595,54 @@ const EditProfile = ({route, navigation}: any) => {
                     visible = {modalVisible}
                     onRequestClose = {() => setModalVisible(false)}
                     children = {
-                        <ModalRadioList
-                            title = {MyLANG.SelectGender}
-                            selected = {gender?.id}
-                            onItem = {(item: any) => onGender(item)}
-                            items = {MyConfig.genderList}
-                            titleText = "name"
+                        <ModalNotFullScreen
+                            onRequestClose = {() => setModalVisible(false)}
+                            children = {
+                                <ModalRadioList
+                                    title = {MyLANG.SelectGender}
+                                    selected = {gender?.id}
+                                    onItem = {(item: any) => onGender(item)}
+                                    items = {MyConfig.genderList}
+                                    subTitleText = "name"
+                                    /*iconLeft = {[
+                                        {
+                                            fontFamily: MyConstant.VectorIcon.Ionicons,
+                                            name      : 'ios-male',
+                                            size      : 21,
+                                        },
+                                        {
+                                            fontFamily: MyConstant.VectorIcon.Ionicons,
+                                            name      : 'ios-female',
+                                            size      : 21,
+                                        },
+                                        {
+                                            fontFamily: MyConstant.VectorIcon.Ionicons,
+                                            name      : 'ios-radio-button-off',
+                                            size      : 21,
+                                        },
+                                    ]}*/
+                                />
+                            }
+                        />
+                    }
+                />
+
+                <MyModal
+                    visible = {modalVisibleFileSource}
+                    onRequestClose = {() => setModalVisibleFileSource(false)}
+                    children = {
+                        <ModalNotFullScreen
+                            onRequestClose = {() => setModalVisibleFileSource(false)}
+                            children = {
+                                <ModalRadioList
+                                    title = {MyLANG.SelectFileSource}
+                                    onItem = {(item: any) => onModalItem(item)}
+                                    items = {MyConfig?.fileSourceProfilePhto}
+                                    titleText = "title"
+                                    bodyText = "bodyText"
+                                    radio = {false}
+                                />
+                            }
                         />
                     }
                 />

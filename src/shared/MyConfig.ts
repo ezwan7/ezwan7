@@ -37,8 +37,8 @@ const primaryGradient = {
 const MyConfig: any = {
 
     app_name         : 'DirectD',
-    app_version      : '0.6.0',
-    app_build_version: 60,
+    app_version      : '0.94',
+    app_build_version: 94,
     app_platform     : 'android_customer',
 
     app_email    : 'directd@gmail.com',
@@ -106,10 +106,12 @@ const MyConfig: any = {
         EditProfile      : 'EditProfile',
         MyPoints         : 'MyPoints',
         MyOrders         : 'MyOrders',
+        OrderDetails     : 'OrderDetails',
         MyAddress        : 'MyAddress',
         MyAddressForm    : 'MyAddressForm',
         Notifications    : 'Notifications',
         NotificationView : 'NotificationView',
+        MyWishList       : 'MyWishList',
         ReferAndEarn     : 'ReferAndEarn',
         ContactUs        : 'ContactUs',
         AboutUs          : 'AboutUs',
@@ -161,6 +163,26 @@ const MyConfig: any = {
         restaurant : 7,
     },
 
+    DevlieryMethod: {
+        PickUp : 1,
+        Courier: 2,
+    },
+
+    PaymentMethod: {
+        CashOnDelivery: {
+            id  : 6,
+            name: 'Cash on Delivery'
+        },
+        CreditCard    : {
+            id  : 6,
+            name: 'Credit Card'
+        },
+        Grabpay       : {
+            id  : 27,
+            name: 'Grabpay'
+        },
+    },
+
     RestaurantCategory: {
         Restaurant: 1,
         Sweet     : 2,
@@ -169,11 +191,16 @@ const MyConfig: any = {
         Catering  : 5,
     },
 
+    FilterRange: {
+        price: [0, 25000, 5],
+    },
+
     ListLimit     : {
         categoryList         : 50,
         productList          : 16,
         productListHorizontal: 5,
         notificationList     : 20,
+        orderList            : 15,
         searchList           : 16,
         addressList          : 15,
         optionList           : 32,
@@ -250,13 +277,13 @@ const MyConfig: any = {
     },
 
     DefatulImagePickerOptions: {
-        title         : MyLANG.SelectImage,
+        title         : MyLANG.SelectSource,
         // customButtons : [{name: 'fb', title: 'Choose Photo from Facebook'}],
         storageOptions: {
             skipBackup: true,
             // path      : 'images',
         },
-        tintColor     : '#ffffff',
+        tintColor     : '#333333',
         cameraType    : 'back', // 'front' or 'back'
         mediaType     : 'photo', // 'photo', 'video', or 'mixed'
         maxWidth      : 1000,
@@ -267,6 +294,11 @@ const MyConfig: any = {
         durationLimit : 3,
         allowsEditing : true,
         noData        : false,
+    },
+
+    DefatulFilePickerOptions: {
+        type       : MyConstant.DocumentPickerType.allFiles,
+        readContent: false,
     },
 
     Intro: [
@@ -308,6 +340,29 @@ const MyConfig: any = {
         },
     ],
 
+    productDetailsSegments: [
+        {
+            id  : 1,
+            key : 'Description',
+            name: MyLANG.Description,
+        },
+        {
+            id  : 2,
+            key : 'Specification',
+            name: MyLANG.Specification,
+        },
+        {
+            id  : 3,
+            key : 'Warranty',
+            name: MyLANG.Warranty,
+        },
+        {
+            id  : 4,
+            key : 'Review',
+            name: MyLANG.Review,
+        },
+    ],
+
     genderList: [
         {
             id  : 0,
@@ -334,6 +389,63 @@ const MyConfig: any = {
             icon : 'truck',
             title: MyLANG.CourierService,
         },
+    ],
+
+    fileSource: [
+        {
+            id      : 1,
+            key     : 'Camera',
+            title   : MyLANG.Camera,
+            bodyText: MyLANG.CameraSelectionDescription,
+            iconLeft: {
+                name: 'camera',
+                size: 27,
+            }
+        },
+        {
+            id      : 2,
+            key     : 'Gallery',
+            title   : MyLANG.Gallery,
+            bodyText: MyLANG.GallerySelectionDescription,
+            iconLeft: {
+                name: 'picture',
+                size: 27,
+            }
+        },
+        {
+            id      : 3,
+            key     : 'Other',
+            icon    : 'truck',
+            title   : MyLANG.OtherFiles,
+            bodyText: MyLANG.OtherFilesSelectionDescription,
+            iconLeft: {
+                name: 'folder',
+                size: 27,
+            }
+        },
+    ],
+
+    fileSourceProfilePhto: [
+        {
+            id      : 1,
+            key     : 'Camera',
+            title   : MyLANG.Camera,
+            bodyText: MyLANG.CameraSelectionDescription,
+            iconLeft: {
+                name: 'camera',
+                size: 27,
+            }
+        },
+        {
+            id      : 2,
+            key     : 'Gallery',
+            title   : MyLANG.Gallery,
+            bodyText: MyLANG.GallerySelectionDescription,
+            iconLeft: {
+                name: 'picture',
+                size: 27,
+            }
+        }
     ],
 
     geoLocationOption      : {
@@ -376,6 +488,7 @@ const MyAPI = {
     countries           : MyConfig.apiUrl + MyConfig.api_version + 'getcountries',
     states              : MyConfig.apiUrl + MyConfig.api_version + 'getzones',
     payment_methods     : MyConfig.apiUrl + MyConfig.api_version + 'getpaymentmethods',
+    pickup_address      : MyConfig.apiUrl + MyConfig.api_version + 'pickuppoints',
     featured_products   : MyConfig.apiUrl + MyConfig.api_version + 'getfeaturedproducts',
     new_arrival_products: MyConfig.apiUrl + MyConfig.api_version + 'getnewarrivalproducts',
     categories          : MyConfig.apiUrl + MyConfig.api_version + 'allcategories',
@@ -383,23 +496,31 @@ const MyAPI = {
     product             : MyConfig.apiUrl + MyConfig.api_version + 'getallproducts',
     search              : MyConfig.apiUrl + MyConfig.api_version + 'getsearchdata',
     filter              : MyConfig.apiUrl + MyConfig.api_version + 'getfilters',
+    filter_product      : MyConfig.apiUrl + MyConfig.api_version + 'getfilterproducts',
     banner              : MyConfig.apiUrl + MyConfig.api_version + 'getbanners',
 
-    coupon_apply        : MyConfig.apiUrl + MyConfig.api_version + 'getcoupon',
-    delivery_method_rate: MyConfig.apiUrl + MyConfig.api_version + 'getrate',
-    update_profile      : MyConfig.apiUrl + MyConfig.api_version + 'updatecustomerinfo',
-    password_change     : MyConfig.apiUrl + MyConfig.api_version + 'updatepassword',
-    upload_profile_photo: MyConfig.apiUrl + MyConfig.api_version + 'uploadprofilephoto',
-    user_addresses      : MyConfig.apiUrl + MyConfig.api_version + 'getalladdress',
-    user_address_add    : MyConfig.apiUrl + MyConfig.api_version + 'addshippingaddress',
-    user_address_edit   : MyConfig.apiUrl + MyConfig.api_version + 'updateshippingaddress',
-    user_address_delete : MyConfig.apiUrl + MyConfig.api_version + 'deleteshippingaddress',
-    product_like        : MyConfig.apiUrl + MyConfig.api_version + 'likeproduct',
-    product_unlike      : MyConfig.apiUrl + MyConfig.api_version + 'unlikeproduct',
-    notifications       : MyConfig.apiUrl + MyConfig.api_version + 'getnotifications',
-    order_place         : MyConfig.apiUrl + MyConfig.api_version + 'place_order',
+    coupon_apply          : MyConfig.apiUrl + MyConfig.api_version + 'getcoupon',
+    wishlist              : MyConfig.apiUrl + MyConfig.api_version + 'getwishlist',
+    delivery_method_rate  : MyConfig.apiUrl + MyConfig.api_version + 'getrate',
+    update_profile        : MyConfig.apiUrl + MyConfig.api_version + 'updatecustomerinfo',
+    password_change       : MyConfig.apiUrl + MyConfig.api_version + 'updatepassword',
+    upload_profile_photo  : MyConfig.apiUrl + MyConfig.api_version + 'uploadprofilephoto',
+    upload_payment_receipt: MyConfig.apiUrl + MyConfig.api_version + 'updatepaymentreceipt',
+    user_addresses        : MyConfig.apiUrl + MyConfig.api_version + 'getalladdress',
+    user_address_add      : MyConfig.apiUrl + MyConfig.api_version + 'addshippingaddress',
+    user_address_edit     : MyConfig.apiUrl + MyConfig.api_version + 'updateshippingaddress',
+    user_address_delete   : MyConfig.apiUrl + MyConfig.api_version + 'deleteshippingaddress',
+    product_like          : MyConfig.apiUrl + MyConfig.api_version + 'likeproduct',
+    product_unlike        : MyConfig.apiUrl + MyConfig.api_version + 'unlikeproduct',
+    notifications         : MyConfig.apiUrl + MyConfig.api_version + 'getnotifications',
+    notification          : MyConfig.apiUrl + MyConfig.api_version + 'getsinglenotification',
+    notification_read     : MyConfig.apiUrl + MyConfig.api_version + 'markasread',
+    order_place           : MyConfig.apiUrl + MyConfig.api_version + 'addtoorder',
+    orders                : MyConfig.apiUrl + MyConfig.api_version + 'getorders',
+    order                 : MyConfig.apiUrl + MyConfig.api_version + 'getorders',
+    order_cancel          : MyConfig.apiUrl + MyConfig.api_version + 'updatestatus',
 
-    payment_gateway: MyConfig.serverUrl + 'ipay-response',
+    payment_gateway: 'https://admin.helpy.my/payment/request?user_id=',
 
     // RESTAURANTS: MyConfig.apiUrl + MyConfig.api_version + MyConfig.api_auth + 'restaurants-get' + MyConfig.API_FILE_EXTENSION,
     //`https://graph.facebook.com/${result.id}/picture`

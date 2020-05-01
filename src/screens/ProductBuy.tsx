@@ -94,11 +94,34 @@ const ProductBuyScreen = ({route, navigation}: any) => {
     const cartItemIncrement = (key: string) => {
         MyUtil.printConsole(true, 'log', 'LOG: cartItemIncrement: ', {key, cart});
 
-        if (Number(cart?.items[key]?.item?.products_liked) > Number(cart?.items[key]?.quantity)) {
+        if (Number(cart?.items[key]?.item?.current_stock) > Number(cart?.items[key]?.quantity)) {
             dispatch(cartItemQuantityIncrement(key));
         } else {
             MyUtil.showMessage(MyConstant.SHOW_MESSAGE.TOAST, MyLANG.NoMoreInStock, false);
         }
+    }
+
+    const onCartItemRemove = (key: string) => {
+        MyUtil.printConsole(true, 'log', 'LOG: onCartItemRemove: ', {key, cart});
+
+
+        MyUtil.showAlert(MyLANG.Attention, MyLANG.CartItemRemoveAlert, false, [
+            {
+                text   : MyLANG.No,
+                style  : 'cancel',
+                onPress: () => {
+                    MyUtil.printConsole(true, 'log', 'LOG: showAlert: ', 'Cancel');
+                },
+            },
+            {
+                text   : MyLANG.Yes,
+                onPress: async () => {
+                    MyUtil.printConsole(true, 'log', 'LOG: showAlert: ', 'OK');
+
+                    dispatch(cartItemRemove(key));
+                }
+            },
+        ])
     }
 
     const applyCoupon = async (e: any) => {
@@ -198,7 +221,7 @@ const ProductBuyScreen = ({route, navigation}: any) => {
                         <>
                             <ScrollView
                                 contentInsetAdjustmentBehavior = "automatic"
-                                contentContainerStyle = {{paddingTop: MyStyle.headerHeightAdjusted, flexGrow: 1}}
+                                contentContainerStyle = {{paddingTop: MyStyle.headerHeightAdjusted}}
                                 refreshControl = {
                                     <RefreshControl
                                         refreshing = {refreshing}
@@ -210,7 +233,8 @@ const ProductBuyScreen = ({route, navigation}: any) => {
                             >
                                 <CartListItem
                                     items = {cart?.items}
-                                    onPressCartItemRemove = {(key: string) => dispatch(cartItemRemove(key))}
+                                    index = {0}
+                                    onPressCartItemRemove = {(key: string) => onCartItemRemove(key)}
                                     onPressQuantityIncrement = {(key: string) => cartItemIncrement(key)}
                                     onPressQuantityDecrement = {(key: string) => dispatch(cartItemQuantityDecrement(key))}
                                 />
@@ -221,7 +245,7 @@ const ProductBuyScreen = ({route, navigation}: any) => {
                                     justifyContent: "flex-start",
                                     alignItems    : "flex-start",
 
-                                    marginVertical: MyStyle.marginVerticalList,
+                                    marginVertical: MyStyle.marginViewGapCard,
 
                                     paddingHorizontal: MyStyle.marginHorizontalPage,
                                     paddingVertical  : MyStyle.marginVerticalList,
@@ -292,7 +316,7 @@ const ProductBuyScreen = ({route, navigation}: any) => {
                                                  viewGroupStyle = {{flex: 0.68, marginRight: 10}}
                                                  viewStyle = {{backgroundColor: MyColor.backgroundGrey}}
 
-                                                 helperText = {{message: errors.coupon_code?.message ? errors.coupon_code.message : null}}
+                                                 // helperText = {{message: errors.coupon_code?.message ? errors.coupon_code.message : null}}
                                              />
                                              <MyButton
                                                  fill = "solid"
@@ -343,7 +367,7 @@ const ProductBuyScreen = ({route, navigation}: any) => {
                                 speed = {0.5}
                                 style = {{view: {}, image: {}, text: {}}}
                             />
-                            <CartPageBottomButtons
+                            {/*<CartPageBottomButtons
                                 textBackButton = {MyLANG.Back}
                                 textNextButton = {MyLANG.GoToShop}
                                 onPressBack = {onBack}
@@ -357,7 +381,7 @@ const ProductBuyScreen = ({route, navigation}: any) => {
                                                            null
                                         )
                                 }
-                            />
+                            />*/}
                         </>
                     }
 

@@ -9,6 +9,7 @@ const types = {
     SIGN_OUT           : "SIGN_OUT",
     SIGN_UP            : "SIGN_UP",
     UPDATE_USER        : "UPDATE_USER",
+    EMPTY_AUTH         : 'EMPTY_AUTH',
 }
 
 export const device_token_update = (item: any) => {
@@ -38,6 +39,13 @@ export const updateUser = (data: any, key: any) => {
             data,
             key,
         },
+    }
+}
+
+export const authEmpty = () => {
+    return {
+        type   : types.EMPTY_AUTH,
+        payload: null,
     }
 }
 
@@ -84,6 +92,9 @@ const AuthReducer = (state: any = initialState, action: any) => {
                 ...state,
                 user: {}
             }
+
+        case types.EMPTY_AUTH:
+            return initialState;
 
         default:
             return state;

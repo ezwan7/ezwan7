@@ -62,7 +62,7 @@ const ProductBuySuccess = ({route, navigation}: any) => {
                 >
                     <ScrollView
                         contentInsetAdjustmentBehavior = "automatic"
-                        contentContainerStyle = {{paddingTop: MyStyle.headerHeightAdjusted, flexGrow: 1}}
+                        contentContainerStyle = {{paddingTop: MyStyle.headerHeightAdjusted}}
                     >
                         <View style = {[{
                             alignItems      : "center",

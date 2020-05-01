@@ -167,7 +167,7 @@ const OptionPage = ({route, navigation}: any) => {
                             searchItem(text);
                         }}
                         //onSubmitEditing = {(text: any) => searchItem(text)}
-                        onRightIcon = {() => {
+                        onClearIcon = {() => {
                             setSearchText(null);
                             searchItem('');
                         }}
@@ -175,7 +175,7 @@ const OptionPage = ({route, navigation}: any) => {
                     />
 
                     <FlatList
-                        style = {{flexGrow: 1}}
+                        contentContainerStyle = {{flexGrow: 1}}
                         data = {items}
                         renderItem = {({item, index}: any) =>
                             <OptionList

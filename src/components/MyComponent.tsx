@@ -224,6 +224,20 @@ const HeaderInputSearch = (props: any) => {
                         onSubmitEditing = {props.onSubmitEditing}
                         value = {props.value}
                     />
+                    {
+                        props.value?.length > 0 &&
+                        <TouchableOpacity
+                            activeOpacity = {0.7}
+                            onPress = {props.onClearIcon}
+                        >
+                            <MyIcon.SimpleLineIcons
+                                name = "close"
+                                size = {17}
+                                color = {MyColor.Material.BLACK}
+                                style = {{paddingRight: 6, paddingVertical: 8, paddingLeft: 6}}
+                            />
+                        </TouchableOpacity>
+                    }
                     <TouchableOpacity
                         activeOpacity = {0.7}
                         onPress = {props.onRightIcon}
@@ -319,7 +333,7 @@ const HeaderInputSearchOptionPage = (props: any) => {
                             props.value?.length > 0 &&
                             <TouchableOpacity
                                 activeOpacity = {0.7}
-                                onPress = {props.onRightIcon}
+                                onPress = {props.onClearIcon}
                             >
                                 <MyIcon.SimpleLineIcons
                                     name = "close"
@@ -377,7 +391,7 @@ const HeaderGoogleMapSearch = (props: any) => {
                 <MyHeaderBackButton onPress = {props.onBack}/>
 
                 <View style = {{flexDirection: "row"}}>
-                    <TouchableOpacity
+                    {/*<TouchableOpacity
                         style = {{
                             marginRight: 4,
                         }}
@@ -390,7 +404,7 @@ const HeaderGoogleMapSearch = (props: any) => {
                             color = {MyColor.Material.BLACK}
                             style = {{paddingVertical: 7, paddingHorizontal: 8}}
                         />
-                    </TouchableOpacity>
+                    </TouchableOpacity>*/}
                     <TouchableOpacity
                         style = {{
                             marginRight: 10,

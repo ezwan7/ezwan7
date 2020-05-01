@@ -11,6 +11,7 @@ import {userLocationUpdate} from "../store/UserLocation";
 import {updateUser} from "../store/AuthRedux";
 import {switchAppNavigator} from "../store/AppRedux";
 import {addressSave} from "../store/AddressRedux";
+import {notificationSave} from "../store/NotificationRedux";
 
 
 const MyFunction = {
@@ -30,6 +31,7 @@ const MyFunction = {
                              last_name  : facebookLogin?.data?.last_name,
                              photo      : facebookLogin?.data?.picture?.data?.url,
                          },
+                         MyConstant.SHOW_MESSAGE.TOAST,
                          MyConstant.SHOW_MESSAGE.ALERT,
                          MyLANG.Login + '...',
                          false,
@@ -54,6 +56,7 @@ const MyFunction = {
                              last_name : googleSignin?.user?.familyName,
                              photo     : googleSignin?.user?.photo,
                          },
+                         MyConstant.SHOW_MESSAGE.TOAST,
                          MyConstant.SHOW_MESSAGE.ALERT,
                          MyLANG.Login + '...',
                          false,
@@ -224,6 +227,53 @@ const MyFunction = {
         return false;
     },
 
+    fetchPickUpAddress: async (showLoader: any = MyLANG.PleaseWait + '...', showInfoMessage: any = false, showErrorMessage: any = false) => {
+        const response: any = await MyUtil
+            .myHTTP(false, MyConstant.HTTP_POST, MyAPI.pickup_address,
+                    {
+                        'language_id': MyConfig.LanguageActive,
+
+                        'app_ver'      : MyConfig.app_version,
+                        'app_build_ver': MyConfig.app_build_version,
+                        'platform'     : MyConfig.app_platform,
+                        'device'       : null,
+                    }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, showLoader, true, false
+            );
+
+        MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
+            'apiURL': MyAPI.pickup_address, 'response': response
+        });
+
+        if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.status === 200 && response.data?.data?.success === '1' && response.data.data.data) {
+
+            const data = response.data.data.data;
+
+            const dataReduced = data.reduce((accumulator: any, item: any) => {
+                accumulator.push(
+                    {
+                        ...item,
+                        addressText: `${item.points_address}\n${item.points_city}\n${item.points_state}\n${item.country_name}\n${item.points_zip}`,
+                        footerText : `${MyLANG.OpeningHours}: ${item.points_opening_hours}\n${MyLANG.PickupFee}: ${MyConfig.Currency.MYR.symbol} ${item.points_pickup_fee}`,
+                    }
+                );
+                return accumulator;
+
+            }, []);
+
+            store.dispatch(appInputUpdate(dataReduced, 'pickup_address'));
+
+            if (showInfoMessage !== false) {
+                MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message, false);
+            }
+
+        } else {
+
+            if (showErrorMessage !== false) {
+                MyUtil.showMessage(showErrorMessage.showMessage, showErrorMessage.message, false);
+            }
+        }
+    },
+
     fetchPaymentMethod: async (showLoader: any = MyLANG.PleaseWait + '...', showInfoMessage: any = false, showErrorMessage: any = false) => {
         const response: any = await MyUtil
             .myHTTP(false, MyConstant.HTTP_POST, MyAPI.payment_methods,
@@ -241,18 +291,14 @@ const MyFunction = {
             'apiURL': MyAPI.payment_methods, 'response': response
         });
 
-        if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.status === 200) {
+        if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.status === 200 && response.data?.data) {
 
             const data = response.data?.data;
-            if (data.length > 0) {
 
-                store.dispatch(appInputUpdate(data, 'payment_method'));
+            store.dispatch(appInputUpdate(data, 'payment_method'));
 
-            } else {
-
-                if (showInfoMessage !== false) {
-                    MyUtil.showMessage(showInfoMessage.showMessage, MyLANG.GetDataError, false);
-                }
+            if (showInfoMessage !== false) {
+                MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message, false);
             }
 
         } else {
@@ -307,11 +353,48 @@ const MyFunction = {
         return false;
     },
 
+    fetchFilterMethod: async (showLoader: any = MyLANG.PleaseWait + '...', showInfoMessage: any = false, showErrorMessage: any = false) => {
+        const response: any = await MyUtil
+            .myHTTP(false, MyConstant.HTTP_POST, MyAPI.filter,
+                    {
+                        'language_id': MyConfig.LanguageActive,
+
+                        'app_ver'      : MyConfig.app_version,
+                        'app_build_ver': MyConfig.app_build_version,
+                        'platform'     : MyConfig.app_platform,
+                        'device'       : null,
+                    }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, showLoader, true, false
+            );
+
+        MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
+            'apiURL': MyAPI.filter, 'response': response
+        });
+
+        if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.status === 200 && response.data?.data?.success === '1' && response.data?.data?.filters) {
+
+            const data = response.data?.data?.filters;
+
+            store.dispatch(appInputUpdate(data, 'filter_method'));
+
+            if (showInfoMessage !== false) {
+                MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message, false);
+            }
+
+        } else {
+
+            if (showErrorMessage !== false) {
+                MyUtil.showMessage(showErrorMessage.showMessage, showErrorMessage.message, false);
+            }
+        }
+    },
+
     placeOrder: async (formParam: any, showLoader: any = MyLANG.PleaseWait + '...', showInfoMessage: any = false, showErrorMessage: any = false) => {
         const response: any = await MyUtil
             .myHTTP(false, MyConstant.HTTP_POST, MyAPI.order_place,
                     {
                         'language_id': MyConfig.LanguageActive,
+
+                        ...formParam,
 
                         'app_ver'      : MyConfig.app_version,
                         'app_build_ver': MyConfig.app_build_version,
@@ -324,12 +407,11 @@ const MyFunction = {
             'apiURL': MyAPI.order_place, 'response': response
         });
 
-        if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.status === 200 && response.data?.data?.success === '1') {
+        if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.status === 200 && response.data?.data?.success === '1' && response.data?.data?.data?.id) {
 
             const data = response.data?.data?.data;
-            if (data?.length > 0) {
-                return true;
-            }
+
+            return data;
 
         } else {
 
@@ -363,9 +445,7 @@ const MyFunction = {
         if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.status === 200 && response.data?.data?.success === '1') {
 
             const data = response.data?.data?.data;
-            if (data?.length > 0) {
-                store.dispatch(appInputUpdate(data, 'payment_method'));
-            }
+            store.dispatch(notificationSave(data, MyConstant.DataSetType.fresh));
 
         } else {
 
@@ -428,7 +508,60 @@ const MyFunction = {
         return false;
     },
 
-    fetchAddress: async (user_id: number, showLoader: any = false, showInfoMessage: any = false, showErrorMessage: any = false) => {
+    cancelOrder: async (formParam: any, showLoader: any = MyLANG.PleaseWait + '...',
+                        showInfoMessage: any            = {
+                            showMessage: MyConstant.SHOW_MESSAGE.TOAST,
+                            message    : MyLANG.OrderCancelledSuccessfully,
+                        },
+                        showErrorMessage: any           = false) => {
+
+        MyUtil.printConsole(true, 'log', 'LOG: productLikeUnlike: ', {
+            'formParam'       : formParam,
+            'showLoader'      : showLoader,
+            'showInfoMessage' : showInfoMessage,
+            'showErrorMessage': showErrorMessage,
+        });
+
+        const response: any = await MyUtil
+            .myHTTP({required: true, promptLogin: true}, MyConstant.HTTP_POST, MyAPI.order_cancel,
+                    {
+                        'language_id': MyConfig.LanguageActive,
+
+                        'user_id'         : formParam.user_id,
+                        'orders_id'       : formParam.orders_id,
+                        'orders_status_id': formParam.orders_status_id,
+
+                        'app_ver'      : MyConfig.app_version,
+                        'app_build_ver': MyConfig.app_build_version,
+                        'platform'     : MyConfig.app_platform,
+                        'device'       : null,
+                    }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, false, true, false
+            );
+
+        MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
+            'apiURL': MyAPI.order_cancel, 'response': response
+        });
+
+        if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.status === 200 && response.data?.data?.success === '1') {
+
+            if (showInfoMessage !== false) {
+                MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message || response.data?.data?.message, false);
+            }
+
+            const data = response.data.data.data?.[0];
+            return true;
+
+        } else {
+
+            if (showErrorMessage !== false) {
+                MyUtil.showMessage(showErrorMessage.showMessage, showErrorMessage.message ? showErrorMessage.message : MyLANG.Error, false);
+            }
+        }
+
+        return false;
+    },
+
+    fetchAddress: async (user_id: number, phone: any, showLoader: any = false, showInfoMessage: any = false, showErrorMessage: any = false) => {
         const response: any = await MyUtil
             .myHTTP(true, MyConstant.HTTP_POST, MyAPI.user_addresses,
                     {
@@ -450,7 +583,27 @@ const MyFunction = {
 
             const data = response.data.data.data;
             if (data.length > 0) {
-                store.dispatch(addressSave(data, MyConstant.DataSetType.fresh));
+
+                // REMOVE:
+                const dataReduced = data.reduce((accumulator: any, item: any) => {
+                    const addressText = MyUtil.generateAddress(null,
+                                                               item?.street,
+                                                               item?.city,
+                                                               item?.zone_name,
+                                                               item?.country_name,
+                                                               item?.postcode
+                    );
+                    accumulator.push(
+                        {
+                            ...item,
+                            addressText: `${item.firstname} ${item.lastname}\n${phone}\n${addressText}`,
+                        }
+                    );
+                    return accumulator;
+
+                }, []);
+
+                store.dispatch(addressSave(dataReduced, MyConstant.DataSetType.fresh));
             }
 
             if (showInfoMessage !== false) {
@@ -597,8 +750,8 @@ const MyFunction = {
                     {
                         'language_id': MyConfig.LanguageActive,
 
-                        'address_id'  : formParam?.id,
-                        'customers_id': formParam?.user_id,
+                        'address_book_id': formParam?.id,
+                        'customers_id'   : formParam?.user_id,
 
                         'app_ver'      : MyConfig.app_version,
                         'app_build_ver': MyConfig.app_build_version,
@@ -766,10 +919,11 @@ const MyFunction = {
 
         if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.status === 200 && response.data?.data?.length > 0) {
 
-            // store.dispatch(updateUser('customers_picture', 'payment_method'));
             if (showInfoMessage !== false) {
-                MyUtil.showMessage(showInfoMessage.showMessage, MyLANG.GetDataError, false);
+                MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message, false);
             }
+
+            return true;
 
         } else {
 
@@ -777,6 +931,8 @@ const MyFunction = {
                 MyUtil.showMessage(showErrorMessage.showMessage, showErrorMessage.message, false);
             }
         }
+
+        return false;
     },
 
     handleNavigationActions: (navigationActions: any) => {

@@ -50,9 +50,9 @@ const MyStyle: any = {
     paddingHorizontalPage: 24,
     paddingVerticalPage  : 15,
 
-    marginHorizontalList : 12,
+    marginHorizontalList : 15,
     marginVerticalList   : 15,
-    paddingHorizontalList: 12,
+    paddingHorizontalList: 15,
     paddingVerticalList  : 15,
 
     marginHorizontalModal     : 28,
@@ -64,6 +64,7 @@ const MyStyle: any = {
 
     marginHorizontalTextsView: 10,
 
+    marginViewGapCardTop   : 8,
     marginViewGapCard      : 14,
     marginViewGapCardMedium: 18,
 
@@ -83,9 +84,10 @@ const MyStyle: any = {
     buttonHeightNormal: 46,
     buttonHeightLarge : 56,
 
-    fontFamilyPrice     : 'roboto_regular',
-    fontFamilyPriceBold : 'roboto_bold',
-    fontFamilyPriceLight: 'roboto_light',
+    fontFamilyPrice        : 'roboto_regular',
+    fontFamilyPriceSemiBold: 'roboto_medium',
+    fontFamilyPriceBold    : 'roboto_bold',
+    fontFamilyPriceLight   : 'roboto_light',
 
     FontFamily: {
         OpenSans: {
@@ -179,6 +181,12 @@ const MyStyle: any = {
         locations: [0.1, 0.5, 1],
         colors   : MyColor.Gradient.whitish,
     },
+    LGGrey   : {
+        start    : {x: 0, y: 0},
+        end      : {x: 1, y: 1},
+        locations: [0.0, 1],
+        colors   : MyColor.Gradient.grey,
+    },
     LGBlue   : {
         start    : {x: 0, y: 0},
         end      : {x: 1, y: 1},
@@ -200,19 +208,25 @@ const MyStyle: any = {
     },
 
     MaterialRipple: {
-        default     : {
+        default      : {
             rippleSize                 : 400,
             rippleDuration             : 1000,
             rippleContainerBorderRadius: 0,
             rippleCentered             : false,
         },
-        drawer      : {
+        drawer       : {
             rippleSize                 : 400,
             rippleDuration             : 1000,
             rippleContainerBorderRadius: 0,
             rippleCentered             : false,
         },
-        headerButton: {
+        drawerRounded: {
+            rippleSize                 : 400,
+            rippleDuration             : 1000,
+            rippleContainerBorderRadius: 100,
+            rippleCentered             : false,
+        },
+        headerButton : {
             rippleSize                 : 400,
             rippleDuration             : 1000,
             rippleContainerBorderRadius: 0,
@@ -231,9 +245,20 @@ const MyStyle: any = {
     ColumnStart       : {
         justifyContent: "flex-start",
     },
+    ColumnTopLeft     : {
+        justifyContent: "flex-start",
+        alignItems    : "flex-start",
+    },
+    ColumnTopRight    : {
+        justifyContent: "flex-start",
+        alignItems    : "flex-end",
+    },
     ColumnCenterStart : {
         justifyContent: "center",
         alignItems    : "flex-start",
+    },
+    ColumnCenterOnly  : {
+        justifyContent: "center",
     },
     ColumnCenter      : {
         justifyContent: "center",
@@ -242,7 +267,7 @@ const MyStyle: any = {
     ColumnCenterTop   : {
         alignItems: "center",
     },
-    ColumnCenterBottom: {
+    ColumnBottomCenter: {
         justifyContent: "flex-end",
         alignItems    : "center",
     },
@@ -253,6 +278,9 @@ const MyStyle: any = {
     ColumnCenterRight : {
         justifyContent: "center",
         alignItems    : "flex-end",
+    },
+    ColumnBetween     : {
+        justifyContent: 'space-between',
     },
     Row               : {
         flexDirection: "row",
@@ -267,19 +295,29 @@ const MyStyle: any = {
                 },
             }),
     },
-    RowStart          : {
+    RowLeft           : {
         flexDirection : "row",
         justifyContent: "flex-start",
     },
-    RowStartCenter    : {
+    RowLeftTop        : {
+        flexDirection : "row",
+        justifyContent: "flex-start",
+        alignItems    : "flex-start",
+    },
+    RowLeftCenter     : {
         flexDirection : "row",
         justifyContent: "flex-start",
         alignItems    : "center",
+    },
+    RowLeftBottom     : {
+        flexDirection : "row",
+        justifyContent: "flex-start",
+        alignItems    : "baseline",
     },
     RowCenter         : {
         flexDirection : "row",
-        alignItems    : "center",
         justifyContent: "center",
+        alignItems    : "center",
     },
     RowCenterTop      : {
         flexDirection : "row",
@@ -294,14 +332,29 @@ const MyStyle: any = {
         flexDirection: "row",
         alignItems   : "center",
     },
-    RowCenterRight    : {
+    RowRightCenter    : {
         flexDirection : "row",
-        alignItems    : "center",
         justifyContent: "flex-end",
+        alignItems    : "center",
+    },
+    RowRightBottom    : {
+        flexDirection : "row",
+        justifyContent: "flex-end",
+        alignItems    : "baseline",
+    },
+    RowBetweenTop     : {
+        flexDirection : "row",
+        justifyContent: "space-between",
+        alignItems    : "flex-start",
     },
     RowBetweenCenter  : {
         flexDirection : "row",
         justifyContent: "space-between",
+        alignItems    : "center",
+    },
+    RowAroundCenter   : {
+        flexDirection : "row",
+        justifyContent: "space-around",
         alignItems    : "center",
     },
 
@@ -667,11 +720,7 @@ const MyStyleSheet = StyleSheet.create(
             color     : "#f0f0f0",
         },
 
-        textListItemTitleAlt    : {
-            fontFamily: MyStyle.FontFamily.Roboto.regular,
-            fontSize  : 15,
-            color     : MyColor.textDarkPrimary
-        },
+
         textListItemTitle       : {
             fontFamily: MyStyle.FontFamily.OpenSans.regular,
             fontSize  : 15,
@@ -682,25 +731,109 @@ const MyStyleSheet = StyleSheet.create(
             fontSize  : 15,
             color     : MyColor.textDarkPrimary
         },
+        textListItemTitleAlt    : {
+            fontFamily: MyStyle.FontFamily.Roboto.regular,
+            fontSize  : 15,
+            color     : MyColor.Material.GREY["600"]
+        },
+        textListItemTitleAltDark: {
+            fontFamily: MyStyle.FontFamily.Roboto.regular,
+            fontSize  : 15,
+            color     : MyColor.textDarkPrimary
+        },
+
+        textListItemTitle2       : {
+            fontFamily: MyStyle.FontFamily.OpenSans.regular,
+            fontSize  : 14,
+            color     : MyColor.Material.GREY["600"]
+        },
+        textListItemTitle2Dark   : {
+            fontFamily: MyStyle.FontFamily.OpenSans.regular,
+            fontSize  : 14,
+            color     : MyColor.textDarkPrimary,
+        },
+        textListItemTitle2Alt    : {
+            fontFamily: MyStyle.FontFamily.Roboto.regular,
+            fontSize  : 14,
+            color     : MyColor.Material.GREY["600"]
+        },
+        textListItemTitle2AltDark: {
+            fontFamily: MyStyle.FontFamily.Roboto.regular,
+            fontSize  : 14,
+            color     : MyColor.textDarkPrimary
+        },
+
+        textListItemSubTitle       : {
+            fontFamily: MyStyle.FontFamily.Roboto.regular,
+            fontSize  : 13,
+            color     : MyColor.textDarkSecondary
+        },
+        textListItemSubTitleDark   : {
+            fontFamily: MyStyle.FontFamily.Roboto.regular,
+            fontSize  : 13,
+            color     : MyColor.textDarkPrimary
+        },
         textListItemSubTitleAlt    : {
             fontFamily: MyStyle.FontFamily.OpenSans.regular,
             fontSize  : 13,
             color     : MyColor.textDarkSecondary
         },
-        textListItemSubTitle    : {
-            fontFamily: MyStyle.FontFamily.Roboto.regular,
+        textListItemSubTitleAltDark: {
+            fontFamily: MyStyle.FontFamily.OpenSans.regular,
             fontSize  : 13,
+            color     : MyColor.textDarkPrimary
+        },
+
+        textListItemSubTitle2       : {
+            fontFamily: MyStyle.FontFamily.Roboto.regular,
+            fontSize  : 12,
             color     : MyColor.textDarkSecondary
         },
-        textListItemSubTitleDark: {
+        textListItemSubTitle2Dark   : {
             fontFamily: MyStyle.FontFamily.Roboto.regular,
-            fontSize  : 13,
+            fontSize  : 12,
+            color     : MyColor.textDarkPrimary
+        },
+        textListItemSubTitle2Alt    : {
+            fontFamily: MyStyle.FontFamily.OpenSans.regular,
+            fontSize  : 12,
             color     : MyColor.textDarkSecondary
+        },
+        textListItemSubTitle2AltDark: {
+            fontFamily: MyStyle.FontFamily.OpenSans.regular,
+            fontSize  : 12,
+            color     : MyColor.textDarkPrimary
+        },
+
+        textListItemSubTitle3       : {
+            fontFamily: MyStyle.FontFamily.Roboto.regular,
+            fontSize  : 11,
+            color     : MyColor.textDarkSecondary
+        },
+        textListItemSubTitle3Dark   : {
+            fontFamily: MyStyle.FontFamily.Roboto.regular,
+            fontSize  : 11,
+            color     : MyColor.textDarkPrimary
+        },
+        textListItemSubTitle3Alt    : {
+            fontFamily: MyStyle.FontFamily.OpenSans.regular,
+            fontSize  : 11,
+            color     : MyColor.textDarkSecondary
+        },
+        textListItemSubTitle3AltDark: {
+            fontFamily: MyStyle.FontFamily.OpenSans.regular,
+            fontSize  : 11,
+            color     : MyColor.textDarkPrimary
         },
 
         textPricePage          : {
             fontFamily: MyStyle.fontFamilyPriceBold,
             fontSize  : 22,
+            color     : MyColor.Primary.first,
+        },
+        textPriceList          : {
+            fontFamily: MyStyle.fontFamilyPriceSemiBold,
+            fontSize  : 16,
             color     : MyColor.Primary.first,
         },
         textPriceDiscountedPage: {
@@ -716,36 +849,15 @@ const MyStyleSheet = StyleSheet.create(
             color     : "#f0f0f0",
         },
 
-        MRButtonProductPage          : {
-            marginVertical  : 5,
-            marginHorizontal: 5,
+        LGButtonProductPage: {
+            marginVertical: 5,
+            marginRight   : 10,
 
-            borderRadius: 3,
+            borderRadius: 100,
         },
-        textButtonProductPage        : {
-            fontFamily     : MyStyle.FontFamily.Roboto.regular,
-            fontSize       : 14,
-            color          : MyColor.textDarkPrimary,
-            backgroundColor: MyColor.Material.WHITE,
-
-            paddingHorizontal: 10,
-            paddingVertical  : 6,
-
-            borderRadius: 3,
-
-            // borderWidth: 1,
-            // borderColor: MyColor.textDarkSecondary,
-        },
-        textButtonProductPageSelected: {
-            fontFamily     : MyStyle.FontFamily.Roboto.regular,
-            fontSize       : 14,
-            color          : MyColor.Material.WHITE,
-            backgroundColor: MyColor.Primary.first,
-
-            paddingHorizontal: 10,
-            paddingVertical  : 6,
-
-            borderRadius: 3,
+        MRButtonProductPage: {
+            paddingHorizontal: 28,
+            paddingVertical  : 7,
         },
 
 
@@ -793,6 +905,11 @@ const MyStyleSheet = StyleSheet.create(
             backgroundColor: MyColor.Material.GREY["100"],
         },
 
+        viewGap: {
+            height         : MyStyle.marginViewGapCard,
+            width          : MyStyle.screenWidth,
+            backgroundColor: MyColor.Material.GREY["100"]
+        },
 
     })
 

@@ -13,24 +13,24 @@ import {MyAPI, MyConfig} from '../shared/MyConfig';
 import MyLANG from '../shared/MyLANG';
 import {MyConstant} from "../common/MyConstant";
 import MyAuth from "../common/MyAuth";
-import {ListItemSeparator, NotificationListItem, NotificationListItemContentLoader} from "../shared/MyContainer";
+import {ListItemSeparator, OrderListItem, OrderListItemContentLoader} from "../shared/MyContainer";
 
-import {notificationSave} from "../store/NotificationRedux";
+import {orderSave} from "../store/OrderRedux";
 
 
 let renderCount = 0;
 
-const NotificationScreen = ({}) => {
+const MyOrdersScreen = ({}) => {
 
     if (__DEV__) {
         renderCount += 1;
-        MyUtil.printConsole(true, 'log', `LOG: ${NotificationScreen.name}. renderCount: `, {renderCount});
+        MyUtil.printConsole(true, 'log', `LOG: ${MyOrdersScreen.name}. renderCount: `, {renderCount});
     }
 
     const dispatch = useDispatch();
 
-    const user: any          = useSelector((state: any) => state.auth.user);
-    const notifications: any = useSelector((state: any) => state.notification);
+    const user: any   = useSelector((state: any) => state.auth.user);
+    const orders: any = useSelector((state: any) => state.orders);
 
     const [firstLoad, setFirstLoad]                                               = useState(true);
     const [loading, setLoading]                                                   = useState(true);
@@ -39,10 +39,10 @@ const NotificationScreen = ({}) => {
     const [onEndReachedCalledDuringMomentum, setOnEndReachedCalledDuringMomentum] = useState(false);
 
     useEffect(() => {
-        MyUtil.printConsole(true, 'log', `LOG: ${NotificationScreen.name}. useEffect: `, {user, notifications});
+        MyUtil.printConsole(true, 'log', `LOG: ${MyOrdersScreen.name}. useEffect: `, {user, orders});
 
         fetchData(0,
-                  MyConfig.ListLimit.notificationList,
+                  MyConfig.ListLimit.orderList,
                   false,
                   false,
                   false,
@@ -58,7 +58,7 @@ const NotificationScreen = ({}) => {
         setRefreshing(true);
 
         fetchData(0,
-                  MyConfig.ListLimit.notificationList,
+                  MyConfig.ListLimit.orderList,
                   false,
                   true,
                   {
@@ -81,8 +81,8 @@ const NotificationScreen = ({}) => {
 
             setLoadingMore(true);
 
-            fetchData(notifications?.length > 0 ? notifications.length : 0,
-                      MyConfig.ListLimit.notificationList,
+            fetchData(orders?.length > 0 ? orders.length : 0,
+                      MyConfig.ListLimit.orderList,
                       false,
                       true,
                       false,
@@ -93,15 +93,15 @@ const NotificationScreen = ({}) => {
 
     const ListEmptyComponent = () => {
         MyUtil.printConsole(true, 'log', 'LOG: ListEmptyComponent: ', {
-            'notifications.length': notifications.length,
-            'firstLoad'           : firstLoad,
+            'orders.length': orders.length,
+            'firstLoad'    : firstLoad,
         });
 
-        if (firstLoad || (notifications?.length > 0)) return null;
+        if (firstLoad || (orders?.length > 0)) return null;
 
         return <ListEmptyViewLottie
             source = {MyImage.lottie_empty_lost}
-            message = {MyLANG.NoNotificationFound}
+            message = {MyLANG.NoOrderFound}
             style = {{view: {}, image: {}, text: {}}}
         />;
     }
@@ -114,12 +114,12 @@ const NotificationScreen = ({}) => {
         return <ActivityIndicatorLarge/>;
     }
 
-    const fetchData = async (skip: number = 0, take: number = MyConfig.ListLimit.notificationList, showLoader: any = MyLANG.Loading + '...', setRefresh: boolean = false, showInfoMessage: any = false, DataSetType: string = MyConstant.DataSetType.fresh) => {
+    const fetchData = async (skip: number = 0, take: number = MyConfig.ListLimit.orderList, showLoader: any = MyLANG.Loading + '...', setRefresh: boolean = false, showInfoMessage: any = false, DataSetType: string = MyConstant.DataSetType.fresh) => {
 
         setLoading(true);
 
         const response: any = await MyUtil
-            .myHTTP(false, MyConstant.HTTP_POST, MyAPI.notifications,
+            .myHTTP(false, MyConstant.HTTP_POST, MyAPI.orders,
                     {
                         'language_id': MyConfig.LanguageActive,
 
@@ -135,13 +135,13 @@ const NotificationScreen = ({}) => {
             );
 
         MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
-            'apiURL': MyAPI.notifications, 'response': response
+            'apiURL': MyAPI.orders, 'response': response
         });
 
         if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.status === 200 && response.data?.data?.data) {
 
             const data = response.data.data.data;
-            dispatch(notificationSave(data, DataSetType));
+            dispatch(orderSave(data, DataSetType));
 
         } else {
             MyUtil.showMessage(MyConstant.SHOW_MESSAGE.ALERT, response.errorMessage ? response.errorMessage : MyLANG.UnknownError, false);
@@ -166,44 +166,44 @@ const NotificationScreen = ({}) => {
             <StatusBarLight/>
             <SafeAreaView style = {MyStyleSheet.SafeAreaView1}/>
             <SafeAreaView style = {MyStyleSheet.SafeAreaView2}>
-                <View style = {[MyStyleSheet.SafeAreaView3, {backgroundColor: MyColor.Material.WHITE}]}>
+                <View style = {[MyStyleSheet.SafeAreaView3, {backgroundColor: MyColor.backgroundGrey}]}>
 
-                    {firstLoad && notifications && notifications.length === 0 &&
+                    {firstLoad && orders?.length === 0 ?
                      <ScrollView
                          contentInsetAdjustmentBehavior = "automatic"
                          contentContainerStyle = {{paddingTop: MyStyle.headerHeightAdjusted}}
                      >
-                         {NotificationListItemContentLoader(8)}
+                         {OrderListItemContentLoader(4)}
                      </ScrollView>
+                                                       :
+                     <FlatList
+                         contentContainerStyle = {{paddingTop: MyStyle.headerHeightAdjusted, flexGrow: 1}}
+                         refreshControl = {
+                             <RefreshControl
+                                 refreshing = {refreshing}
+                                 onRefresh = {onRefresh}
+                                 progressViewOffset = {MyStyle.headerHeightAdjusted}
+                                 colors = {[MyColor.Primary.first]}
+                             />
+                         }
+                         data = {orders}
+                         renderItem = {({item, index}: any) =>
+                             <OrderListItem
+                                 item = {item}
+                                 index = {index}
+                             />
+                         }
+                         keyExtractor = {(item: any) => String(item?.id)}
+                         // ItemSeparatorComponent = {ListItemSeparator}
+                         ListEmptyComponent = {ListEmptyComponent}
+                         ListFooterComponent = {ListFooterComponent}
+                         onEndReachedThreshold = {0.2}
+                         onEndReached = {onEndReached}
+                         onMomentumScrollBegin = {() => {
+                             setOnEndReachedCalledDuringMomentum(false);
+                         }}
+                     />
                     }
-
-                    <FlatList
-                        contentContainerStyle = {{paddingTop: MyStyle.headerHeightAdjusted, flexGrow: 1}}
-                        refreshControl = {
-                            <RefreshControl
-                                refreshing = {refreshing}
-                                onRefresh = {onRefresh}
-                                progressViewOffset = {MyStyle.headerHeightAdjusted}
-                                colors = {[MyColor.Primary.first]}
-                            />
-                        }
-                        data = {notifications}
-                        renderItem = {({item, index}: any) =>
-                            <NotificationListItem
-                                item = {item}
-                                index = {index}
-                            />
-                        }
-                        keyExtractor = {(item: any) => String(item?.id)}
-                        ItemSeparatorComponent = {ListItemSeparator}
-                        ListEmptyComponent = {ListEmptyComponent}
-                        ListFooterComponent = {ListFooterComponent}
-                        onEndReachedThreshold = {0.2}
-                        onEndReached = {onEndReached}
-                        onMomentumScrollBegin = {() => {
-                            setOnEndReachedCalledDuringMomentum(false);
-                        }}
-                    />
 
                 </View>
             </SafeAreaView>
@@ -211,8 +211,8 @@ const NotificationScreen = ({}) => {
     )
 }
 
-NotificationScreen.navigationOptions = {}
+MyOrdersScreen.navigationOptions = {}
 
-export default NotificationScreen
+export default MyOrdersScreen
 
 

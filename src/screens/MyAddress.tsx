@@ -6,7 +6,7 @@ import {
     SafeAreaView,
     ScrollView,
     RefreshControl,
-    SectionList, FlatList,
+    SectionList, FlatList, BackHandler,
 } from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
 import {useDispatch, useSelector} from "react-redux";
@@ -56,10 +56,12 @@ const MyAddress = ({route, navigation}: any) => {
 
     const [address, setAddress]: any = useState(null);
 
+    const [firstNavigation, setFirstNavigation]: any = useState(null);
+
     useFocusEffect(
         useCallback(() => {
 
-            MyUtil.printConsole(true, 'log', `LOG: ${MyAddress.name}. useFocusEffect: `, route?.params);
+            MyUtil.printConsole(true, 'log', `LOG: ${MyAddress.name}. useFocusEffect: `, {firstNavigation, params: route?.params});
 
             if (route?.params?.fetchAddress === true) {
                 fetchAddress(0,
@@ -71,12 +73,31 @@ const MyAddress = ({route, navigation}: any) => {
                 );
             }
 
+            const onBackPress = () => {
+                // Go back to Login page:
+                MyUtil.commonAction(false,
+                                    navigation,
+                                    MyConstant.CommonAction.navigate,
+                                    firstNavigation?.routeName,
+                                    firstNavigation?.params,
+                                    null,
+                );
+                return true;
+            };
+
+            BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+            return () =>
+                BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+
             // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, [route.params])
-    )
+        }, [route.params, firstNavigation])
+    );
 
     useEffect(() => {
         MyUtil.printConsole(true, 'log', `LOG: ${MyAddress.name}. useEffect: `, {user, address});
+
+        setFirstNavigation(route?.params);
 
         fetchAddress(0,
                      MyConfig.ListLimit.addressList,
@@ -134,7 +155,8 @@ const MyAddress = ({route, navigation}: any) => {
         return <MyMaterialRipple
             style = {[MyStyle.RowBetweenCenter,
                       {
-                          marginVertical   : MyStyle.marginVerticalList,
+                          marginTop        : MyStyle.marginViewGapCardTop,
+                          marginBottom     : MyStyle.marginViewGapCard,
                           paddingVertical  : MyStyle.paddingVerticalList,
                           paddingHorizontal: MyStyle.paddingHorizontalList,
                           backgroundColor  : MyColor.Material.WHITE,
@@ -222,9 +244,30 @@ const MyAddress = ({route, navigation}: any) => {
 
             const data = response.data.data.data;
             if (data.length > 0) {
-                dispatch(addressSave(data, DataSetType));
 
-                prepareAddress(data, DataSetType);
+                // REMOVE:
+                const dataReduced = data.reduce((accumulator: any, item: any) => {
+                    const addressText = MyUtil.generateAddress(null,
+                                                               item?.street,
+                                                               item?.city,
+                                                               item?.zone_name,
+                                                               item?.country_name,
+                                                               item?.postcode
+                    );
+                    accumulator.push(
+                        {
+                            ...item,
+                            addressText: `${item.firstname} ${item.lastname}\n${user?.customers_telephone}\n${addressText}`,
+                        }
+                    );
+                    return accumulator;
+
+                }, []);
+
+                dispatch(addressSave(dataReduced, DataSetType));
+
+                // Use 2 section
+                prepareAddress(dataReduced, DataSetType);
             }
 
         } else {
@@ -300,7 +343,7 @@ const MyAddress = ({route, navigation}: any) => {
                     {(firstLoad && address === null) ?
                      <ScrollView
                          contentInsetAdjustmentBehavior = "automatic"
-                         contentContainerStyle = {{paddingTop: MyStyle.headerHeightAdjusted, flexGrow: 1, backgroundColor: MyColor.Material.WHITE}}
+                         contentContainerStyle = {{paddingTop: MyStyle.headerHeightAdjusted, backgroundColor: MyColor.Material.WHITE}}
                      >
                          {AddressListItemContentLoader(4)}
                      </ScrollView>
@@ -316,7 +359,7 @@ const MyAddress = ({route, navigation}: any) => {
                              />
                          }
                          sections = {address}
-                         keyExtractor = {(item: any, index: any) => String(item?.address_id)}
+                         keyExtractor = {(item: any, index: any) => String(item?.id)}
                          renderItem = {({item}: any) =>
                              <AddressListItem
                                  item = {item}

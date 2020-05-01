@@ -16,7 +16,7 @@ export const MyFastImage = (props: any) => {
     const [index, setIndex]: any = useState(0);
 
     const onError = () => {
-        // console.log(`LOG: ${MyFastImage.name}. onError: `, '');
+        console.log(`LOG: ${MyFastImage.name}. onError: `, '');
         // props.onError?.(error);
         const next = index + 1;
         if (next < props.source.length) {
@@ -36,7 +36,7 @@ export const MyFastImage = (props: any) => {
 MyFastImage.propTypes    = {
     source    : PropTypes.array,
     resizeMode: PropTypes.string,
-    style     : PropTypes.object,
+    style     : PropTypes.any,
     onError   : PropTypes.func,
 }
 MyFastImage.defaultProps = {

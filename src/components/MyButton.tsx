@@ -616,9 +616,8 @@ export {HeaderButtonLeft, MyButton};
 const stylesHeaderButtonLeft = StyleSheet.create(
     {
         view : {
-            marginLeft       : 2,
-            paddingHorizontal: 6,
-            paddingVertical  : 3,
+            paddingHorizontal: 10,
+            paddingVertical  : 10,
             borderRadius     : 6,
         },
         icon : {

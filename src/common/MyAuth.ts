@@ -10,14 +10,25 @@ import {MyStyle} from "./MyStyle";
 
 import {store} from "../store/MyStore";
 import {switchAppNavigator} from "../store/AppRedux";
-import {login, logout} from "../store/AuthRedux";
+import {authEmpty, login, logout} from "../store/AuthRedux";
+import {addressEmpty} from "../store/AddressRedux";
+import {appDataEmpty} from "../store/AppDataRedux";
+import {appInfoEmpty} from "../store/AppInfoRedux";
+import {appInputEmpty} from "../store/AppInputRedux";
+import {cartEmpty} from "../store/CartRedux";
+import {categoryEmpty} from "../store/CategoryRedux";
+import {introEmpty} from "../store/IntroRedux";
+import {notificationEmpty} from "../store/NotificationRedux";
+import {orderEmpty} from "../store/OrderRedux";
+import {userLocationEmpty} from "../store/UserLocation";
 
 const MyAuth = {
 
-    isSavedLogin: async (showMessage: any, showLoader: any, doReRoute: any, routeTo: any, navigationActions: any) => {
+    isSavedLogin: async (showInfoMessage: any, showErrorMessage: any, showLoader: any, doReRoute: any, routeTo: any, navigationActions: any) => {
 
         MyUtil.printConsole(true, 'log', 'LOG: isSavedLogin:', {
-            'showMessage'      : showMessage,
+            'showInfoMessage'  : showInfoMessage,
+            'showErrorMessage' : showErrorMessage,
             'showLoader'       : showLoader,
             'doReRoute'        : doReRoute,
             'routeTo'          : routeTo,
@@ -33,7 +44,7 @@ const MyAuth = {
             // Call Silent Background Login If Found Saved Username, Password:
             const formParam: any  = JSON.parse(keychain[MyConstant.username]);
             formParam['password'] = keychain[MyConstant.PASSWORD];
-            MyAuth.login(JSON.parse(keychain[MyConstant.username]), showMessage, showLoader, doReRoute, routeTo, navigationActions);
+            MyAuth.login(JSON.parse(keychain[MyConstant.username]), showInfoMessage, showErrorMessage, showLoader, doReRoute, routeTo, navigationActions);
 
             // TODO: If Saved Login Found and Login Not Required => Open Home page First then Call Login API
             if (MyConfig.loginRequired === true) { // App require Login: Show login screen:
@@ -42,6 +53,19 @@ const MyAuth = {
 
             }
         } else { // No Username, Password Found. SKIP. Check Config to re route:
+
+            if (keychain?.code === 'E_CRYPTO_FAILED') { // TODO: need loop or touch event to know cancel or repeated failed attempt
+                MyAuth.processLogout(null,
+                                     false,
+                                     false,
+                                     [MyConstant.CLEAR_STORAGE.ALL_ASYNC_STORAGE, MyConstant.CLEAR_STORAGE.TOKEN, MyConstant.CLEAR_STORAGE.REDUX],
+                                     false,
+                                     false,
+                                     null,
+                );
+            } else {
+                //
+            }
 
             if (doReRoute) {
                 MyAuth.checkIfLoginRequired(false, null, navigationActions);
@@ -85,10 +109,11 @@ const MyAuth = {
         MyUtil.showMessage(showMessage, message, false);
     },
 
-    login: async (formParam: any, showMessage: any, showLoader: any, doReRoute: any, routeTo: any, navigationActions: any) => {
+    login: async (formParam: any, showInfoMessage: any, showErrorMessage: any, showLoader: any, doReRoute: any, routeTo: any, navigationActions: any) => {
         MyUtil.printConsole(true, 'log', 'LOG: login:', {
             'formParam'        : formParam,
-            'showMessage'      : showMessage,
+            'showInfoMessage'  : showInfoMessage,
+            'showErrorMessage' : showErrorMessage,
             'showLoader'       : showLoader,
             'doReRoute'        : doReRoute,
             'routeTo'          : routeTo,
@@ -131,10 +156,10 @@ const MyAuth = {
                         // "role"               : MyConfig.UserRole.customer,
                         // "db_key"             : 'app_build_ver_android',
                         // "device"             : null,
-                        'app_ver'      : MyConfig.app_version,
-                        'app_build_ver': MyConfig.app_build_version,
-                        'platform'     : MyConfig.app_platform,
-                        'device'       : null,
+                        'app_ver'                : MyConfig.app_version,
+                        'app_build_ver'          : MyConfig.app_build_version,
+                        'platform'               : MyConfig.app_platform,
+                        'device'                 : null,
                     }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, showLoader, true, false
             );
 
@@ -165,12 +190,13 @@ const MyAuth = {
             }
 
         } else {
-            MyUtil.showMessage(showMessage, response.errorMessage ? response.errorMessage : MyLANG.UnknownError, false);
+            MyUtil.showMessage(showErrorMessage, response.errorMessage ? response.errorMessage : MyLANG.UnknownError, false);
 
             MyAuth.processLogout(null,
-                                 showMessage,
+                                 showInfoMessage,
+                                 showErrorMessage,
                                  showLoader,
-                                 [MyConstant.CLEAR_STORAGE.ALL_ASYNC_STORAGE, MyConstant.CLEAR_STORAGE.TOKEN],
+                                 [MyConstant.CLEAR_STORAGE.ALL_ASYNC_STORAGE, MyConstant.CLEAR_STORAGE.TOKEN, MyConstant.CLEAR_STORAGE.REDUX, MyConstant.CLEAR_STORAGE.KEYCHAIN],
                                  doReRoute,
                                  navigationActions
             );
@@ -268,11 +294,12 @@ const MyAuth = {
         }
     },
 
-    processLogout: async (user: any, showMessage: any, showLoader: any, clearStorage: any, doReRoute: any, navigationActions: any) => {
+    processLogout: async (user: any, showInfoMessage: any, showErrorMessage: any, showLoader: any, clearStorage: any, doReRoute: any, navigationActions: any) => {
 
         MyUtil.printConsole(true, 'log', 'LOG: processLogout:', {
             'user'             : user,
-            'showMessage'      : showMessage,
+            'showInfoMessage'  : showInfoMessage,
+            'showErrorMessage' : showErrorMessage,
             'showLoader'       : showLoader,
             'clearStorage'     : clearStorage,
             'doReRoute'        : doReRoute,
@@ -302,42 +329,56 @@ const MyAuth = {
             // Clear User Object is Redux:
             store.dispatch(logout());
 
-            const keychain: any = await MyUtil.keychainReset(MyConstant.SHOW_MESSAGE.TOAST);
-            MyUtil.printConsole(true, 'log', 'LOG: keychainReset: await-response: ', {'keychain': keychain});
+            for (const storage of clearStorage) {
 
-            // Keychain has been reset:
-            if (keychain === true) {
-
-                for (const storage of clearStorage) {
-
-                    // Remove All Async Storage:
-                    if (storage === MyConstant.CLEAR_STORAGE.ALL_ASYNC_STORAGE) {
-                        const storage: any = await MyUtil.AsyncStorageClear(MyConstant.SHOW_MESSAGE.TOAST);
-                        MyUtil.printConsole(true, 'log', 'LOG: AsyncStorageClear: await-response: ', {'storage': storage});
-                        //TODO: throw error:
-                    }
-                    if (storage === MyConstant.CLEAR_STORAGE.TOKEN) {
-                        const storage: any = await MyUtil.AsyncStorageRemove(MyConfig.AsyncStorage.AUTH_TOEKN, MyConstant.SHOW_MESSAGE.TOAST);
-                        MyUtil.printConsole(true, 'log', 'LOG: AsyncStorageRemove: await-response: ', {
-                            'key'    : MyConfig.AsyncStorage.AUTH_TOEKN,
-                            'storage': storage
-                        });
-                        //TODO: throw error:
+                // Remove Keychain:
+                if (storage === MyConstant.CLEAR_STORAGE.KEYCHAIN) {
+                    const keychain: any = await MyUtil.keychainReset(MyConstant.SHOW_MESSAGE.TOAST);
+                    MyUtil.printConsole(true, 'log', 'LOG: keychainReset: await-response: ', {'keychain': keychain});
+                    if (keychain !== true) {
+                        throw new Error('Stored Credential Removal Failed!');
                     }
                 }
 
-                MyUtil.showMessage(MyConstant.SHOW_MESSAGE.TOAST, MyLANG.LogoutSuccessfully, false);
+                // Remove All Async Storage:
+                if (storage === MyConstant.CLEAR_STORAGE.ALL_ASYNC_STORAGE) {
+                    const storage: any = await MyUtil.AsyncStorageClear(MyConstant.SHOW_MESSAGE.TOAST);
+                    MyUtil.printConsole(true, 'log', 'LOG: AsyncStorageClear: await-response: ', {'storage': storage});
+                    //TODO: throw error:
+                }
 
-            } else {
+                // Remove All REDUX:
+                if (storage === MyConstant.CLEAR_STORAGE.REDUX) {
+                    store.dispatch(addressEmpty());
+                    store.dispatch(appDataEmpty());
+                    // store.dispatch(appInfoEmpty());
+                    // store.dispatch(appInputEmpty());
+                    store.dispatch(authEmpty());
+                    store.dispatch(cartEmpty());
+                    // store.dispatch(categoryEmpty());
+                    // store.dispatch(introEmpty());
+                    store.dispatch(notificationEmpty());
+                    store.dispatch(orderEmpty());
+                    store.dispatch(userLocationEmpty());
+                }
 
-                throw new Error('Stored Credential Removal Failed!');
-
+                if (storage === MyConstant.CLEAR_STORAGE.TOKEN) {
+                    const storage: any = await MyUtil.AsyncStorageRemove(MyConfig.AsyncStorage.AUTH_TOEKN, MyConstant.SHOW_MESSAGE.TOAST);
+                    MyUtil.printConsole(true, 'log', 'LOG: AsyncStorageRemove: await-response: ', {
+                        'key'    : MyConfig.AsyncStorage.AUTH_TOEKN,
+                        'storage': storage
+                    });
+                    //TODO: throw error:
+                }
             }
+
+            MyUtil.showMessage(showInfoMessage, MyLANG.LogoutSuccessfully, false);
+
         } catch (error) {
 
             MyUtil.printConsole(true, 'log', 'LOG: processLogout: TRY-CATCH: ', {'error': error});
 
-            MyUtil.showMessage(showMessage, MyLANG.LogoutFailed, false);
+            MyUtil.showMessage(showErrorMessage, MyLANG.LogoutFailed, false);
 
         } finally {
 
@@ -505,7 +546,7 @@ const MyAuth = {
             }
 
         } finally {
-            MyUtil.printConsole(true, 'log', 'LOG: GetDeviceInfo: TRY-FINALY: ', {'response': response});
+            // MyUtil.printConsole(true, 'log', 'LOG: GetDeviceInfo: TRY-FINALY: ', {'response': response});
 
             return response;
         }
@@ -609,10 +650,10 @@ const MyAuth = {
                         // "role"               : MyConfig.UserRole.customer,
                         // "db_key"             : 'app_build_ver_android',
                         // "device"             : null,
-                        'app_ver'      : MyConfig.app_version,
-                        'app_build_ver': MyConfig.app_build_version,
-                        'platform'     : MyConfig.app_platform,
-                        'device'       : null,
+                        'app_ver'            : MyConfig.app_version,
+                        'app_build_ver'      : MyConfig.app_build_version,
+                        'platform'           : MyConfig.app_platform,
+                        'device'             : null,
                     }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, showLoader, true, false
             );
 
@@ -716,10 +757,10 @@ const MyAuth = {
             .myHTTP(false, MyConstant.HTTP_POST, MyAPI.password_forgot,
                     {
                         [MyConstant.EMAIL]: formParam?.email,
-                        'app_ver'      : MyConfig.app_version,
-                        'app_build_ver': MyConfig.app_build_version,
-                        'platform'     : MyConfig.app_platform,
-                        'device'       : null,
+                        'app_ver'         : MyConfig.app_version,
+                        'app_build_ver'   : MyConfig.app_build_version,
+                        'platform'        : MyConfig.app_platform,
+                        'device'          : null,
                     }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, showLoader, true, false
             );
 
@@ -795,10 +836,11 @@ const MyAuth = {
         }
     },
 
-    showLogoutConfirmation: async (showMessage: any, showLoader: any, doReRoute: any, routeTo: any, navigationActions: any) => {
+    showLogoutConfirmation: async (showInfoMessage: any, showErrorMessage: any, showLoader: any, doReRoute: any, routeTo: any, navigationActions: any) => {
 
         MyUtil.printConsole(true, 'log', 'LOG: showLogoutConfirmation:', {
-            'showMessage'      : showMessage,
+            'showInfoMessage'  : showInfoMessage,
+            'showErrorMessage' : showErrorMessage,
             'showLoader'       : showLoader,
             'doReRoute'        : doReRoute,
             'routeTo'          : routeTo,
@@ -819,15 +861,72 @@ const MyAuth = {
                     MyUtil.printConsole(true, 'log', 'LOG: showAlert: ', 'OK');
 
                     MyAuth.processLogout(null,
-                                         showMessage,
+                                         showInfoMessage,
+                                         showErrorMessage,
                                          showLoader,
-                                         [MyConstant.CLEAR_STORAGE.ALL_ASYNC_STORAGE, MyConstant.CLEAR_STORAGE.TOKEN],
+                                         [MyConstant.CLEAR_STORAGE.ALL_ASYNC_STORAGE, MyConstant.CLEAR_STORAGE.TOKEN, MyConstant.CLEAR_STORAGE.REDUX, MyConstant.CLEAR_STORAGE.KEYCHAIN],
                                          doReRoute,
                                          navigationActions
                     );
                 }
             },
         ])
+    },
+
+    biometricLogin: async (showInfoMessage: any, showErrorMessage: any, showLoader: any, doReRoute: any, routeTo: any, navigationActions: any) => {
+
+        MyUtil.printConsole(true, 'log', 'LOG: biometricLogin:', {
+            'showInfoMessage'  : showInfoMessage,
+            'showErrorMessage' : showErrorMessage,
+            'showLoader'       : showLoader,
+            'doReRoute'        : doReRoute,
+            'routeTo'          : routeTo,
+            'navigationActions': navigationActions,
+        });
+
+        const biometryType: any = await MyUtil.keychainGetBiometryType(showErrorMessage);
+        MyUtil.printConsole(true, 'log', 'LOG: keychainGetBiometryType: await-response: ', {'biometryType': biometryType});
+
+        switch (biometryType) {
+            case MyConstant.BiometryTypes.FaceID:
+            case MyConstant.BiometryTypes.TouchID:
+            case MyConstant.BiometryTypes.Fingerprint:
+
+                // Check if Username and Password is stored in local storage:
+                const keychain: any = await MyUtil.keychainGet(false);
+                MyUtil.printConsole(true, 'log', 'LOG: keychainGet: await-response: ', {'keychain': keychain});
+
+                if (keychain && keychain[MyConstant.PASSWORD]) {  // Found Saved Username, Password:
+
+                    // Call Silent Background Login If Found Saved Username, Password:
+                    const formParam: any  = JSON.parse(keychain[MyConstant.username]);
+                    formParam['password'] = keychain[MyConstant.PASSWORD];
+                    MyAuth.login(JSON.parse(keychain[MyConstant.username]),
+                                 showInfoMessage,
+                                 showErrorMessage,
+                                 showLoader,
+                                 doReRoute,
+                                 routeTo,
+                                 navigationActions
+                    );
+
+                } else { // No Username, Password Found. Show Error Message
+
+                    if (keychain?.code === 'E_CRYPTO_FAILED') { // TODO: need loop or touch event to know cancel or repeated failed attempt
+
+                        MyUtil.showMessage(showInfoMessage, MyLANG.BiometryVerificationFailed, false);
+
+                    } else {
+
+                        MyUtil.showMessage(showErrorMessage, MyLANG.BiometryNAFingerprint, false);
+                    }
+                }
+
+                break;
+            default:
+                break;
+        }
+
     },
 }
 

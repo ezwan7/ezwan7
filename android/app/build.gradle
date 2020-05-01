@@ -132,8 +132,8 @@ android {
         applicationId "com.directd"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 11
-        versionName "0.25"
+        versionCode 94
+        versionName "0.94"
 
         vectorDrawables.useSupportLibrary = true
 

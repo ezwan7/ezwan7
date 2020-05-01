@@ -9,6 +9,7 @@ import {
     TextInput,
     Text,
 } from 'react-native';
+import * as yup from "yup";
 
 import MyUtil from '../common/MyUtil';
 import {MyStyle, MyStyleSheet} from '../common/MyStyle';
@@ -24,16 +25,50 @@ import {
     ListEmptyViewLottie,
     StatusBarDark,
     StatusBarLight,
-    HeaderInputSearch,
+    HeaderInputSearch, ButtonPageFotter,
 } from '../components/MyComponent';
-import {
-    ListItemSeparator,
-    ProductListItem,
-} from "../shared/MyContainer";
+import {ListItemSeparator, ModalFilter, ModalFullScreenPage, ProductListItem,} from "../shared/MyContainer";
 
-import Slider from '@react-native-community/slider';
+import {MyModal} from "../components/MyModal";
+import {useForm} from "react-hook-form";
+import {useSelector} from "react-redux";
 
 let renderCount = 0;
+
+const filterFormSchema: any = yup.object().shape(
+    {
+        searchText     : yup.string()
+                            .required(MyLANG.SearchQueryText + ' ' + MyLANG.isRequired)
+                            .min(1, MyLANG.SearchQueryText + ' ' + MyLANG.mustBeMinimum + ' 1 ' + MyLANG.character)
+                            .max(256, MyLANG.SearchQueryText + ' ' + MyLANG.mustBeMaximum + ' 256 ' + MyLANG.character),
+        price_min      : yup.number()
+                            .min(
+                                MyConfig.FilterRange.price[0],
+                                `${MyLANG.Price} ${MyLANG.mustBeMinimum} ${MyConfig.FilterRange.price[0]}`
+                            )
+                            .max(MyConfig.FilterRange.price[1] - 1,
+                                 `${MyLANG.Price} ${MyLANG.mustBeMaximum} ${MyConfig.FilterRange.price[0] - 1}`
+                            ),
+        price_max      : yup.number()
+                            .min(
+                                MyConfig.FilterRange.price[0] + 1,
+                                `${MyLANG.Price} ${MyLANG.mustBeMinimum} ${MyConfig.FilterRange.price[0] + 1}`
+                            )
+                            .max(MyConfig.FilterRange.price[1],
+                                 `${MyLANG.Price} ${MyLANG.mustBeMaximum} ${MyConfig.FilterRange.price[1]}`
+                            ),
+        category_option: yup.object(),
+        filter_option  : yup.object(),
+    }
+);
+
+let defaultValues: any = {
+    searchText     : null,
+    price_min      : MyConfig.FilterRange.price[0],
+    price_max      : MyConfig.FilterRange.price[1],
+    category_option: {},
+    filter_option  : {},
+}
 
 const SearchScreen = ({route, navigation}: any) => {
 
@@ -42,41 +77,69 @@ const SearchScreen = ({route, navigation}: any) => {
         MyUtil.printConsole(true, 'log', `LOG: ${SearchScreen.name}. renderCount: `, renderCount);
     }
 
+    const category: any      = useSelector((state: any) => state.category);
+    const filter_method: any = useSelector((state: any) => state.app_input?.filter_method);
+
     const [firstLoad, setFirstLoad]                                               = useState(true);
     const [loading, setLoading]                                                   = useState(false);
     const [loadingMore, setLoadingMore]                                           = useState(false);
     const [refreshing, setRefreshing]                                             = useState(false);
     const [onEndReachedCalledDuringMomentum, setOnEndReachedCalledDuringMomentum] = useState(false);
-    const [data, setData]: any                                                    = useState([]);
-    const [count, setCount]: any                                                  = useState([]);
 
-    const [searchText, setSearchText]: any = useState(null);
+    const [ApiUrl, setApiUrl]: any = useState(null);
+    const [data, setData]: any     = useState([]);
+    const [count, setCount]: any   = useState([]);
 
-    const [showFilter, setShowFilter]: any = useState(false);
-    const [price, setPrice]: any           = useState(0);
+    const [modalVisibleFilter, setModalVisibleFilter] = useState(false);
+
+
+    const {register, getValues, setValue, handleSubmit, formState, errors, reset, triggerValidation, watch}: any = useForm(
+        {
+            mode                : 'onSubmit',
+            reValidateMode      : 'onChange',
+            defaultValues       : defaultValues,
+            validationSchema    : filterFormSchema,
+            validateCriteriaMode: 'all',
+            submitFocusError    : true,
+        }
+    );
 
     useEffect(() => {
-        MyUtil.printConsole(true, 'log', `LOG: ${SearchScreen.name}. useEffect: `, '');
+        MyUtil.printConsole(true, 'log', `LOG: ${SearchScreen.name}. useEffect: `, 'register');
+
+        for (const key of Object.keys(filterFormSchema['fields'])) {
+            if (key) {
+                register({name: key});
+            }
+        }
+    }, [register]);
+
+    const values                                                                  = getValues();
+    const {searchText, price_min, price_max, category_option, filter_option}: any = watch(['searchText', 'price_min', 'price_max', 'category_option', 'filter_option']);
+
+    useEffect(() => {
+        MyUtil.printConsole(true, 'log', `LOG: ${SearchScreen.name}. useEffect: `, {category, filter_method, data});
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const onRefresh = useCallback(() => {
-        MyUtil.printConsole(true, 'log', 'LOG: onRefresh: ', {searchText});
+        MyUtil.printConsole(true, 'log', 'LOG: onRefresh: ', {searchText, values});
 
-        if (searchText?.length > 1) {
-            setRefreshing(true);
-            fetchData(0,
-                      MyConfig.ListLimit.searchList,
-                      false,
-                      true,
-                      {
-                          'showMessage': MyConstant.SHOW_MESSAGE.TOAST,
-                          'message'    : MyLANG.PageRefreshed
-                      },
-                      MyConstant.DataSetType.fresh
-            );
-        }
+        setRefreshing(true);
+
+        fetchData(0,
+                  MyConfig.ListLimit.searchList,
+                  false,
+                  true,
+                  {
+                      'showMessage': MyConstant.SHOW_MESSAGE.TOAST,
+                      'message'    : MyLANG.PageRefreshed
+                  },
+                  MyConstant.DataSetType.fresh,
+                  ApiUrl,
+        );
+
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -95,7 +158,8 @@ const SearchScreen = ({route, navigation}: any) => {
                       false,
                       true,
                       false,
-                      MyConstant.DataSetType.addToEndUnique
+                      MyConstant.DataSetType.addToEndUnique,
+                      ApiUrl,
             );
         }
     }
@@ -108,26 +172,21 @@ const SearchScreen = ({route, navigation}: any) => {
         return <ActivityIndicatorLarge/>;
     }
 
-    const onSubmitEditing = async (text: any) => {
-        MyUtil.printConsole(true, 'log', 'LOG: onSubmitEditing: ', {});
-
-        setData([]);
-        if (searchText?.length > 1) {
-            fetchData();
-        }
-    }
-
-    // Refresh All existing on Component Visibile, Show Placeholder on start and loadmore, No Data Found Design
-    const fetchData = async (skip: number = 0, take: number = MyConfig.ListLimit.searchList, showLoader: any = false, setRefresh: boolean = false, showInfoMessage: any = false, DataSetType: string = MyConstant.DataSetType.fresh) => {
+    const fetchData = async (skip: number = 0, take: number = MyConfig.ListLimit.searchList, showLoader: any = false, setRefresh: boolean = false, showInfoMessage: any = false, DataSetType: string = MyConstant.DataSetType.fresh, apiUrl: string = ApiUrl) => {
 
         setLoading(true);
 
         const response: any = await MyUtil
-            .myHTTP(false, MyConstant.HTTP_POST, MyAPI.search,
+            .myHTTP(false, MyConstant.HTTP_POST, apiUrl,
                     {
                         'language_id'  : MyConfig.LanguageActive,
                         'currency_code': 'USD',
-                        'searchValue'  : searchText,
+
+                        'searchValue': searchText,
+
+                        'categories_id': category_option?.[Object.keys(category_option)?.[0]]?.id,
+                        'minprice'     : price_min,
+                        'maxprice'     : price_max,
 
                         'skip': skip,
                         'take': take,
@@ -140,7 +199,7 @@ const SearchScreen = ({route, navigation}: any) => {
             );
 
         MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
-            'apiURL': MyAPI.search, 'response': response
+            'apiURL': apiUrl, 'response': response,
         });
 
         setTimeout(() => {
@@ -182,7 +241,9 @@ const SearchScreen = ({route, navigation}: any) => {
                     }
                 }
             } else {
-                setData(null);
+
+                setData(null); // Needed
+
                 // MyUtil.showMessage(MyConstant.SHOW_MESSAGE.ALERT, response.errorMessage ? response.errorMessage : MyLANG.UnknownError, false);
             }
 
@@ -203,6 +264,127 @@ const SearchScreen = ({route, navigation}: any) => {
         }, MyConfig.dateSetDelay);
     }
 
+    const onChangeText = (text: any) => {
+        MyUtil.printConsole(true, 'log', 'LOG: onChangeText: ', text);
+
+        setValue('searchText', text, true);
+
+        if (data === null || text?.length === 0) {
+            setData([]);
+        }
+    }
+
+    const onClearIcon = () => {
+        MyUtil.printConsole(true, 'log', 'LOG: onClearIcon: ', '');
+
+        setValue('searchText', null, true);
+
+        setData([]);
+    }
+
+    const onSubmitEditing = async (text: any) => {
+        MyUtil.printConsole(true, 'log', 'LOG: onSubmitEditing: ', {});
+
+        if (searchText?.length > 0) {
+
+            setData([]);
+
+            setApiUrl(MyAPI.search);
+
+            fetchData(0,
+                      MyConfig.ListLimit.searchList,
+                      false,
+                      true,
+                      false,
+                      MyConstant.DataSetType.fresh,
+                      MyAPI.search
+            );
+        }
+    }
+
+    const onModalVisible = () => {
+        setModalVisibleFilter(true);
+    }
+
+    const onFilterItem = (key: string, filter: any, j: number) => {
+
+        if (key === 'category') {
+            const category_option_current: any = category_option;
+
+            const id: number = filter?.id;
+
+            if (id > 0 && category_option_current[id]) {
+                delete category_option_current[id];
+            } else {
+                const name: string          = filter?.categories_name;
+                category_option_current[id] = {
+                    id   : id,
+                    name : name,
+                    value: name,
+                }
+            }
+            setValue('category_option', category_option_current, true);
+
+        } else if (key === 'filter') {
+            const filter_option_current: any = filter_option;
+
+            const id: number = filter?.values?.[j]?.value_id;
+
+            if (id > 0 && filter_option_current[id]) {
+                delete filter_option_current[id];
+            } else {
+                const name: string        = filter?.option?.name;
+                const value: any          = filter?.values?.[j]?.value;
+                filter_option_current[id] = {
+                    id   : id,
+                    name : name,
+                    value: value,
+                }
+            }
+            setValue('filter_option', filter_option_current, true);
+        }
+
+        MyUtil.printConsole(true, 'log', `LOG: onFilterItem: `, {filter, category_option, filter_option});
+    }
+
+    const nonCollidingMultiSliderValuesChange = (value: any) => {
+
+        setValue('price_min', value?.[0], true);
+        setValue('price_max', value?.[1], true);
+
+        // MyUtil.printConsole(true, 'log', `LOG: nonCollidingMultiSliderValuesChange: `, {value, price_min, price_max, filter_option});
+    }
+
+    const onFilterSubmit = () => {
+
+        MyUtil.printConsole(true, 'log', `LOG: onFilterItem: `, {});
+
+        if (category_option?.[Object.keys(category_option)?.[0]]?.id) {
+
+            setData([]);
+
+            setApiUrl(MyAPI.filter_product);
+
+            setValue('searchText', null, true);
+
+            setModalVisibleFilter(false);
+
+            fetchData(0,
+                      MyConfig.ListLimit.searchList,
+                      false,
+                      true,
+                      false,
+                      MyConstant.DataSetType.fresh,
+                      MyAPI.filter_product,
+            );
+
+        } else {
+
+            setModalVisibleFilter(false);
+
+            MyUtil.showMessage(MyConstant.SHOW_MESSAGE.TOAST, MyLANG.FilterCategoryRequired, false);
+        }
+    }
 
     return (
         <Fragment>
@@ -212,15 +394,11 @@ const SearchScreen = ({route, navigation}: any) => {
                 <View style = {[MyStyleSheet.SafeAreaView3, {paddingTop: 0, backgroundColor: MyColor.Material.WHITE}]}>
 
                     <HeaderInputSearch
-                        onChangeText = {(text: any) => {
-                            setSearchText(text);
-                            if (data === null || text?.length === 0) {
-                                setData([])
-                            }
-                        }}
+                        onChangeText = {(text: any) => onChangeText(text)}
                         onSubmitEditing = {(text: any) => onSubmitEditing(text)}
                         value = {searchText}
-                        onRightIcon = {() => setShowFilter(!showFilter)}
+                        onClearIcon = {() => onClearIcon()}
+                        onRightIcon = {onModalVisible}
                     />
 
                     {/*<View>
@@ -237,70 +415,67 @@ const SearchScreen = ({route, navigation}: any) => {
                         <Text>{price}</Text>
                     </View>*/}
 
-                    {(data?.length === 0 && !loading) &&
+                    {(data?.length === 0 && !loading) ?
                      <ListEmptyViewLottie
                          source = {MyImage.lottie_developer}
                          message = {MyLANG.TypeSomethingToSearch}
                          speed = {0.4}
                          style = {{view: {}, image: {}, text: {}}}
                      />
-                    }
-                    {(data?.length === 0 && loading) &&
+                                                      :
+                     (data?.length === 0 && loading) ?
                      <ListEmptyViewLottie
                          source = {MyImage.lottie_searching_file}
                          message = {MyLANG.WeAreSearching}
                          speed = {0.4}
                          style = {{view: {}, image: {}, text: {}}}
                      />
-                    }
-
-                    {(data?.length > 0 && !loading) ?
-                     <>
-                         <FlatList
-                             contentContainerStyle = {{flexGrow: 1}}
-                             refreshControl = {
-                                 <RefreshControl
-                                     refreshing = {refreshing}
-                                     onRefresh = {onRefresh}
-                                     progressViewOffset = {MyStyle.headerHeightAdjusted}
-                                     colors = {[MyColor.Primary.first]}
-                                 />
-                             }
-                             data = {data}
-                             renderItem = {({item, index}: any) =>
-                                 <ProductListItem
-                                     item = {item}
-                                     index = {index}/>
-                             }
-                             keyExtractor = {(item: any) => String(item?.id)}
-                             ItemSeparatorComponent = {ListItemSeparator}
-                             ListHeaderComponent = {
-                                 <Text
-                                     numberOfLines = {3}
-                                     style = {{
-                                         textAlign        : "center",
-                                         paddingHorizontal: MyStyle.marginHorizontalPage,
-                                         paddingVertical  : 5,
-                                         backgroundColor  : MyColor.Material.GREY["300"],
-                                         fontFamily       : MyStyle.FontFamily.Roboto.regular,
-                                         fontSize         : 13,
-                                         color            : MyColor.Material.GREY["900"],
-                                     }}
-                                 >
-                                     {MyLANG.SearchOf}&nbsp;
-                                     <Text style = {{fontFamily: MyStyle.FontFamily.Roboto.medium}}>{searchText}</Text>
-                                     &nbsp;{MyLANG.returned} {count} {MyLANG.Results}
-                                 </Text>
-                             }
-                             ListFooterComponent = {ListFooterComponent}
-                             onEndReachedThreshold = {0.2}
-                             onEndReached = {onEndReached}
-                             onMomentumScrollBegin = {() => {
-                                 setOnEndReachedCalledDuringMomentum(false);
-                             }}
-                         />
-                     </>
-                                                    :
+                                                     :
+                     (data?.length > 0) ?
+                     <FlatList
+                         contentContainerStyle = {{flexGrow: 1}}
+                         /*refreshControl = {
+                             <RefreshControl
+                                 refreshing = {refreshing}
+                                 onRefresh = {onRefresh}
+                                 progressViewOffset = {MyStyle.headerHeightAdjusted}
+                                 colors = {[MyColor.Primary.first]}
+                             />
+                         }*/
+                         data = {data}
+                         renderItem = {({item, index}: any) =>
+                             <ProductListItem
+                                 item = {item}
+                                 index = {index}/>
+                         }
+                         keyExtractor = {(item: any) => String(item?.id)}
+                         ItemSeparatorComponent = {ListItemSeparator}
+                         ListHeaderComponent = {
+                             <Text
+                                 numberOfLines = {3}
+                                 style = {{
+                                     textAlign        : "center",
+                                     paddingHorizontal: MyStyle.marginHorizontalPage,
+                                     paddingVertical  : 5,
+                                     backgroundColor  : MyColor.Material.GREY["300"],
+                                     fontFamily       : MyStyle.FontFamily.Roboto.regular,
+                                     fontSize         : 13,
+                                     color            : MyColor.Material.GREY["900"],
+                                 }}
+                             >
+                                 {ApiUrl === MyAPI.search ? `${MyLANG.SearchOf} ` : `${MyLANG.Filter} `}
+                                 {ApiUrl === MyAPI.search && <Text style = {{fontFamily: MyStyle.FontFamily.Roboto.medium}}>{searchText} </Text>}
+                                 {MyLANG.returned} {count} {MyLANG.Results}
+                             </Text>
+                         }
+                         ListFooterComponent = {ListFooterComponent}
+                         onEndReachedThreshold = {0.2}
+                         onEndReached = {onEndReached}
+                         onMomentumScrollBegin = {() => {
+                             setOnEndReachedCalledDuringMomentum(false);
+                         }}
+                     />
+                                        :
                      (data === null) ?
                      <ListEmptyViewLottie
                          source = {MyImage.lottie_empty_lost}
@@ -311,6 +486,53 @@ const SearchScreen = ({route, navigation}: any) => {
                      null
                     }
                 </View>
+
+                <MyModal
+                    visible = {modalVisibleFilter}
+                    animationType = "slide"
+                    statusBarTranslucent = {false}
+                    onRequestClose = {() => setModalVisibleFilter(false)}
+                    viewTouchable = {{
+                        width          : MyStyle.screenWidth,
+                        height         : MyStyle.screenHeight,
+                        backgroundColor: MyColor.Material.WHITE,
+                    }}
+                    children = {
+                        <ModalFullScreenPage
+                            title = {MyLANG.Filters}
+                            onBackPress = {() => setModalVisibleFilter(false)}
+                            children = {
+                                <ModalFilter
+                                    category = {category}
+                                    filter_method = {filter_method}
+                                    watchValues = {{price_min, price_max, category_option, filter_option}}
+                                    nonCollidingMultiSliderValuesChange = {(value: any) => nonCollidingMultiSliderValuesChange(value)}
+                                    onFilterItem = {(key: string, filter: any, j: number) => onFilterItem(key, filter, j)}
+                                />
+                            }
+                            footer = {
+                                <ButtonPageFotter
+                                    title = {MyLANG.Submit}
+                                    onPress = {() => onFilterSubmit()}
+                                />
+                            }
+                        />
+                    }
+                    /*children = {
+                        <ModalPageLike
+                            title = {MyLANG.Filters}
+                            onBackPress = {() => setModalVisibleFilter(false)}
+                            children = {
+                                <ModalFilterPage
+                                    items = {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]}
+                                    selected = {5}
+                                    onItem = {(item: any) => onModalItem(item)}
+                                />
+                            }
+                        />
+                    }*/
+                />
+
             </SafeAreaView>
         </Fragment>
     )

@@ -13,6 +13,7 @@ const MyImage = {
     defaultDrawer       : require("../../src/images/logo.png"),
     electronics_pattern : require("../../src/images/electronics_pattern.png"),
 
+    camera            : require("../../src/images/camera.png"),
     customer_service  : require("../../src/images/customer_service.png"),
     customer_service_2: require("../../src/images/customer_service_2.png"),
     shop              : require("../../src/images/shop.png"),

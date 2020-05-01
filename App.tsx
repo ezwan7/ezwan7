@@ -49,6 +49,7 @@ export default App;
 // TODO: Filter page, price slider, Image Viewer,
 // TODO: Route Active using Redux, Pull to refresh on seach page, header blinking,
 
+// TODO: Cart item open with selected attribute or fresh, cart open details page with limited and back navigation with edit feature
 // TODO: My Button Dependency remove
 // TODO: Search ontype list show, delay
 // TODO: Custom Header: back button, right button, scroll animation, list header,
@@ -60,9 +61,18 @@ export default App;
 // TODO: Multi line input,
 // TODO: Header padding, redo
 // TODO: Section List Content Loader
+// TODO: Product Details page condition, from cart page, to cart page.
 // TODO: Options: Modal with search, BottomSheet with scroll button search, Option page search, multi select, button confirm,
+
+// TODO: Options: All Api calls, check for success but empty array to store. logout not clearing state
 
 // No Internet Lottie
 // Validation delay, on type gone
 // mask forced value
+
+
+// ask how to get bought attribute in order_list api
+// same item, multiple choice should show as different item
+
+// cart page fix
 

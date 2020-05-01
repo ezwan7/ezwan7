@@ -2,6 +2,8 @@ const initialState: any = {
     payment_method : [],
     delivery_method: [],
     countries      : [],
+    filter_method  : [],
+    pickup_address : [],
 }
 
 const types = {

@@ -11,6 +11,7 @@ const MyColor = {
         white   : ['#ffffff', '#ffffff', '#ffffff'],
         whitish : ['#ebebeb', '#f1f1f1', '#f6f6f6'],
         whitish2: ['#ebebeb', '#f1f1f1'],
+        grey    : ['#eeeeee', '#eeeeee'],
         blueish : ['#6271ef', '#1301dc', '#1401eb'],
         facebook: ['#1B3E79', '#1d5391'],
         google  : ['#d34036', '#F14436'],
@@ -41,7 +42,8 @@ const MyColor = {
     textDarkSecondary2: 'rgba(0,0,0,0.4)',
     textDarkDisable   : 'rgba(0,0,0,0.3)',
     textLightPrimary  : 'rgba(255,255,255,1)',
-    textLightSecondary: 'rgba(255,255,255,255.5)',
+    textLightPrimary2 : 'rgba(255,255,255,0.90)',
+    textLightSecondary: 'rgba(255,255,255,0.70)',
     textLightDisable  : 'rgba(255,255,255,0.3)',
 
     dividerLight: 'rgba(255,255,255,0.12)',

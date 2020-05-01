@@ -14,7 +14,7 @@ export const MyImageViewer = (props: any) => {
 
     if (__DEV__) {
         renderCount += 1;
-        console.log(`LOG: ${MyImageViewer.name}. renderCount: `, {renderCount});
+        // console.log(`LOG: ${MyImageViewer.name}. renderCount: `, {renderCount});
     }
 
     const [images, setImages] = useState([]);
@@ -35,7 +35,7 @@ export const MyImageViewer = (props: any) => {
 
         }
 
-        console.log(`LOG: ${MyImageViewer.name}. useEffect: `, {images, 'props?.images': props?.images});
+        // console.log(`LOG: ${MyImageViewer.name}. useEffect: `, {images, 'props?.images': props?.images});
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);

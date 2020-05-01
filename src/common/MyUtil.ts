@@ -15,6 +15,7 @@ import ImagePicker from 'react-native-image-picker';
 import Moment from 'moment';
 import RNFetchBlob from 'rn-fetch-blob';
 import * as mime from 'react-native-mime-types';
+import DocumentPicker from 'react-native-document-picker';
 import NavigationService from "./NavigationService";
 import {DrawerActions, TabActions, StackActions, CommonActions} from '@react-navigation/native';
 import Splash from "react-native-splash-screen";
@@ -1027,7 +1028,7 @@ const MyUtil = {
             }
 
         } finally {
-            MyUtil.printConsole(true, 'log', 'LOG: GetDeviceInfo: TRY-FINALY: ', {'response': response});
+            // MyUtil.printConsole(true, 'log', 'LOG: GetDeviceInfo: TRY-FINALY: ', {'response': response});
 
             if (showLoader !== false) {
 
@@ -1490,6 +1491,7 @@ const MyUtil = {
             'data'        : null,
         }
 
+        let auth_token = null;
         // Prepare data for API call:
         const formData = new FormData();
 
@@ -1514,9 +1516,13 @@ const MyUtil = {
 
             let authReq: any = false;
             if (loginRequired !== false) {
-                const user = store.getState().auth.user;
+                const user: any = store.getState().auth.user;
                 // MyUtil.printConsole(true, 'log', 'LOG: myHTTP: ', {'user': user});
-                if (!user.id) {
+                // if (user.id && user.token) {
+                if (user.id) {
+                    auth_token = user.token;
+                } else {
+                    auth_token         = null;
                     response.errorType = 'auth';
                     throw new Error(MyLANG.PleaseLoginFirst);
                 }
@@ -1540,6 +1546,7 @@ const MyUtil = {
                 for (const key of Object.keys(body?.formFiles)) {
                     if (key) {
                         const value: any = {
+                            file: body.formFiles[key],
                             name: body.formFiles[key]?.fileName,
                             type: body.formFiles[key]?.type,
                             size: body.formFiles[key]?.fileSize,
@@ -1549,10 +1556,11 @@ const MyUtil = {
                         MyUtil.printConsole(true, 'log', 'LOG: myHTTP: formData: ', {key, value});
                     }
                 }
-                formData.append('device', deviceInfo);
+                formData.append("device", deviceInfo);
                 headers = {
-                    'Accept'      : 'application/json',
-                    'Content-Type': 'multipart/form-data',
+                    'Accept'       : MyConstant.HTTP_APPLICATION_JSON,
+                    'Content-Type' : MyConstant.HTTP_MULTIPART_FORM_DATA,
+                    'Authorization': `Bearer ${auth_token}`,
                 }
 
                 /*for (let [key, value] of formData.entries()) {
@@ -1562,8 +1570,9 @@ const MyUtil = {
             } else {
                 body.device = deviceInfo;
                 headers     = {
-                    'Accept'      : 'application/json',
-                    'Content-Type': MyConstant.HTTP_APPLICATION_JSON
+                    'Accept'       : MyConstant.HTTP_APPLICATION_JSON,
+                    'Content-Type' : MyConstant.HTTP_APPLICATION_JSON,
+                    'Authorization': `Bearer ${auth_token}`,
                 }
             }
 
@@ -1817,7 +1826,22 @@ const MyUtil = {
                 );
             }
 
-            const res = await RNFetchBlob.fetch('GET', url, headers);
+            let res: any = null;
+
+            switch (type) {
+
+                case MyConstant.FetchBlobType.fetch:
+                    res = await RNFetchBlob.fetch('GET', url, headers);
+                    break;
+
+                case MyConstant.FetchBlobType.fs:
+                    res = await RNFetchBlob.fs.stat(RNFetchBlob.fs.asset(url));
+                    break;
+
+                default:
+                    break;
+            }
+
 
             MyUtil.printConsole(true, 'log', 'LOG: fetch: await-response: ', {
                 'url' : url,
@@ -1993,7 +2017,7 @@ const MyUtil = {
             })*/
     },
 
-    imagePicker: async (options: any, openType: string, showMessage: any) => {
+    imagePicker: async (options: any, openType: any, showMessage: any) => {
 
         MyUtil.printConsole(true, 'log', 'LOG: imagePicker:', {
             'options'    : options,
@@ -2057,7 +2081,6 @@ const MyUtil = {
 
                 case MyConstant.IMAGE_PICKER.OPEN_TYPE.ALL:
                 default:
-                    // @ts-ignore
                     await ImagePicker.showImagePicker(options, (response) => {
 
                         // MyUtil.printConsole(true, 'log', 'LOG: imagePicker:', {'response': response});
@@ -2114,6 +2137,56 @@ const MyUtil = {
 
         MyUtil.printConsole(true, 'log', 'LOG: imagePicker: await-response: ', {'image': response});*/
 
+    },
+
+    documentPicker: async (options: any, openType: any, showMessage: any) => {
+
+        MyUtil.printConsole(true, 'log', 'LOG: documentPicker:', {
+            'options'    : options,
+            'openType'   : openType,
+            'showMessage': showMessage
+        });
+
+        let response: any = {
+            'type' : MyConstant.RESPONSE.TYPE.error,
+            'error': null,
+            'data' : null,
+        }
+
+        try {
+            const res = await DocumentPicker.pick(options);
+
+            response = {
+                'type' : MyConstant.RESPONSE.TYPE.data,
+                'error': null,
+                'data' : {
+                    'fileSize': res.size,
+                    'fileName': res.name,
+                    'type'    : res.type,
+                    'uri'     : res.uri,
+                },
+            }
+
+        } catch (error) {
+            MyUtil.printConsole(true, 'log', 'LOG: documentPicker: TRY-CATCH: ', {'error': error});
+
+            if (DocumentPicker.isCancel(error)) {
+                // User cancelled the picker, exit any dialogs or menus and move on
+            } else {
+                MyUtil.showMessage(showMessage, MyLANG.FilePickerFailed, false);
+            }
+
+            response = {
+                'type' : MyConstant.RESPONSE.TYPE.error,
+                'error': error,
+                'data' : null,
+            }
+
+        } finally {
+            MyUtil.printConsole(true, 'log', 'LOG: documentPicker: TRY-FINALY: ', {'response': response});
+
+            return response;
+        }
     },
 
     showMessage: (showMessage: any, message: any, retry: boolean = false) => {
@@ -2346,7 +2419,7 @@ const MyUtil = {
         // if (option === 0) {}
     },
 
-    showActionSheet: async (sheetType: string, title: string, theme: string, items: any, alert: any): Promise<any> => {
+    showActionSheet: async (sheetType: string, title: any, theme: string, items: any, alert: any): Promise<any> => {
         MyUtil.printConsole(true, 'log', 'LOG: showActionSheet:', {
             'sheetType': sheetType,
             'title'    : title,
@@ -2534,6 +2607,21 @@ const MyUtil = {
     },
 
 
+    keychainGetBiometryType: async (showMessage: any) => {
+        MyUtil.printConsole(true, 'log', 'LOG: keychainGetBiometryType:', {'showMessage': showMessage});
+
+        try {
+            return await Keychain.getSupportedBiometryType();
+
+        } catch (error) {
+            MyUtil.printConsole(true, 'log', 'LOG: keychainGetBiometryType: TRY-CATCH: ', {'error': error});
+
+            MyUtil.showMessage(showMessage, MyLANG.KeyChainGetSupportedFailed, false);
+
+            return error;
+        }
+    },
+
     keychainSet: async (username: string, password: string, service: string, showMessage: any) => {
         MyUtil.printConsole(true, 'log', 'LOG: KeychainSet:', {
             'username'   : username,
@@ -2541,6 +2629,15 @@ const MyUtil = {
             'service'    : service,
             'showMessage': showMessage,
         });
+
+        const biometryOption: any = {
+            accessControl: Keychain.ACCESS_CONTROL.BIOMETRY_ANY,
+            accessible   : Keychain.ACCESSIBLE.WHEN_PASSCODE_SET_THIS_DEVICE_ONLY,
+            // accessGroup  : '',
+            service      : MyConfig.android_package_name,
+            // securityLevel: '',
+        }
+
         try {
             await Keychain.setGenericPassword(username, password);
 
@@ -2613,7 +2710,13 @@ const MyUtil = {
             'parse' : parse,
             'Moment': Moment(date, parse).format(format)
         });*/
-        return Moment(date, parse).format(format);
+        const moment = Moment(date, parse).format(format);
+
+        if (moment && moment !== 'Invalid date') {
+            return moment;
+        } else {
+            return false;
+        }
 
         // {MyUtil.momentFormat('2016-05-02T00:00:00', MyConstant.MomentFormat["1st Jan, 1970 12:01:01 am"])}
     },

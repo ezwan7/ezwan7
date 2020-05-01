@@ -1,6 +1,7 @@
 import React, {useState, useEffect, Fragment, useLayoutEffect, useCallback} from 'react';
 import {ListEmptyViewLottie, StatusBarDark, StatusBarLight} from '../components/MyComponent';
 import LinearGradient from 'react-native-linear-gradient';
+import {useSelector} from "react-redux";
 
 import {StyleSheet, View, Text, SafeAreaView, ScrollView, Image, RefreshControl} from 'react-native';
 
@@ -8,7 +9,7 @@ import MyUtil from '../common/MyUtil';
 import {MyStyle, MyStyleSheet} from '../common/MyStyle';
 import MyColor from '../common/MyColor';
 import MyImage from '../shared/MyImage';
-import {MyConfig} from '../shared/MyConfig';
+import {MyAPI, MyConfig} from '../shared/MyConfig';
 import MyLANG from '../shared/MyLANG';
 import {MyConstant} from "../common/MyConstant";
 import {ImageSliderBanner, NotificationDetailsContentLoader, ProductListItemContentLoader} from "../shared/MyContainer";
@@ -24,9 +25,12 @@ const NotificationViewScreen = ({route, navigation}: any) => {
         MyUtil.printConsole(true, 'log', `LOG: ${NotificationViewScreen.name}. renderCount: `, {renderCount});
     }
 
+    const user: any = useSelector((state: any) => state.auth.user);
+
     const [refreshing, setRefreshing] = useState(false);
     const [firstLoad, setFirstLoad]   = useState(true);
-    const [data, setData]: any        = useState([]);
+
+    const [data, setData]: any = useState([]);
 
     const [imageViewerVisible, setImageViewerVisible] = useState(false);
 
@@ -45,20 +49,101 @@ const NotificationViewScreen = ({route, navigation}: any) => {
     useEffect(() => {
         MyUtil.printConsole(true, 'log', `LOG: ${NotificationViewScreen.name}. useEffect: `, {data});
 
-        setData(route?.params?.item);
+        fetchNotification(false, false, false);
+
+        // setData(route?.params?.item);
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [data]);
+    }, []);
 
     const onRefresh = useCallback(() => {
         MyUtil.printConsole(true, 'log', 'LOG: onRefresh: ', {});
 
         setRefreshing(true);
 
-        setRefreshing(false);
+        fetchNotification(false, true, {
+            'showMessage': MyConstant.SHOW_MESSAGE.TOAST,
+            'message'    : MyLANG.PageRefreshed
+        });
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    const fetchNotification = async (showLoader: any = MyLANG.Loading + '...', setRefresh: boolean = false, showInfoMessage: any = false) => {
+        if (route?.params?.id) {
+            const response: any = await MyUtil
+                .myHTTP(false, MyConstant.HTTP_POST, MyAPI.notification,
+                        {
+                            'language_id': MyConfig.LanguageActive,
+
+                            'id'          : route?.params?.id,
+                            'customers_id': user?.id,
+
+                            'app_ver'      : MyConfig.app_version,
+                            'app_build_ver': MyConfig.app_build_version,
+                            'platform'     : MyConfig.app_platform,
+                            'device'       : null,
+                        }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, showLoader, true, false
+                );
+
+            MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
+                'apiURL': MyAPI.notification, 'response': response
+            });
+
+            if (response.type === MyConstant.RESPONSE.TYPE.data && response.data?.status === 200 && response.data?.data?.success === '1') {
+
+                const data = response.data.data.data?.[0];
+                if (data) {
+                    setData(data);
+
+                    markReadNotification(data);
+
+                }
+
+            } else {
+                MyUtil.showMessage(MyConstant.SHOW_MESSAGE.ALERT, response.errorMessage ? response.errorMessage : MyLANG.UnknownError, false);
+            }
+
+            setFirstLoad(false);
+            if (setRefresh === true) {
+                setRefreshing(false);
+            }
+
+            if (showInfoMessage !== false) {
+                MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message, false);
+            }
+        }
+    }
+
+    const markReadNotification = async (data: any, showInfoMessage: any = false) => {
+        if (data?.read_status === 0) {
+            const response: any = await MyUtil
+                .myHTTP(false, MyConstant.HTTP_POST, MyAPI.notification_read,
+                        {
+                            'language_id': MyConfig.LanguageActive,
+
+                            'id'          : data?.id,
+                            'customers_id': user?.id,
+
+                            'app_ver'      : MyConfig.app_version,
+                            'app_build_ver': MyConfig.app_build_version,
+                            'platform'     : MyConfig.app_platform,
+                            'device'       : null,
+                        }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, false, true, false
+                );
+
+            MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
+                'apiURL': MyAPI.notification_read, 'response': response
+            });
+
+            if (response.type === MyConstant.RESPONSE.TYPE.data && response.data?.status === 200 && response.data?.data?.success === '1') {
+
+
+            } else {
+                MyUtil.showMessage(MyConstant.SHOW_MESSAGE.ALERT, response.errorMessage ? response.errorMessage : MyLANG.UnknownError, false);
+            }
+        }
+    }
 
     return (
         <Fragment>
@@ -70,7 +155,7 @@ const NotificationViewScreen = ({route, navigation}: any) => {
                     {data?.id > 0 ?
                      <ScrollView
                          contentInsetAdjustmentBehavior = "automatic"
-                         contentContainerStyle = {{paddingTop: MyStyle.headerHeightAdjusted, flexGrow: 1}}
+                         contentContainerStyle = {{paddingTop: MyStyle.headerHeightAdjusted}}
                          refreshControl = {
                              <RefreshControl
                                  refreshing = {refreshing}
