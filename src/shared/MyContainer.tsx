@@ -293,6 +293,7 @@ const CustomDrawerContent = ({props}: any) => {
                             <MyFastImage
                                 source = {[user?.customers_picture?.length > 9 ? {'uri': user?.customers_picture} : MyImage.defaultAvatar, MyImage.defaultAvatar]}
                                 style = {customDrawer.imageProfile}
+                                resizeMode="cover"
                             />
                         </View>
                         <Text
@@ -1068,6 +1069,30 @@ const CartListItem          = (props: any) => {
                                      )))))
                                     }
 
+                                    {props.items[key].item?.linked?.length > 0 && props.items[key].item.linked.map(
+                                        (addon: any, i: number) => (addon?.products?.length > 0 && addon.products.map(
+                                            (item: any, j: number) => (item?.cart_selected === true && (
+                                         <View key = {`${i}_${j}`}
+                                               style = {[MyStyle.ColumnStart, {marginVertical: 3}]}
+                                         >
+                                             <Text style = {[MyStyleSheet.textListItemSubTitle3Alt, {marginBottom: 2}]}>{addon.subcat_name}</Text>
+                                             <View style = {[{
+                                                 backgroundColor  : MyColor.Material.GREY["200"],
+                                                 paddingVertical  : 3,
+                                                 paddingHorizontal: 12,
+                                                 borderRadius     : 100,
+                                             }]}>
+                                                 <Text style = {[MyStyleSheet.textListItemSubTitle3AltDark, {}]}>{item.products_name}
+                                                 {
+                                                     (Number(item.products_price) > 0) &&
+                                                     <Text style = {[MyStyleSheet.textListItemSubTitle3, {}]}>&nbsp;&nbsp;+ {item.products_price}</Text>
+                                                 }
+                                                 </Text>
+                                             </View>
+                                         </View>
+                                     )))))
+                                    }
+
                                     <View style = {cartList.viewStock}>
                                         <View style = {cartList.viewStockText}>
                                             <Text style = {cartList.textStock}>
@@ -1483,6 +1508,33 @@ const CartListItemSmall = (props: any) => {
                                             )))))
                                            }
                                        </View>
+
+                                       <View style = {{marginTop: 5}}>
+                                           {props.items[key].item?.linked?.length > 0 && props.items[key].item.linked.map(
+                                               (addon: any, i: number) => (addon?.products?.length > 0 && addon.products.map(
+                                                   (item: any, j: number) => (item?.cart_selected === true && (
+                                                <View key = {`${i}_${j}`}
+                                                      style = {[MyStyle.ColumnStart, {marginVertical: 3}]}
+                                                >
+                                                    <Text style = {[MyStyleSheet.textListItemSubTitle3Alt, {marginBottom: 2}]}>{addon.subcat_name}</Text>
+                                                    <View style = {[{
+                                                        backgroundColor  : MyColor.Material.GREY["200"],
+                                                        paddingVertical  : 3,
+                                                        paddingHorizontal: 12,
+                                                        borderRadius     : 100,
+                                                    }]}>
+                                                        <Text style = {[MyStyleSheet.textListItemSubTitle3AltDark, {}]}>{item.products_name}
+                                                            {
+                                                                (Number(item.products_price) > 0) &&
+                                                                <Text style = {[MyStyleSheet.textListItemSubTitle3, {}]}>&nbsp;&nbsp;+ {item.products_price}</Text>
+                                                            }
+                                                        </Text>
+                                                    </View>
+                                                </View>
+                                            )))))
+                                           }
+                                       </View>
+
                                    </View>
 
                                </View>

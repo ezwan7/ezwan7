@@ -198,13 +198,17 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
 
             let calculated_attribute: number = 0;
 
-            for (const [i, attribute] of item?.attributes?.entries()) {
-                for (const [i, value] of attribute?.values?.entries()) {
-                    if (value?.cart_selected === true && Number.isFinite(Number(value?.price))) {
-                        if (value?.price_prefix === '+') {
-                            calculated_attribute += Number(value?.price);
-                        } else if (value?.price_prefix === '-') {
-                            calculated_attribute -= Number(value?.price);
+            if (item?.attributes?.length > 0) {
+                for (const [i, attribute] of item?.attributes?.entries()) {
+                    if (attribute?.values?.length > 0) {
+                        for (const [i, value] of attribute?.values?.entries()) {
+                            if (value?.cart_selected === true && Number.isFinite(Number(value?.price))) {
+                                if (value?.price_prefix === '+') {
+                                    calculated_attribute += Number(value?.price);
+                                } else if (value?.price_prefix === '-') {
+                                    calculated_attribute -= Number(value?.price);
+                                }
+                            }
                         }
                     }
                 }
@@ -212,6 +216,24 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
 
             if (Number.isFinite(calculated_attribute)) {
                 calculated_total = calculated_total + calculated_attribute;
+            }
+
+            let calculated_addon: number = 0;
+
+            if (item?.linked?.length > 0) {
+                for (const [i, addon] of item?.linked?.entries()) {
+                    if (addon?.products?.length > 0) {
+                        for (const [i, value] of addon?.products?.entries()) {
+                            if (value?.cart_selected === true && Number.isFinite(Number(value?.products_price))) {
+                                calculated_addon += Number(value?.products_price);
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (Number.isFinite(calculated_addon)) {
+                calculated_total = calculated_total + calculated_addon;
             }
 
             setValue('total', calculated_total, true);
@@ -281,6 +303,36 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
         }
 
         MyUtil.printConsole(true, 'log', 'LOG: onAttribute: ', {item, i, j, product, total, selected_option, cart_selected, updatedProduct});
+
+        calculateTotal(updatedProduct, true);
+
+    }
+
+    const onAddOn = (item: any, i: number, j: number) => {
+
+        const selected_option: any = item?.linked?.[i]?.products?.[j];
+
+        const cart_selected: boolean = selected_option?.cart_selected === true ? false : true;
+
+        const updated_products: any = [];
+
+        for (const [k, prod] of item?.linked?.[i]?.products?.entries()) {
+            if (k === j) {
+                updated_products[k] = {...prod, cart_selected: cart_selected};
+            } else {
+                updated_products[k] = {...prod, cart_selected: false};
+            }
+        }
+
+        const updated_addon: any = [...item?.linked];
+        updated_addon[i]         = {...item?.linked?.[i], products: updated_products};
+
+        const updatedProduct: any = {
+            ...item,
+            linked: updated_addon
+        }
+
+        MyUtil.printConsole(true, 'log', 'LOG: onAttribute: ', {item, i, j, total, selected_option, cart_selected, updatedProduct});
 
         calculateTotal(updatedProduct, true);
 
@@ -444,7 +496,7 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                                                   {MyLANG.InStock}
                                               </Text>
                                           </View>
-                                                                      :
+                                                                     :
                                           <View style = {[MyStyle.RowLeftBottom, {marginTop: 7}]}>
                                               <MyIcon.SimpleLineIcons
                                                   name = "close"
@@ -509,6 +561,52 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                                                                          color: MyColor.textLightPrimary2,
                                                                      }]}>
                                                                          {item.price_prefix} {item.price}
+                                                                     </Text>
+                                                                 }
+                                                             </MyMaterialRipple>
+                                                         </LinearGradient>
+                                                     ))
+                                                 }
+                                             </View>
+                                         </View>
+                                         <View style = {MyStyleSheet.viewGap}></View>
+                                     </View>
+                                 ))
+                             }
+
+                             {product?.linked?.length > 0 && product.linked.map(
+                                 (addon: any, i: number) => (
+                                     <View key = {i}>
+                                         <View style = {[MyStyleSheet.viewPageCard, MyStyle.ColumnStart, {paddingVertical: MyStyle.paddingVerticalPage / 2}]}>
+                                             <Text style = {[MyStyleSheet.textListItemTitleDark, {paddingVertical: 10}]}>
+                                                 {addon.subcat_name}
+                                             </Text>
+                                             <View style = {[MyStyle.RowLeftCenter, {flexWrap: "wrap"}]}>
+                                                 {addon?.products?.length > 0 && addon.products.map(
+                                                     (item: any, j: number) => (
+                                                         <LinearGradient
+                                                             key = {j}
+                                                             style = {[MyStyle.ColumnStart, MyStyleSheet.LGButtonProductPage]}
+                                                             {...
+                                                                 item?.cart_selected === true ? {...MyStyle.LGButtonPrimary} : {...MyStyle.LGGrey}
+                                                             }
+                                                         >
+                                                             <MyMaterialRipple
+                                                                 style = {MyStyleSheet.MRButtonProductPage}
+                                                                 {...MyStyle.MaterialRipple.drawerRounded}
+                                                                 onPress = {() => onAddOn(product, i, j)}
+                                                             >
+                                                                 <Text style = {[MyStyleSheet.textListItemTitle2Dark, item?.cart_selected === true && {
+                                                                     color: MyColor.textLightPrimary,
+                                                                 }]}>
+                                                                     {item.products_name}
+                                                                 </Text>
+                                                                 {
+                                                                     (Number(item.products_price) > 0) &&
+                                                                     <Text style = {[MyStyleSheet.textListItemSubTitle2, item?.cart_selected === true && {
+                                                                         color: MyColor.textLightPrimary2,
+                                                                     }]}>
+                                                                         + {item.products_price}
                                                                      </Text>
                                                                  }
                                                              </MyMaterialRipple>

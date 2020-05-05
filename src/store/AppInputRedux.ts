@@ -4,6 +4,7 @@ const initialState: any = {
     countries      : [],
     filter_method  : [],
     pickup_address : [],
+    tax_rate : {},
 }
 
 const types = {

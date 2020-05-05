@@ -37,8 +37,8 @@ const primaryGradient = {
 const MyConfig: any = {
 
     app_name         : 'DirectD',
-    app_version      : '0.94',
-    app_build_version: 94,
+    app_version      : '0.95',
+    app_build_version: 95,
     app_platform     : 'android_customer',
 
     app_email    : 'directd@gmail.com',
@@ -501,7 +501,8 @@ const MyAPI = {
 
     coupon_apply          : MyConfig.apiUrl + MyConfig.api_version + 'getcoupon',
     wishlist              : MyConfig.apiUrl + MyConfig.api_version + 'getwishlist',
-    delivery_method_rate  : MyConfig.apiUrl + MyConfig.api_version + 'getrate',
+    tax_rate  : MyConfig.apiUrl + MyConfig.api_version + 'getrate',
+    delivery_method  : MyConfig.apiUrl + MyConfig.api_version + 'getshippingmethods',
     update_profile        : MyConfig.apiUrl + MyConfig.api_version + 'updatecustomerinfo',
     password_change       : MyConfig.apiUrl + MyConfig.api_version + 'updatepassword',
     upload_profile_photo  : MyConfig.apiUrl + MyConfig.api_version + 'uploadprofilephoto',

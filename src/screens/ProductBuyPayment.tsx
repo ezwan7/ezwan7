@@ -124,6 +124,8 @@ const ProductBuyPayment = ({route, navigation}: any) => {
         MyFunction.fetchAddress(user?.id, user?.customers_telephone);
         MyFunction.fetchPickUpAddress(false);
 
+        MyFunction.fetchTax(false);
+
         getDeliveryAddress(false);
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -516,7 +518,7 @@ const ProductBuyPayment = ({route, navigation}: any) => {
                                      name = "map"
                                      size = {26}
                                      color = {MyColor.textDarkSecondary}
-                                     style = {{}}
+                                     style = {{alignSelf: "flex-start", marginTop: 6}}
                                  />
 
                                  {

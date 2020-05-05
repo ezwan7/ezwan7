@@ -38,8 +38,8 @@ const SignupFormSchema: any = yup.object().shape(
                              .email(MyLANG.InvalidEmail),
         password        : yup.string()
                              .required(MyLANG.Password + ' ' + MyLANG.isRequired)
-                             .min(4, MyLANG.Code + ' ' + MyLANG.mustBeMinimum + ' 4 ' + MyLANG.character)
-                             .max(24, MyLANG.Code + ' ' + MyLANG.mustBeMaximum + ' 24 ' + MyLANG.character),
+                             .min(4, MyLANG.Password + ' ' + MyLANG.mustBeMinimum + ' 4 ' + MyLANG.character)
+                             .max(24, MyLANG.Password + ' ' + MyLANG.mustBeMaximum + ' 24 ' + MyLANG.character),
         password_confirm: yup.string()
                              .required(MyLANG.ConfirmPassword + ' ' + MyLANG.isRequired)
                              .min(4, MyLANG.ConfirmPassword + ' ' + MyLANG.mustBeMinimum + ' 4 ' + MyLANG.character)
@@ -187,9 +187,11 @@ const SignupScreen = ({}) => {
                                 locations = {MyStyle.LGWhitish.locations}
                                 colors = {MyStyle.LGWhitish.colors}>
 
-                    <ScrollView contentInsetAdjustmentBehavior = "automatic">
+                    <ScrollView contentInsetAdjustmentBehavior = "automatic"
+                                contentContainerStyle = {{paddingTop: MyStyle.paddingVerticalList}}
+                    >
 
-                        <View style = {[MyStyleSheet.viewPageLogin, {alignItems: "center", marginTop: MyStyle.headerHeightAdjusted}]}>
+                        <View style = {[MyStyleSheet.viewPageLogin, {alignItems: "center"}]}>
                             <Image source = {MyImage.logo1024}
                                    resizeMode = "contain"
                                    style = {styles.imageLogo}

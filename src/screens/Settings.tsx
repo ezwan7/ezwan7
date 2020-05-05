@@ -427,6 +427,7 @@ const SettingsScreen = ({route, navigation}: any) => {
                                 <MyFastImage
                                     source = {[user?.customers_picture?.length > 9 ? {'uri': user?.customers_picture} : MyImage.defaultAvatar, MyImage.defaultAvatar]}
                                     style = {settingsItem.imageProfile}
+                                    resizeMode="cover"
                                 />
                             </View>
                             <TouchableWithoutFeedback

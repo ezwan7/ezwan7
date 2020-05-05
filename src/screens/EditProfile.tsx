@@ -426,6 +426,7 @@ const EditProfile = ({route, navigation}: any) => {
                             <MyFastImage
                                 source = {[user?.customers_picture?.length > 9 ? {'uri': user?.customers_picture} : MyImage.defaultAvatar, MyImage.defaultAvatar]}
                                 style = {MyStyleSheet.imagePageCard}
+                                resizeMode="cover"
                             />
                             <MyButton
                                 fill = "transparent"

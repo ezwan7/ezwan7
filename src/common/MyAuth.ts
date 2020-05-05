@@ -143,11 +143,13 @@ const MyAuth = {
         const response: any = await MyUtil
             .myHTTP(false, MyConstant.HTTP_POST, API,
                     {
+
                         [MyConstant.USERNAME]    : formParam?.username,
                         [MyConstant.PASSWORD]    : formParam?.password,
+
                         [MyConstant.FACEBOOK_ID] : formParam?.facebook_id,
                         [MyConstant.GOOGLE_ID]   : formParam?.google_id,
-                        [MyConstant.EMAIL]       : formParam?.email,
+                        // [MyConstant.EMAIL]       : formParam?.email,
                         [MyConstant.NAME]        : formParam?.name,
                         [MyConstant.FIRST_NAME]  : formParam?.first_name,
                         [MyConstant.LAST_NAME]   : formParam?.last_name,
@@ -633,10 +635,12 @@ const MyAuth = {
         const response: any = await MyUtil
             .myHTTP(false, MyConstant.HTTP_POST, API,
                     {
-                        [MyConstant.USERNAME]      : formParam?.username,
+                        // [MyConstant.USERNAME]      : formParam?.username,
                         [MyConstant.PASSWORD]      : formParam?.password,
+
                         [MyConstant.FACEBOOK_ID]   : formParam?.facebook_id,
                         [MyConstant.GOOGLE_ID]     : formParam?.google_id,
+
                         [MyConstant.EMAIL]         : formParam?.email,
                         [MyConstant.NAME]          : formParam?.name,
                         [MyConstant.FIRST_NAME]    : formParam?.first_name,

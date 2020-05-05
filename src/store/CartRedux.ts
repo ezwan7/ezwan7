@@ -256,11 +256,20 @@ const calculateTotal = (state: any) => {
             const product_price: number    = Number(state.items[key]?.item?.products_price) > 0 ? Number(state.items[key]?.item?.products_price) : 0;
             const price: number            = discounted_price > 0 ? discounted_price : product_price;
 
-            let attribute_amount: number                                = 0;
-            let price_with_attribute_amount: number                     = 0;
-            let attribute_total: number                                 = 0;
-            let subtotal_before_discounted_with_attribute_total: number = 0;
-            let discount: number                                        = 0;
+            let attribute_amount: number            = 0;
+            let price_with_attribute_amount: number = 0;
+            let attribute_total: number             = 0;
+            let subtotal_before_discount_with_attribute_total: number = 0;
+
+            let addon_amount: number            = 0;
+            let price_with_addon_amount: number = 0;
+            let addon_total: number             = 0;
+            let subtotal_before_discount_with_addon_total: number = 0;
+
+            let subtotal_before_discount_with_attribute_and_addon_total: number = 0;
+            let price_with_attribute_and_addon_amount: number = 0;
+
+            let discount: number = 0;
 
             if (price > 0 && quantity > 0) {
                 // console.log('LOG: cartCalculatePrice: ', {price   : price, quantity: quantity});
@@ -281,37 +290,65 @@ const calculateTotal = (state: any) => {
                     }
                 }
 
-                price_with_attribute_amount = price + attribute_amount;
-                attribute_total             = attribute_amount * quantity;
+                if (state.items[key]?.item?.linked?.length > 0) {
+                    for (const [i, addon] of state.items[key]?.item?.linked?.entries()) {
+                        if (addon?.products?.length > 0) {
+                            for (const [i, value] of addon?.products?.entries()) {
+                                if (value?.cart_selected === true && Number.isFinite(Number(value?.products_price))) {
+                                    addon_amount += Number(value?.products_price);
+                                }
+                            }
+                        }
+                    }
+                }
 
-                subtotal_before_discounted_with_attribute_total = (product_price * quantity) + attribute_total;
+                price_with_attribute_amount                   = price + attribute_amount;
+                attribute_total                               = attribute_amount * quantity;
+                subtotal_before_discount_with_attribute_total = (product_price * quantity) + attribute_total;
 
-                discount = discounted_price > 0 ? ((product_price - discounted_price) * quantity) : 0
+                price_with_addon_amount                   = price + addon_amount;
+                addon_total                               = addon_amount * quantity;
+                subtotal_before_discount_with_addon_total = (product_price * quantity) + addon_total;
+
+                subtotal_before_discount_with_attribute_and_addon_total = (product_price * quantity) + (attribute_total + addon_total);
+                price_with_attribute_and_addon_amount = price + attribute_amount + addon_amount;
+
+
+                discount = discounted_price > 0 ? ((product_price - discounted_price) * quantity) : 0;
 
                 calculatedCart.items[key].price = price; // either base price or discounted price(if exist)
 
                 calculatedCart.items[key].attribute_amount            = attribute_amount; // Sum of all selected perks price
                 calculatedCart.items[key].price_with_attribute_amount = price_with_attribute_amount; // price + attribute_amount
 
+                calculatedCart.items[key].addon_amount            = addon_amount; // Sum of all selected perks price
+                calculatedCart.items[key].price_with_addon_amount = price_with_addon_amount; // price + attribute_amount
+
                 calculatedCart.items[key].attribute_total = attribute_total;
 
-                calculatedCart.items[key].subtotal_price                      = price * quantity; // Based on base or discounted price
-                calculatedCart.items[key].subtotal_price_with_attribute_total = (price * quantity) + attribute_total; // Based on base or discounted price with attribute_amount
+                calculatedCart.items[key].addon_total = addon_total;
 
-                calculatedCart.items[key].subtotal_before_discounted                      = product_price * quantity; // Based on Product's Actual Price
-                calculatedCart.items[key].subtotal_before_discounted_with_attribute_total = subtotal_before_discounted_with_attribute_total; // Based on Product's Actual Price with attribute_amount
+                calculatedCart.items[key].subtotal_price                                = (price * quantity); // Based on base or discounted price
+                calculatedCart.items[key].subtotal_price_with_attribute_total           = (price * quantity) + attribute_total;
+                calculatedCart.items[key].subtotal_price_with_addon_total               = (price * quantity) + addon_total;
+                calculatedCart.items[key].subtotal_price_with_attribute_and_addon_total = (price * quantity) + (attribute_total + addon_total);
+
+                calculatedCart.items[key].subtotal_before_discount                                = product_price * quantity; // Based on Product's Actual Price
+                calculatedCart.items[key].subtotal_before_discount_with_attribute_total           = subtotal_before_discount_with_attribute_total; // Based on Product's Actual Price with attribute_amount
+                calculatedCart.items[key].subtotal_before_discount_with_addon_total               = subtotal_before_discount_with_addon_total; // Based on Product's Actual Price with attribute_amount
+                calculatedCart.items[key].subtotal_before_discount_with_attribute_and_addon_total = subtotal_before_discount_with_attribute_and_addon_total;
 
                 calculatedCart.items[key].discount = discount;
 
-                calculatedCart.items[key].total = price_with_attribute_amount * quantity;
+                calculatedCart.items[key].total = price_with_attribute_and_addon_amount * quantity;
 
                 //
                 calculatedCart.count    = Number(calculatedCart.count) > 0 ? Number(calculatedCart.count) + 1 : 1;
                 calculatedCart.subtotal = Number(calculatedCart.subtotal) > 0 ?
                                           Number(calculatedCart.subtotal) +
-                                          Number(subtotal_before_discounted_with_attribute_total)
+                                          Number(subtotal_before_discount_with_attribute_and_addon_total)
                                                                               :
-                                          Number(subtotal_before_discounted_with_attribute_total);
+                                          Number(subtotal_before_discount_with_attribute_and_addon_total);
                 calculatedCart.discount = Number(calculatedCart.discount) > 0 ?
                                           Number(calculatedCart.discount) +
                                           Number(discount)
@@ -401,8 +438,8 @@ const CartReducer = (state: any = initialState, action: any) => {
                             subtotal_price                     : price,
                             subtotal_price_with_attribute_amount: price,
 
-                            subtotal_before_discounted                     : price,
-                            subtotal_before_discounted_with_attribute_amount: price,
+                            subtotal_before_discount                     : price,
+                            subtotal_before_discount_with_attribute_amount: price,
 
                             discount: discount_price > 0 ? (products_price - discount_price) : 0,
                             total   : price > 0 ? price : 0,*/

@@ -62,6 +62,17 @@ const SigninScreen = ({route, navigation}: any) => {
 
     const {register, getValues, setValue, handleSubmit, formState, errors, reset, triggerValidation}: any = useForm(MyConfig.useFormDefault);
 
+    useEffect(() => {
+
+        MyUtil.printConsole(true, 'log', `LOG: ${SigninScreen.name}. useEffect: `, 'register');
+
+        for (const key of Object.keys(signinForm)) {
+            if (signinForm[key]['ref']) {
+                register(signinForm[key]['ref'], signinForm[key]['shouldValidate'] ? signinForm[key]['validation'] : null);
+            }
+        }
+    }, [register]);
+
     useFocusEffect(
         useCallback(() => {
 
@@ -85,13 +96,8 @@ const SigninScreen = ({route, navigation}: any) => {
             Splash.hide();
         }
 
-        for (const key of Object.keys(signinForm)) {
-            if (signinForm[key]['ref']) {
-                register(signinForm[key]['ref'], signinForm[key]['shouldValidate'] ? signinForm[key]['validation'] : null);
-            }
-        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [register]);
+    }, []);
 
     //TODO:
     const phoneLogin = async () => {
@@ -194,7 +200,7 @@ const SigninScreen = ({route, navigation}: any) => {
         if (formValue?.type === MyConstant.RESPONSE.TYPE.data && formValue?.data) {
             MyAuth.login({
                              mode    : MyConstant.LOGIN_MODE.EMAIL,
-                             email   : formValue.data.email,
+                             username   : formValue.data.email,
                              password: formValue.data.password,
                          },
                          MyConstant.SHOW_MESSAGE.TOAST,
@@ -222,9 +228,12 @@ const SigninScreen = ({route, navigation}: any) => {
                                 end = {MyStyle.LGWhitish.end}
                                 locations = {MyStyle.LGWhitish.locations}
                                 colors = {MyStyle.LGWhitish.colors}>
-                    <ScrollView contentInsetAdjustmentBehavior = "automatic">
 
-                        <View style = {[MyStyleSheet.viewPageLogin, {alignItems: "center", marginTop: MyStyle.headerHeightAdjusted}]}>
+                    <ScrollView contentInsetAdjustmentBehavior = "automatic"
+                                contentContainerStyle = {{paddingTop: MyStyle.paddingVerticalList}}
+                    >
+
+                        <View style = {[MyStyleSheet.viewPageLogin, {alignItems: "center"}]}>
                             <Image source = {MyImage.logo1024}
                                    resizeMode = "contain"
                                    style = {styles.imageLogo}

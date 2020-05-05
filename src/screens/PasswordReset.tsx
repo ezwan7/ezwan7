@@ -159,9 +159,11 @@ const PasswordResetScreen = ({route, navigation}: any) => {
                                 end = {MyStyle.LGWhitish.end}
                                 locations = {MyStyle.LGWhitish.locations}
                                 colors = {MyStyle.LGWhitish.colors}>
-                    <ScrollView contentInsetAdjustmentBehavior = "automatic">
+                    <ScrollView contentInsetAdjustmentBehavior = "automatic"
+                                contentContainerStyle = {{paddingTop: MyStyle.paddingVerticalList}}
+                    >
 
-                        <View style = {[MyStyleSheet.viewPageLogin, {alignItems: "center", marginTop: MyStyle.headerHeightAdjusted}]}>
+                        <View style = {[MyStyleSheet.viewPageLogin, {alignItems: "center"}]}>
                             <Image source = {MyImage.logo1024}
                                    resizeMode = "contain"
                                    style = {styles.imageLogo}

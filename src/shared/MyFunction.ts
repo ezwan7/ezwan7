@@ -12,6 +12,7 @@ import {updateUser} from "../store/AuthRedux";
 import {switchAppNavigator} from "../store/AppRedux";
 import {addressSave} from "../store/AddressRedux";
 import {notificationSave} from "../store/NotificationRedux";
+import {cartUpdateTax} from "../store/CartRedux";
 
 
 const MyFunction = {
@@ -274,6 +275,45 @@ const MyFunction = {
         }
     },
 
+    fetchTax: async (showLoader: any = MyLANG.PleaseWait + '...', showInfoMessage: any = false, showErrorMessage: any = false) => {
+        const response: any = await MyUtil
+            .myHTTP(false, MyConstant.HTTP_POST, MyAPI.tax_rate,
+                    {
+                        'language_id': MyConfig.LanguageActive,
+
+                        'app_ver'      : MyConfig.app_version,
+                        'app_build_ver': MyConfig.app_build_version,
+                        'platform'     : MyConfig.app_platform,
+                        'device'       : null,
+                    }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, showLoader, true, false
+            );
+
+        MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
+            'apiURL': MyAPI.tax_rate, 'response': response
+        });
+
+        if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.status === 200 && response.data.data?.success === '1' && response.data.data.data?.rates?.[0]) {
+
+            const data = response.data.data.data?.rates?.[0];
+
+            store.dispatch(appInputUpdate(data, 'tax_rate'));
+
+            if(Number.isFinite(Number(data?.tax_rate))){
+                store.dispatch(cartUpdateTax(Number(data?.tax_rate)));
+            }
+
+            if (showInfoMessage !== false) {
+                MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message, false);
+            }
+
+        } else {
+
+            if (showErrorMessage !== false) {
+                MyUtil.showMessage(showErrorMessage.showMessage, showErrorMessage.message, false);
+            }
+        }
+    },
+
     fetchPaymentMethod: async (showLoader: any = MyLANG.PleaseWait + '...', showInfoMessage: any = false, showErrorMessage: any = false) => {
         const response: any = await MyUtil
             .myHTTP(false, MyConstant.HTTP_POST, MyAPI.payment_methods,
@@ -311,15 +351,12 @@ const MyFunction = {
 
     fetchDeliveryMethod: async (formParam: any, showLoader: any = MyLANG.PleaseWait + '...', showInfoMessage: any = false, showErrorMessage: any = false) => {
         const response: any = await MyUtil
-            .myHTTP(false, MyConstant.HTTP_POST, MyAPI.delivery_method_rate,
+            .myHTTP(false, MyConstant.HTTP_POST, MyAPI.delivery_method,
                     {
                         'language_id': MyConfig.LanguageActive,
 
                         "tax_zone_id": formParam?.zone_id,
-                        "products"   : [{
-                            "final_price": 500,
-                            "products_id": "1"
-                        }],
+                        "products"   : formParam?.products,
                         "country_id" : formParam?.country_id,
                         "postcode"   : formParam?.postal_code,
                         "city"       : formParam?.city_id,
@@ -333,7 +370,7 @@ const MyFunction = {
             );
 
         MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
-            'apiURL': MyAPI.delivery_method_rate, 'response': response
+            'apiURL': MyAPI.delivery_method, 'response': response
         });
 
         if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.status === 200 && response.data?.data?.success === '1') {
