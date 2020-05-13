@@ -4,13 +4,13 @@ import {StyleSheet, TouchableNativeFeedback, TouchableOpacity, TouchableWithoutF
 import MyIcon from "./MyIcon";
 import MyColor from "../common/MyColor";
 import PropTypes from "prop-types";
-import {getMyIcon} from "./MyComponent";
+import {getMyIcon} from "./MyIcon";
 import {MyConstant} from "../common/MyConstant";
 import {MyStyle} from "../common/MyStyle";
 import LinearGradient from "react-native-linear-gradient";
 import MyImage from "../shared/MyImage";
 import MyMaterialRipple from "./MyMaterialRipple";
-import {ShadowBox} from "react-native-neomorph-shadows";
+import {Shadow} from "react-native-neomorph-shadows";
 
 let renderCount = 0;
 
@@ -509,7 +509,7 @@ const MyButton = (props: any) => {
 
     const button =
               props?.shadowStyle?.width ?
-              <ShadowBox
+              <Shadow
                   useSvg
                   style = {shadowStyles}
               >
@@ -522,7 +522,7 @@ const MyButton = (props: any) => {
                   >
                       {touchableComponent()}
                   </LinearGradient>
-              </ShadowBox>
+              </Shadow>
                                         :
               <LinearGradient
                   style = {linearGradientStyles}

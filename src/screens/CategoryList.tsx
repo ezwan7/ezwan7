@@ -5,7 +5,7 @@ import {
     SafeAreaView,
     ScrollView,
     FlatList,
-    RefreshControl,
+    RefreshControl, BackHandler,
 } from 'react-native';
 import {useDispatch, useSelector} from "react-redux";
 
@@ -30,11 +30,12 @@ import {
 } from "../shared/MyContainer";
 
 import {categorySave} from "../store/CategoryRedux";
+import {useFocusEffect} from "@react-navigation/native";
 
 
 let renderCount = 0;
 
-const CategoryListScreen = ({}) => {
+const CategoryListScreen = ({route, navigation}: any) => {
 
     if (__DEV__) {
         renderCount += 1;
@@ -50,6 +51,20 @@ const CategoryListScreen = ({}) => {
     const [loadingMore, setLoadingMore]                                           = useState(false);
     const [refreshing, setRefreshing]                                             = useState(false);
     const [onEndReachedCalledDuringMomentum, setOnEndReachedCalledDuringMomentum] = useState(false);
+
+    useFocusEffect(
+        useCallback(() => {
+            const onBackPress = () => {
+                return MyUtil.onBackButtonPress(navigation);
+            };
+
+            BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+            return () =>
+                BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, [])
+    );
 
     useEffect(() => {
         MyUtil.printConsole(true, 'log', `LOG: ${CategoryListScreen.name}. useEffect: `, {category: category});

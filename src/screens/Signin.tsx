@@ -58,7 +58,8 @@ const SigninScreen = ({route, navigation}: any) => {
         MyUtil.printConsole(true, 'log', `LOG: ${SigninScreen.name}. renderCount: `, renderCount);
     }
 
-    const user: any = useSelector((state: any) => state.auth.user);
+    const user: any         = useSelector((state: any) => state.auth.user);
+    const biometryType: any = useSelector((state: any) => state.app_info.biometryType);
 
     const {register, getValues, setValue, handleSubmit, formState, errors, reset, triggerValidation}: any = useForm(MyConfig.useFormDefault);
 
@@ -89,12 +90,9 @@ const SigninScreen = ({route, navigation}: any) => {
     );
 
     useEffect(() => {
-        MyUtil.printConsole(true, 'log', `LOG: ${SigninScreen.name}. useEffect: `, {user: user});
+        MyUtil.printConsole(true, 'log', `LOG: ${SigninScreen.name}. useEffect: `, {user, biometryType});
 
-        if (route?.params?.splash !== false) { // If splash param is not false then hide splash:
-            MyUtil.printConsole(true, 'log', `LOG: ${SigninScreen.name}. route?.params?.splash: `, route?.params?.splash);
-            Splash.hide();
-        }
+        Splash.hide();
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -200,7 +198,7 @@ const SigninScreen = ({route, navigation}: any) => {
         if (formValue?.type === MyConstant.RESPONSE.TYPE.data && formValue?.data) {
             MyAuth.login({
                              mode    : MyConstant.LOGIN_MODE.EMAIL,
-                             username   : formValue.data.email,
+                             username: formValue.data.email,
                              password: formValue.data.password,
                          },
                          MyConstant.SHOW_MESSAGE.TOAST,
@@ -293,6 +291,7 @@ const SigninScreen = ({route, navigation}: any) => {
                             {
                                 // If already logged in using any kind of method, check which id available, disable auto ask, call the id, hide if none
                                 // Icon change based on available biometry type
+                                biometryType === MyConstant.BiometryTypes.Fingerprint &&
                                 <TouchableOpacity
                                     activeOpacity = {0.7}
                                     onPress = {
@@ -341,28 +340,29 @@ const SigninScreen = ({route, navigation}: any) => {
                                 />
                             </View>
 
-                            <TouchableOpacity
-                                activeOpacity = {0.7}
-                                onPress = {
-                                    () =>
-                                        MyUtil.commonAction(false,
-                                                            null,
-                                                            MyConstant.CommonAction.navigate,
-                                                            MyConfig.routeName.Signup,
-                                                            null,
-                                                            null
-                                        )
-                                }
-                            >
-                                <View style = {[MyStyle.RowCenter, {marginTop: 44}]}>
-                                    <Text style = {styles.textDontHaveAccount}>
-                                        {MyLANG.DontHaveAnAccount}
-                                    </Text>
+                            <View style = {[MyStyle.RowCenter, {marginTop: 44}]}>
+                                <Text style = {styles.textDontHaveAccount}>
+                                    {MyLANG.DontHaveAnAccount}
+                                </Text>
+                                <TouchableOpacity
+                                    activeOpacity = {0.7}
+                                    onPress = {
+                                        () =>
+                                            MyUtil.commonAction(false,
+                                                                null,
+                                                                MyConstant.CommonAction.navigate,
+                                                                MyConfig.routeName.Signup,
+                                                                null,
+                                                                null
+                                            )
+                                    }
+                                >
                                     <Text style = {styles.textSignUp}>
                                         {MyLANG.SignUp}
                                     </Text>
-                                </View>
-                            </TouchableOpacity>
+                                </TouchableOpacity>
+                            </View>
+
                         </View>
                     </ScrollView>
                 </LinearGradient>

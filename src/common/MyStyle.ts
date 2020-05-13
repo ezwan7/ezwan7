@@ -12,20 +12,21 @@ const screenAspectRatio = screenWidth / screenHeight;
 const platformOS = Platform.OS;
 const isIphoneX  = Platform.OS === "ios" && !Platform.isPad && !Platform.isTVOS && (screenHeight >= 812 || screenWidth >= 812);
 
-const statusBarHeight = Platform.select(
+const statusBarHeight      = Platform.select(
     {
         ios    : isIphoneX ? 44 : 20,
         android: StatusBar.currentHeight,
         default: 0
     }
 );
-const headerHeight    = Platform.select(
+const headerHeight         = Platform.select(
     {
         ios    : isIphoneX ? 40 : 40,
         android: 80,
         default: 0
     }
 );
+const headerHeightAdjusted = headerHeight - statusBarHeight;
 
 const MyStyle: any = {
 
@@ -37,7 +38,7 @@ const MyStyle: any = {
 
     statusBarHeight     : statusBarHeight,
     headerHeight        : headerHeight,
-    headerHeightAdjusted: headerHeight - statusBarHeight,
+    headerHeightAdjusted: headerHeightAdjusted,
     toolbarHeight       : isIphoneX ? 35 : 0,
 
     marginHorizontalLogin : 32,
@@ -84,39 +85,28 @@ const MyStyle: any = {
     buttonHeightNormal: 46,
     buttonHeightLarge : 56,
 
-    fontFamilyPrice        : 'roboto_regular',
-    fontFamilyPriceSemiBold: 'roboto_medium',
-    fontFamilyPriceBold    : 'roboto_bold',
-    fontFamilyPriceLight   : 'roboto_light',
+    fontFamilyPrice        : 'Roboto-Regular',
+    fontFamilyPriceSemiBold: 'Roboto-Medium',
+    fontFamilyPriceBold    : 'Roboto-Bold',
+    fontFamilyPriceLight   : 'Roboto-Light',
 
     FontFamily: {
         OpenSans: {
-            light         : 'open_sans_light',
-            regular       : 'open_sans_regular',
-            semiBold      : 'open_sans_semi_bold',
-            semiBoldItalic: 'open_sans_semi_bold_italic',
-            bold          : 'open_sans_bold',
-            extraBold     : 'open_sans_extra_bold',
+            light         : 'OpenSans-Light',
+            regular       : 'OpenSans-Regular',
+            semiBold      : 'OpenSans-Semibold',
+            semiBoldItalic: 'OpenSans-SemiboldItalic',
+            bold          : 'OpenSans-Bold',
+            extraBold     : 'OpenSans-Extrabold',
         },
         Roboto  : {
-            thin   : 'roboto_thin',
-            light  : 'roboto_light',
-            regular: 'roboto_regular',
-            medium : 'roboto_medium',
-            bold   : 'roboto_bold',
-            black  : 'roboto_black',
+            thin   : 'Roboto-Thin',
+            light  : 'Roboto-Light',
+            regular: 'Roboto-Regular',
+            medium : 'Roboto-Medium',
+            bold   : 'Roboto-Bold',
+            black  : 'Roboto-Black',
         },
-        /*Exo2    : {
-            thin      : 'exo2_thin',
-            light     : 'exo2_light',
-            extraLight: 'exo2_extra_light',
-            regular   : 'exo2_regular',
-            medium    : 'exo2_medium',
-            semiBold  : 'exo2_semi_bold',
-            bold      : 'exo2_bold',
-            extraBold : 'exo2_extra_bold',
-            black     : 'exo2_black',
-        },*/
     },
 
     FontSize: {
@@ -448,6 +438,38 @@ const MyStyle: any = {
         elevation    : 0,
         shadowOpacity: 0,
         shadowRadius : 0,
+    },
+
+    neomorphShadow: {
+        header              : {
+            shadowOffset   : {width: 0, height: 2},
+            shadowOpacity  : 0.5,
+            shadowColor    : "#000000",
+            backgroundColor: "#ffffff",
+            shadowRadius   : 5,
+            zIndex         : 1000,
+            width          : screenWidth,
+            height         : headerHeight,
+        },
+        headerHeightAdjusted: {
+            shadowOffset   : {width: 0, height: 2},
+            shadowOpacity  : 0.5,
+            shadowColor    : "#000000",
+            shadowRadius   : 5,
+            backgroundColor: "#ffffff",
+            width          : screenWidth,
+            height         : headerHeightAdjusted,
+            zIndex         : 1000,
+        },
+        buttonBottom        : {
+            shadowOffset   : {width: 0, height: -1},
+            shadowOpacity  : 0.3,
+            shadowColor    : "#000000",
+            backgroundColor: "#ffffff",
+            shadowRadius   : 2,
+            height         : 46,
+            width          : screenWidth,
+        }
     },
 
     IGNORED_TAGS:

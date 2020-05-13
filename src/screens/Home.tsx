@@ -79,10 +79,7 @@ const HomeScreen = ({route, navigation}: any) => {
     useEffect(() => {
         MyUtil.printConsole(true, 'log', `LOG: ${HomeScreen.name}. useEffect: `, {user: user, category: category});
 
-        if (route?.params?.splash !== false) { // If splash param is not false then hide splash:
-            MyUtil.printConsole(true, 'log', `LOG: ${HomeScreen.name}. route?.params?.splash: `, route?.params?.splash);
-            Splash.hide();
-        }
+        Splash.hide();
 
         fetchCategory(false, false, false);
         fetchBanner(false, false, false);

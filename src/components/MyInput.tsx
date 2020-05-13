@@ -6,7 +6,7 @@ import PropTypes from "prop-types";
 
 import {MyConstant} from "../common/MyConstant";
 import MyColor from "../common/MyColor";
-import {getMyIcon} from "./MyComponent";
+import {getMyIcon} from "./MyIcon";
 import MyIcon from "./MyIcon";
 import {MyConfig} from "../shared/MyConfig";
 import {MyStyle} from "../common/MyStyle";

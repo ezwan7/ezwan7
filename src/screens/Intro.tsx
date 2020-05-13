@@ -49,10 +49,7 @@ const IntroScreen = ({route, navigation}: any) => {
 
         MyUtil.printConsole(true, 'log', `LOG: ${IntroScreen.name}. useEffect: `, intro);
 
-        if (route?.params?.splash !== false) { // If splash param is not false then hide splash:
-            MyUtil.printConsole(true, 'log', `LOG: ${IntroScreen.name}. route?.params?.splash: `, route?.params?.splash);
-            Splash.hide();
-        }
+        Splash.hide();
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);

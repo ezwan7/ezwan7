@@ -37,8 +37,8 @@ const primaryGradient = {
 const MyConfig: any = {
 
     app_name         : 'DirectD',
-    app_version      : '0.95',
-    app_build_version: 95,
+    app_version      : '0.96',
+    app_build_version: 96,
     app_platform     : 'android_customer',
 
     app_email    : 'directd@gmail.com',
@@ -163,9 +163,15 @@ const MyConfig: any = {
         restaurant : 7,
     },
 
-    DevlieryMethod: {
-        PickUp : 1,
-        Courier: 2,
+    DeliveryType: {
+        PickUp : {
+            id  : 1,
+            name: 'PickUp'
+        },
+        Courier: {
+            id  : 2,
+            name: 'Courier'
+        },
     },
 
     PaymentMethod: {
@@ -358,6 +364,11 @@ const MyConfig: any = {
         },
         {
             id  : 4,
+            key : 'Video',
+            name: MyLANG.Video,
+        },
+        {
+            id  : 5,
             key : 'Review',
             name: MyLANG.Review,
         },
@@ -487,6 +498,7 @@ const MyAPI = {
     app_info            : MyConfig.apiUrl + MyConfig.api_version + 'getallpages',
     countries           : MyConfig.apiUrl + MyConfig.api_version + 'getcountries',
     states              : MyConfig.apiUrl + MyConfig.api_version + 'getzones',
+    cities              : MyConfig.apiUrl + MyConfig.api_version + 'getcities',
     payment_methods     : MyConfig.apiUrl + MyConfig.api_version + 'getpaymentmethods',
     pickup_address      : MyConfig.apiUrl + MyConfig.api_version + 'pickuppoints',
     featured_products   : MyConfig.apiUrl + MyConfig.api_version + 'getfeaturedproducts',
@@ -501,8 +513,9 @@ const MyAPI = {
 
     coupon_apply          : MyConfig.apiUrl + MyConfig.api_version + 'getcoupon',
     wishlist              : MyConfig.apiUrl + MyConfig.api_version + 'getwishlist',
-    tax_rate  : MyConfig.apiUrl + MyConfig.api_version + 'getrate',
-    delivery_method  : MyConfig.apiUrl + MyConfig.api_version + 'getshippingmethods',
+    tax_rate              : MyConfig.apiUrl + MyConfig.api_version + 'getrate',
+    delivery_type         : MyConfig.apiUrl + MyConfig.api_version + 'getdeliverytype',
+    delivery_method       : MyConfig.apiUrl + MyConfig.api_version + 'getshippingmethods',
     update_profile        : MyConfig.apiUrl + MyConfig.api_version + 'updatecustomerinfo',
     password_change       : MyConfig.apiUrl + MyConfig.api_version + 'updatepassword',
     upload_profile_photo  : MyConfig.apiUrl + MyConfig.api_version + 'uploadprofilephoto',

@@ -10,46 +10,11 @@ import MyColor from "../common/MyColor";
 import {MyConstant} from "../common/MyConstant";
 import MyIcon from "./MyIcon";
 import MyImage from "../shared/MyImage";
-import {ShadowBox} from "react-native-neomorph-shadows";
+import {Shadow} from "react-native-neomorph-shadows";
 import {MyConfig} from "../shared/MyConfig";
 import MyLANG from "../shared/MyLANG";
 import {MyButton} from "./MyButton";
-
-//
-const getMyIcon = (props: any) => {
-    switch (props.fontFamily) {
-        case MyConstant.VectorIcon.AntDesign:
-            return (<MyIcon.AntDesign {...props}/>);
-        case MyConstant.VectorIcon.Entypo:
-            return (<MyIcon.Entypo {...props}/>);
-        case MyConstant.VectorIcon.EvilIcons:
-            return (<MyIcon.EvilIcons {...props}/>);
-        case MyConstant.VectorIcon.Feather:
-            return (<MyIcon.Feather {...props}/>);
-        case MyConstant.VectorIcon.FontAwesome:
-            return (<MyIcon.FontAwesome {...props}/>);
-        case MyConstant.VectorIcon.FontAwesome5:
-            return (<MyIcon.FontAwesome5 {...props}/>);
-        case MyConstant.VectorIcon.Fontisto:
-            return (<MyIcon.Fontisto {...props}/>);
-        case MyConstant.VectorIcon.Foundation:
-            return (<MyIcon.Foundation {...props}/>);
-        case MyConstant.VectorIcon.Ionicons:
-            return (<MyIcon.Ionicons {...props}/>);
-        case MyConstant.VectorIcon.MaterialIcons:
-            return (<MyIcon.MaterialIcons {...props}/>);
-        case MyConstant.VectorIcon.MaterialCommunityIcons:
-            return (<MyIcon.MaterialCommunityIcons {...props}/>);
-        case MyConstant.VectorIcon.Octicons:
-            return (<MyIcon.Octicons {...props}/>);
-        case MyConstant.VectorIcon.Zocial:
-            return (<MyIcon.Zocial {...props}/>);
-        case MyConstant.VectorIcon.SimpleLineIcons:
-            return (<MyIcon.SimpleLineIcons {...props}/>);
-        default:
-            return (<MyIcon.FontAwesome {...props}/>);
-    }
-}
+import {getMyIcon} from "./MyIcon";
 
 const getImage = (props: any) => {
     return (<Image {...props}/>)
@@ -80,10 +45,7 @@ const StatusBarDark = () => {
 const StatusBarGradientPrimary = (props: any) => {
     return (
         <LinearGradient
-            start = {MyStyle.LGHeaderPrimary.start}
-            end = {MyStyle.LGHeaderPrimary.end}
-            locations = {MyStyle.LGHeaderPrimary.locations}
-            colors = {MyStyle.LGHeaderPrimary.colors}
+            {...MyStyle.LGHeaderPrimary}
             style = {{
                 height: MyStyle.statusBarHeight,
             }}
@@ -93,49 +55,23 @@ const StatusBarGradientPrimary = (props: any) => {
 
 const HeaderGradientPrimary = (props: any) => {
     return (
-        <ShadowBox
-            useSvg
-            style = {{
-                shadowOffset : {width: 0, height: 2},
-                shadowOpacity: 0.5,
-                shadowColor  : "#000000",
-                shadowRadius : 5,
-                width        : MyStyle.screenWidth,
-                height       : MyStyle.headerHeight,
-            }}
-        >
+        <Shadow style = {MyStyle.neomorphShadow.header}>
             <LinearGradient
-                start = {MyStyle.LGHeaderPrimary.start}
-                end = {MyStyle.LGHeaderPrimary.end}
-                locations = {MyStyle.LGHeaderPrimary.locations}
-                colors = {MyStyle.LGHeaderPrimary.colors}
+                {...MyStyle.LGHeaderPrimary}
                 style = {{
                     flex: 1,
                 }}
             >
             </LinearGradient>
-        </ShadowBox>
+        </Shadow>
     )
 }
 
 const HeaderGradientPrimaryLogo = (props: any) => {
     return (
-        <ShadowBox
-            useSvg
-            style = {{
-                shadowOffset : {width: 0, height: 2},
-                shadowOpacity: 0.5,
-                shadowColor  : "#000000",
-                shadowRadius : 5,
-                width        : MyStyle.screenWidth,
-                height       : MyStyle.headerHeight,
-            }}
-        >
+        <Shadow style = {MyStyle.neomorphShadow.header}>
             <LinearGradient
-                start = {MyStyle.LGHeaderPrimary.start}
-                end = {MyStyle.LGHeaderPrimary.end}
-                locations = {MyStyle.LGHeaderPrimary.locations}
-                colors = {MyStyle.LGHeaderPrimary.colors}
+                {...MyStyle.LGHeaderPrimary}
                 style = {{
                     flex          : 1,
                     display       : 'flex',
@@ -154,30 +90,16 @@ const HeaderGradientPrimaryLogo = (props: any) => {
                     resizeMode = "contain"
                 />
             </LinearGradient>
-        </ShadowBox>
+        </Shadow>
 
     )
 }
 
 const HeaderInputSearch = (props: any) => {
     return (
-        <ShadowBox
-            useSvg
-            style = {{
-                shadowOffset : {width: 0, height: 2},
-                shadowOpacity: 0.5,
-                shadowColor  : "#000000",
-                shadowRadius : 5,
-                width        : MyStyle.screenWidth,
-                height       : MyStyle.headerHeight,
-                zIndex       : 1000,
-            }}
-        >
+        <Shadow style = {MyStyle.neomorphShadow.header}>
             <LinearGradient
-                start = {MyStyle.LGHeaderPrimary.start}
-                end = {MyStyle.LGHeaderPrimary.end}
-                locations = {MyStyle.LGHeaderPrimary.locations}
-                colors = {MyStyle.LGHeaderPrimary.colors}
+                {...MyStyle.LGHeaderPrimary}
                 style = {{
                     flex          : 1,
                     flexDirection : "row",
@@ -257,29 +179,15 @@ const HeaderInputSearch = (props: any) => {
                     </TouchableOpacity>
                 </View>
             </LinearGradient>
-        </ShadowBox>
+        </Shadow>
     )
 }
 
 const HeaderInputSearchOptionPage = (props: any) => {
     return (
-        <ShadowBox
-            useSvg
-            style = {{
-                shadowOffset : {width: 0, height: 2},
-                shadowOpacity: 0.5,
-                shadowColor  : "#000000",
-                shadowRadius : 5,
-                width        : MyStyle.screenWidth,
-                height       : MyStyle.headerHeight,
-                zIndex       : 1000,
-            }}
-        >
+        <Shadow style = {MyStyle.neomorphShadow.header}>
             <LinearGradient
-                start = {MyStyle.LGHeaderPrimary.start}
-                end = {MyStyle.LGHeaderPrimary.end}
-                locations = {MyStyle.LGHeaderPrimary.locations}
-                colors = {MyStyle.LGHeaderPrimary.colors}
+                {...MyStyle.LGHeaderPrimary}
                 style = {{
                     flex          : 1,
                     flexDirection : "row",
@@ -346,24 +254,13 @@ const HeaderInputSearchOptionPage = (props: any) => {
                     </View>
                 }
             </LinearGradient>
-        </ShadowBox>
+        </Shadow>
     )
 }
 
 const HeaderGoogleMapSearch = (props: any) => {
     return (
-        /*<ShadowBox
-            useSvg
-            style = {{
-                shadowOffset : {width: 0, height: 2},
-                shadowOpacity: 0.5,
-                shadowColor  : "#000000",
-                shadowRadius : 5,
-                width        : MyStyle.screenWidth,
-                height       : MyStyle.headerHeight,
-                zIndex       : 1000,
-            }}
-        >*/
+        /*<Shadow style = {MyStyle.neomorphShadow.header}>*/
         <View style = {{
             height: MyStyle.headerHeight,
             zIndex: 1000,
@@ -372,10 +269,7 @@ const HeaderGoogleMapSearch = (props: any) => {
             justifyContent: "flex-start",
         }}>
             <LinearGradient
-                start = {MyStyle.LGHeaderPrimary.start}
-                end = {MyStyle.LGHeaderPrimary.end}
-                locations = {MyStyle.LGHeaderPrimary.locations}
-                colors = {MyStyle.LGHeaderPrimary.colors}
+                {...MyStyle.LGHeaderPrimary}
                 style = {{
                     height: MyStyle.statusBarHeight,
                 }}
@@ -443,10 +337,7 @@ const TopTabBarGradientPrimary = (props: any) => {
             // paddingBottom: 0,
         }}>
             <LinearGradient
-                start = {MyStyle.LGHeaderPrimary.start}
-                end = {MyStyle.LGHeaderPrimary.end}
-                locations = {MyStyle.LGHeaderPrimary.locations}
-                colors = {MyStyle.LGHeaderPrimary.colors}
+                {...MyStyle.LGHeaderPrimary}
             >
                 {/*<MaterialTopTabBar {...props} />*/}
             </LinearGradient>
@@ -613,17 +504,7 @@ const ListHeaderViewAll = (props: any) => {
 
 const ButtonPageFotter = (props: any) => {
     return (
-        <ShadowBox
-            useSvg
-            style = {{
-                shadowOffset : {width: 0, height: -1},
-                shadowOpacity: 0.2,
-                shadowColor  : "#000000",
-                shadowRadius : 2,
-                height       : 46,
-                width        : MyStyle.screenWidth,
-            }}
-        >
+        <Shadow style = {MyStyle.neomorphShadow.buttonBottom}>
             <View
                 style = {{
                     flexDirection  : "row",
@@ -639,13 +520,12 @@ const ButtonPageFotter = (props: any) => {
                     onPress = {props?.onPress}
                 />
             </View>
-        </ShadowBox>
+        </Shadow>
     )
 }
 
 
 export {
-    getMyIcon,
     getImage,
 
     StatusBarLight,

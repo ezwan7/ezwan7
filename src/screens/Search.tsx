@@ -7,7 +7,7 @@ import {
     FlatList,
     RefreshControl,
     TextInput,
-    Text,
+    Text, BackHandler,
 } from 'react-native';
 import * as yup from "yup";
 
@@ -32,6 +32,7 @@ import {ListItemSeparator, ModalFilter, ModalFullScreenPage, ProductListItem,} f
 import {MyModal} from "../components/MyModal";
 import {useForm} from "react-hook-form";
 import {useSelector} from "react-redux";
+import {useFocusEffect} from "@react-navigation/native";
 
 let renderCount = 0;
 
@@ -116,6 +117,20 @@ const SearchScreen = ({route, navigation}: any) => {
 
     const values                                                                  = getValues();
     const {searchText, price_min, price_max, category_option, filter_option}: any = watch(['searchText', 'price_min', 'price_max', 'category_option', 'filter_option']);
+
+    useFocusEffect(
+        useCallback(() => {
+            const onBackPress = () => {
+                return MyUtil.onBackButtonPress(navigation);
+            };
+
+            BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+            return () =>
+                BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, [])
+    );
 
     useEffect(() => {
         MyUtil.printConsole(true, 'log', `LOG: ${SearchScreen.name}. useEffect: `, {category, filter_method, data});

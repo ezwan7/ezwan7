@@ -1,6 +1,6 @@
 import React from 'react';
 import {useSelector} from "react-redux";
-import {SplashStackScreen, IntroStackScreen, LoginStackScreen, DrawerNavigator} from "./NavContainer";
+import {SplashStackScreen, IntroStackScreen, LoginStackScreen, BottomTabNavigator} from "./NavContainer";
 
 import {MyConfig} from "./shared/MyConfig";
 
@@ -17,7 +17,7 @@ const AppNavigator = () => {
 
     switch (appNavigator) {
         case MyConfig.appNavigation.HomeNavigator:
-            navigator = <DrawerNavigator/>;
+            navigator = <BottomTabNavigator/>;
             break;
         case MyConfig.appNavigation.LoginStackScreen:
             navigator = <LoginStackScreen/>;

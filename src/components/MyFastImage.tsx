@@ -42,7 +42,6 @@ MyFastImage.propTypes    = {
 MyFastImage.defaultProps = {
     source    : [],
     resizeMode: null,
-    style     : {},
     onError   : null,
 }
 const styles             = StyleSheet.create(

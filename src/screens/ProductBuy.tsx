@@ -8,7 +8,6 @@ import {
     RefreshControl,
 } from 'react-native';
 import LinearGradient from "react-native-linear-gradient";
-import {ShadowBox} from "react-native-neomorph-shadows";
 import {useForm} from "react-hook-form";
 
 import MyUtil from '../common/MyUtil';

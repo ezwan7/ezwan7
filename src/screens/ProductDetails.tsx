@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 
 import HTML from 'react-native-render-html';
-import {ShadowBox} from "react-native-neomorph-shadows";
+import {Shadow} from "react-native-neomorph-shadows";
 import ImageViewer from "react-native-image-zoom-viewer";
 
 import {useDispatch, useSelector} from "react-redux";
@@ -28,7 +28,6 @@ import {MyButton} from "../components/MyButton";
 
 import {
     ActivityIndicatorLarge,
-    getMyIcon,
     IconStar,
     ListEmptyViewLottie,
     StatusBarDark,
@@ -40,7 +39,7 @@ import {
     ProductListItemContentLoader,
     ListItemSeparator,
     ProductListItem,
-    ProductDetailsContentLoader,
+    ProductDetailsContentLoader, ImageSliderCounter,
 } from "../shared/MyContainer";
 
 import {cartEmpty, cartItemAdd, cartItemQuantityIncrement} from "../store/CartRedux";
@@ -51,6 +50,7 @@ import LinearGradient from "react-native-linear-gradient";
 import * as yup from "yup";
 import {useForm} from "react-hook-form";
 import NumberFormat from "react-number-format";
+import {WebView} from 'react-native-webview';
 
 
 let renderCount = 0;
@@ -85,6 +85,10 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
 
     const scrollRef: any                  = useRef();
     const [segmentIndex, setSegmentIndex] = useState(0);
+
+    const [imageSliderIndex, setImageSliderIndex] = useState(0);
+
+    const videoRef: any = useRef();
 
     const {register, getValues, setValue, handleSubmit, formState, errors, reset, triggerValidation, watch}: any = useForm(
         {
@@ -339,6 +343,30 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
     }
 
     const onBuyNow = () => {
+
+        if (product?.attributes?.length > 0) {
+
+            let message: any = undefined;
+
+            for (const [i, attribute] of product.attributes.entries()) {
+                if (attribute?.values?.length > 0) {
+                    for (const [j, value] of attribute.values.entries()) {
+                        if (value?.cart_selected === true) {
+                            message = null;
+                        } else {
+                            if (message === undefined) {
+                                message = attribute?.option?.name || 'ITEM';
+                            }
+                        }
+                    }
+                    if (message?.length > 0) {
+                        return MyUtil.showMessage(MyConstant.SHOW_MESSAGE.TOAST, `${MyLANG.PleaseSelect} ${message}`, false);
+                    }
+                    message = undefined;
+                }
+            }
+        }
+
         const itemId: string = '_' + product?.id;
         // MyUtil.printConsole(true, 'log', 'LOG: onBuyNow: ', {itemId, product});
         if (cart?.items[itemId]) {
@@ -412,13 +440,23 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                                  decelerationRate = "fast"
                                  snapToInterval = {MyStyle.screenWidth}
                                  snapToAlignment = "center"
+                                 showsHorizontalScrollIndicator = {false}
+                                 onMomentumScrollEnd = {(event: any) =>
+                                     setImageSliderIndex(Math.round(event.nativeEvent.contentOffset.x / MyStyle.screenWidth))
+                                 }
                              >
                                  <ImageSliderBanner
                                      item = {(Array.isArray(product?.images) && product?.images?.length > 0) ? product?.images : [{image: product?.image}]}
                                      onPress = {(prop: any) => prop?.image?.length ? setImageViewerVisible(true) : null}
+                                     resizeMode = {'contain'}
                                      style = {{height: MyStyle.screenWidth / 1.5}}
                                  />
                              </ScrollView>
+
+                             <ImageSliderCounter
+                                 count = {(Array.isArray(product?.images) && product?.images?.length > 0) ? product.images.length : 1}
+                                 imageSliderIndex = {imageSliderIndex}
+                             />
 
                              <View style = {MyStyleSheet.viewPageCard}>
                                  <Text
@@ -555,14 +593,14 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                                                                  }]}>
                                                                      {item.value}
                                                                  </Text>
-                                                                 {
+                                                                 {/*{
                                                                      (item.price_prefix && item.price) &&
                                                                      <Text style = {[MyStyleSheet.textListItemSubTitle2, item?.cart_selected === true && {
                                                                          color: MyColor.textLightPrimary2,
                                                                      }]}>
                                                                          {item.price_prefix} {item.price}
                                                                      </Text>
-                                                                 }
+                                                                 }*/}
                                                              </MyMaterialRipple>
                                                          </LinearGradient>
                                                      ))
@@ -601,14 +639,14 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                                                                  }]}>
                                                                      {item.products_name}
                                                                  </Text>
-                                                                 {
+                                                                 {/*{
                                                                      (Number(item.products_price) > 0) &&
                                                                      <Text style = {[MyStyleSheet.textListItemSubTitle2, item?.cart_selected === true && {
                                                                          color: MyColor.textLightPrimary2,
                                                                      }]}>
                                                                          + {item.products_price}
                                                                      </Text>
-                                                                 }
+                                                                 }*/}
                                                              </MyMaterialRipple>
                                                          </LinearGradient>
                                                      ))
@@ -689,6 +727,25 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                                          </Text>
                                      </View>
                                      <View style = {{width: MyStyle.screenWidth}}>
+                                         {(product?.products_video && product?.products_video?.slice(product.products_video.indexOf('watch?v=') + 'watch?v='.length)) ?
+                                          <WebView
+                                              style = {{width: MyStyle.screenWidth, maxHeight: MyStyle.screenWidth}}
+                                              javaScriptEnabled = {true}
+                                              domStorageEnabled = {true}
+                                              source = {{
+                                                  uri: 'https://www.youtube.com/embed/mm6E_JEb-JI'
+                                              }}
+                                          />
+                                                                                                                                                                      :
+                                          <Text style = {[MyStyleSheet.textListItemTitle2Dark, {
+                                              paddingVertical : MyStyle.marginVerticalPage,
+                                              marginHorizontal: MyStyle.marginHorizontalPage,
+                                          }]}>
+                                              {MyLANG.NoVideoAvailable}
+                                          </Text>
+                                         }
+                                     </View>
+                                     <View style = {{width: MyStyle.screenWidth}}>
                                          {
                                              product?.reviewed_customers?.length > 0 ?
                                              <ScrollView
@@ -766,17 +823,7 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
 
                          </ScrollView>
 
-                         <ShadowBox
-                             useSvg
-                             style = {{
-                                 shadowOffset : {width: 0, height: -1},
-                                 shadowOpacity: 0.2,
-                                 shadowColor  : "#000000",
-                                 shadowRadius : 2,
-                                 height       : 46,
-                                 width        : MyStyle.screenWidth,
-                             }}
-                         >
+                         <Shadow style = {MyStyle.neomorphShadow.buttonBottom}>
                              <View
                                  style = {{
                                      flexDirection  : "row",
@@ -892,7 +939,7 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                                  </LinearGradient>
 
                              </View>
-                         </ShadowBox>
+                         </Shadow>
 
                      </>
                                      :

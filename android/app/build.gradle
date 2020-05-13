@@ -132,8 +132,8 @@ android {
         applicationId "com.directd"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 95
-        versionName "0.95"
+        versionCode 96
+        versionName "0.96"
 
         vectorDrawables.useSupportLibrary = true
 
@@ -203,7 +203,7 @@ dependencies {
     implementation "com.facebook.react:react-native:+"  // From node_modules
 
 
-    debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}") {
+    /*debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}") {
       exclude group:'com.facebook.fbjni'
     }
 
@@ -213,7 +213,7 @@ dependencies {
 
     debugImplementation("com.facebook.flipper:flipper-fresco-plugin:${FLIPPER_VERSION}") {
         exclude group:'com.facebook.flipper'
-    }
+    }*/
 
     if (enableHermes) {
         def hermesPath = "../../node_modules/hermes-engine/android/";

@@ -1,4 +1,5 @@
 const initialState: any = {
+    biometryType  : null,
     deviceInfo    : null,
     about_us      : null,
     contact_us    : null,

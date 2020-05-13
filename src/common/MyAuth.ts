@@ -42,8 +42,6 @@ const MyAuth = {
         if (keychain && keychain[MyConstant.PASSWORD]) {  // Found Saved Username, Password:
 
             // Call Silent Background Login If Found Saved Username, Password:
-            const formParam: any  = JSON.parse(keychain[MyConstant.username]);
-            formParam['password'] = keychain[MyConstant.PASSWORD];
             MyAuth.login(JSON.parse(keychain[MyConstant.username]), showInfoMessage, showErrorMessage, showLoader, doReRoute, routeTo, navigationActions);
 
             // TODO: If Saved Login Found and Login Not Required => Open Home page First then Call Login API
@@ -137,31 +135,31 @@ const MyAuth = {
                 break;
         }
 
-        const device_token: any = store.getState().auth.device_token;
+        const firebase_token: any = store.getState().auth.firebase_token;
 
         // Call Login API:
         const response: any = await MyUtil
             .myHTTP(false, MyConstant.HTTP_POST, API,
                     {
 
-                        [MyConstant.USERNAME]    : formParam?.username,
-                        [MyConstant.PASSWORD]    : formParam?.password,
+                        [MyConstant.USERNAME]: formParam?.username,
+                        [MyConstant.PASSWORD]: formParam?.password,
 
-                        [MyConstant.FACEBOOK_ID] : formParam?.facebook_id,
-                        [MyConstant.GOOGLE_ID]   : formParam?.google_id,
+                        [MyConstant.FACEBOOK_ID]   : formParam?.facebook_id,
+                        [MyConstant.GOOGLE_ID]     : formParam?.google_id,
                         // [MyConstant.EMAIL]       : formParam?.email,
-                        [MyConstant.NAME]        : formParam?.name,
-                        [MyConstant.FIRST_NAME]  : formParam?.first_name,
-                        [MyConstant.LAST_NAME]   : formParam?.last_name,
-                        [MyConstant.PHOTO]       : formParam?.photo,
-                        [MyConstant.DEVICE_TOKEN]: device_token,
+                        [MyConstant.NAME]          : formParam?.name,
+                        [MyConstant.FIRST_NAME]    : formParam?.first_name,
+                        [MyConstant.LAST_NAME]     : formParam?.last_name,
+                        [MyConstant.PHOTO]         : formParam?.photo,
+                        [MyConstant.FIREBASE_TOKEN]: firebase_token,
                         // "role"               : MyConfig.UserRole.customer,
                         // "db_key"             : 'app_build_ver_android',
                         // "device"             : null,
-                        'app_ver'                : MyConfig.app_version,
-                        'app_build_ver'          : MyConfig.app_build_version,
-                        'platform'               : MyConfig.app_platform,
-                        'device'                 : null,
+                        'app_ver'                  : MyConfig.app_version,
+                        'app_build_ver'            : MyConfig.app_build_version,
+                        'platform'                 : MyConfig.app_platform,
+                        'device'                   : null,
                     }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, showLoader, true, false
             );
 
@@ -241,41 +239,27 @@ const MyAuth = {
             });
             // Username, password stored successfully:
             if (keychain === true) {
-                // Store auth token into async storage:
-                const storage: any = await MyUtil.AsyncStorageSet(MyConfig.AsyncStorage.AUTH_TOEKN, user[MyConstant.EMAIL], showMessage);
-                // const storage: any = await MyUtil.AsyncStorageSet(MyConfig.AsyncStorage.AUTH_TOEKN, user[MyConstant.AUTH_TOKEN], showMessage); // CHANGE
 
-                MyUtil.printConsole(true, 'log', 'LOG: AsyncStorageSet: await-response: ', {
-                    'key'    : MyConfig.AsyncStorage.AUTH_TOEKN,
-                    'storage': storage,
-                });
+                MyUtil.showMessage(MyConstant.SHOW_MESSAGE.TOAST, MyLANG.LoginSuccessfully, false);
 
-                // Token stored successfully:
-                if (storage === true) {
-
-                    MyUtil.showMessage(MyConstant.SHOW_MESSAGE.TOAST, MyLANG.LoginSuccessfully, false);
-
-                    if (MyConfig.loginRequired === true) { // If App require Login: After Login Switch to Home Navigtor
-                        store.dispatch(switchAppNavigator(MyConfig.appNavigation.HomeNavigator));
-                    } else { // If App not Required Login: After login Pop To Root:
-                        switch (navigationActions) {
-                            case MyConstant.NAVIGATION_ACTIONS.SWITCH_APP_NAVIGATOR:
-                                store.dispatch(switchAppNavigator(MyConfig.appNavigation.HomeNavigator));
-                                break;
-                            case MyConstant.NAVIGATION_ACTIONS.POP_TO_ROOT:
-                                MyUtil.stackAction(false, null, MyConstant.StackAction.popToTop, null, null, null);
-                                break;
-                            case MyConstant.NAVIGATION_ACTIONS.GO_BACK:
-                                MyUtil.stackAction(false, null, MyConstant.StackAction.pop, 1, null, null);
-                                break;
-                            default:
-                                break;
-                        }
+                if (MyConfig.loginRequired === true) { // If App require Login: After Login Switch to Home Navigtor
+                    store.dispatch(switchAppNavigator(MyConfig.appNavigation.HomeNavigator));
+                } else { // If App not Required Login: After login Pop To Root:
+                    switch (navigationActions) {
+                        case MyConstant.NAVIGATION_ACTIONS.SWITCH_APP_NAVIGATOR:
+                            store.dispatch(switchAppNavigator(MyConfig.appNavigation.HomeNavigator));
+                            break;
+                        case MyConstant.NAVIGATION_ACTIONS.POP_TO_ROOT:
+                            MyUtil.stackAction(false, null, MyConstant.StackAction.popToTop, null, null, null);
+                            break;
+                        case MyConstant.NAVIGATION_ACTIONS.GO_BACK:
+                            MyUtil.stackAction(false, null, MyConstant.StackAction.pop, 1, null, null);
+                            break;
+                        default:
+                            break;
                     }
-
-                } else {
-                    throw new Error('Token Saving Failed!');
                 }
+
             } else {
                 throw new Error('Credential Saving Failed!');
             }
@@ -362,15 +346,6 @@ const MyAuth = {
                     store.dispatch(notificationEmpty());
                     store.dispatch(orderEmpty());
                     store.dispatch(userLocationEmpty());
-                }
-
-                if (storage === MyConstant.CLEAR_STORAGE.TOKEN) {
-                    const storage: any = await MyUtil.AsyncStorageRemove(MyConfig.AsyncStorage.AUTH_TOEKN, MyConstant.SHOW_MESSAGE.TOAST);
-                    MyUtil.printConsole(true, 'log', 'LOG: AsyncStorageRemove: await-response: ', {
-                        'key'    : MyConfig.AsyncStorage.AUTH_TOEKN,
-                        'storage': storage
-                    });
-                    //TODO: throw error:
                 }
             }
 
@@ -636,10 +611,10 @@ const MyAuth = {
             .myHTTP(false, MyConstant.HTTP_POST, API,
                     {
                         // [MyConstant.USERNAME]      : formParam?.username,
-                        [MyConstant.PASSWORD]      : formParam?.password,
+                        [MyConstant.PASSWORD]: formParam?.password,
 
-                        [MyConstant.FACEBOOK_ID]   : formParam?.facebook_id,
-                        [MyConstant.GOOGLE_ID]     : formParam?.google_id,
+                        [MyConstant.FACEBOOK_ID]: formParam?.facebook_id,
+                        [MyConstant.GOOGLE_ID]  : formParam?.google_id,
 
                         [MyConstant.EMAIL]         : formParam?.email,
                         [MyConstant.NAME]          : formParam?.name,
@@ -903,8 +878,6 @@ const MyAuth = {
                 if (keychain && keychain[MyConstant.PASSWORD]) {  // Found Saved Username, Password:
 
                     // Call Silent Background Login If Found Saved Username, Password:
-                    const formParam: any  = JSON.parse(keychain[MyConstant.username]);
-                    formParam['password'] = keychain[MyConstant.PASSWORD];
                     MyAuth.login(JSON.parse(keychain[MyConstant.username]),
                                  showInfoMessage,
                                  showErrorMessage,

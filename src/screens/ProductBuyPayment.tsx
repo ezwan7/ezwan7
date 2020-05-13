@@ -2,7 +2,6 @@ import React, {Fragment, useCallback, useEffect, useState} from 'react';
 
 import {View, Text, SafeAreaView, ScrollView, RefreshControl, TouchableOpacity, StyleSheet, TextInput} from 'react-native';
 import LinearGradient from "react-native-linear-gradient";
-import {ShadowBox} from "react-native-neomorph-shadows";
 import {useForm} from "react-hook-form";
 import {useDispatch, useSelector} from "react-redux";
 import {MyFastImage} from "../components/MyFastImage";
@@ -27,6 +26,7 @@ import {MyModal} from "../components/MyModal";
 import {cartUpdateDelivery} from "../store/CartRedux";
 import {MyWebView} from "../components/MyWebView";
 import {useFocusEffect} from "@react-navigation/native";
+import NumberFormat from "react-number-format";
 
 
 let renderCount = 0;
@@ -38,16 +38,44 @@ const orderFormSchema: any = yup.object().shape(
                              .max(14, MyLANG.ID + ' ' + MyLANG.mustBeMaximum + ' 14 ' + MyLANG.character),
         delivery_type   : yup.object()
                              .required(MyLANG.DeliveryType + ' ' + MyLANG.isRequired),
-        delivery_address: yup.object()
-        /*.required(MyLANG.DeliveryAddress + ' ' + MyLANG.isRequired)*/,
         pickup_address  : yup.object()
-        /*.required(MyLANG.PickupAddress + ' ' + MyLANG.isRequired)*/,
-        billing_address : yup.object()
-                             .required(MyLANG.BillingAddress + ' ' + MyLANG.isRequired),
+                             .when('delivery_type', {
+                                 is  : (val: any) => val?.id === MyConfig.DeliveryType.PickUp.id,
+                                 then: yup.object().required(MyLANG.PickupAddress + ' ' + MyLANG.isRequired),
+                             }),
+        receiver_name   : yup.string()
+                             .max(255, MyLANG.ReceiverName + ' ' + MyLANG.mustBeMaximum + ' 255 ' + MyLANG.character)
+                             .when('delivery_type', {
+                                 is  : (val: any) => val?.id === MyConfig.DeliveryType.PickUp.id,
+                                 then: yup.string().required(MyLANG.ReceiverName + ' ' + MyLANG.isRequired),
+                             }),
+        receiver_phone  : yup.string()
+                             .max(16, MyLANG.ReceiverPhoneNumber + ' ' + MyLANG.mustBeMaximum + ' 16 ' + MyLANG.character)
+                             .matches(MyConstant.Validation.phone, MyLANG.InvalidPhone)
+                             .when('delivery_type', {
+                                 is  : (val: any) => val?.id === MyConfig.DeliveryType.PickUp.id,
+                                 then: yup.string().required(MyLANG.ReceiverPhoneNumber + ' ' + MyLANG.isRequired),
+                             }),
+        receiver_ic     : yup.string()
+                             .max(64, MyLANG.ReceiverICPassport + ' ' + MyLANG.mustBeMaximum + ' 64 ' + MyLANG.character)
+                             .when('delivery_type', {
+                                 is  : (val: any) => val?.id === MyConfig.DeliveryType.PickUp.id,
+                                 then: yup.string().required(MyLANG.ReceiverICPassport + ' ' + MyLANG.isRequired),
+                             }),
+        delivery_address: yup.object()
+                             .when('delivery_type', {
+                                 is  : (val: any) => val?.id === MyConfig.DeliveryType.Courier.id,
+                                 then: yup.object().required(MyLANG.DeliveryAddress + ' ' + MyLANG.isRequired),
+                             }),
         delivery_method : yup.object()
-                             .required(MyLANG.DeliveryMethod + ' ' + MyLANG.isRequired),
+                             .when('delivery_type', {
+                                 is  : (val: any) => val?.id === MyConfig.DeliveryType.Courier.id,
+                                 then: yup.object().required(MyLANG.DeliveryMethod + ' ' + MyLANG.isRequired),
+                             }),
         payment_method  : yup.object()
                              .required(MyLANG.PaymentMethod + ' ' + MyLANG.isRequired),
+        billing_address : yup.object()
+                             .required(MyLANG.BillingAddress + ' ' + MyLANG.isRequired),
         order_note      : yup.string()
                              .max(1000, MyLANG.OrderNote + ' ' + MyLANG.mustBeMaximum + ' 1000 ' + MyLANG.character),
     }
@@ -96,8 +124,8 @@ const ProductBuyPayment = ({route, navigation}: any) => {
         }
     }, [register]);
 
-    const values                                                                                                          = getValues();
-    const {delivery_type, delivery_address, pickup_address, billing_address, delivery_method, payment_method, order_note} = watch(['delivery_type', 'delivery_address', 'pickup_address', 'billing_address', 'delivery_method', 'payment_method', 'order_note']);
+    const values                                                                                              = getValues();
+    const {delivery_type, delivery_address, pickup_address, billing_address, delivery_method, payment_method} = watch(['delivery_type', 'delivery_address', 'pickup_address', 'billing_address', 'delivery_method', 'payment_method']);
 
 
     useFocusEffect(
@@ -107,7 +135,7 @@ const ProductBuyPayment = ({route, navigation}: any) => {
 
             if (route?.params?.updateAddress === true) {
                 //await MyFunction.fetchAddress(user?.id, user?.customers_telephone);
-                getDeliveryAddress();
+                getDefaultDeliveryAddress();
             }
 
             // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -120,13 +148,11 @@ const ProductBuyPayment = ({route, navigation}: any) => {
 
         dispatch(cartUpdateDelivery(0));
 
-        MyFunction.fetchPaymentMethod(false);
+        MyFunction.fetchDeliveryType(false);
+
         MyFunction.fetchAddress(user?.id, user?.customers_telephone);
-        MyFunction.fetchPickUpAddress(false);
 
         MyFunction.fetchTax(false);
-
-        getDeliveryAddress(false);
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -137,21 +163,10 @@ const ProductBuyPayment = ({route, navigation}: any) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [app_input, addresses, cart]);
 
-    // TODO: on demand validation
     // TODO: validation lag 1 step back
 
 
-    const onBack = () => {
-        MyUtil.stackAction(false,
-                           null,
-                           MyConstant.StackAction.pop,
-                           1,
-                           null,
-                           null
-        )
-    }
-
-    const getDeliveryAddress = (showInfoMessage: any = false) => {
+    const getDefaultDeliveryAddress = (formParam: any = {}, showInfoMessage: any = false) => {
 
         // Pick Default Address:
         let address_default: any         = addresses?.[0];
@@ -162,25 +177,33 @@ const ProductBuyPayment = ({route, navigation}: any) => {
         if (address_default?.id) {
             setValue('delivery_address', address_default, false);
 
-            getDeliveryMethod(address_default, showInfoMessage);
+            onChangeDeliveryPayment(
+                {
+                    'zone_id': address_default?.zone_id,
+                    'city_id': address_default?.city_id,
+                    ...formParam,
+                },
+                showInfoMessage,
+            );
         }
 
-        MyUtil.printConsole(true, 'log', `LOG: getDeliveryAddress: `, {default_address_id, address_default, delivery_address});
+        MyUtil.printConsole(true, 'log', `LOG: getDefaultDeliveryAddress: `, {default_address_id, address_default, delivery_address});
     }
 
-    const getDeliveryMethod = async (item: any, showInfoMessage: any = false) => {
+    const onChangeDeliveryPayment = async (item: any, showInfoMessage: any = false) => {
+
+        setValue('delivery_method', undefined, false);
+        setValue('payment_method', undefined, false);
+
+        dispatch(cartUpdateDelivery(0));
 
         const data = await MyFunction.fetchDeliveryMethod(
             {
-                "zone_id"    : item?.zone_id,
-                "products"   : [{
-                    "final_price": cart?.total,
-                    "products_id": "1"
-                }],
-                "country_id" : item?.countries_id,
-                "postal_code": item?.postcode,
-                "city_id"    : item?.city,
-                "state_id"   : item?.state,
+                'total'  : cart?.total,
+                'time'   : MyUtil.momentFormat(new Date(), MyConstant.MomentFormat["1970-01-01 20:01:01"]),
+                'zone_id': delivery_address?.zone_id,
+                'city_id': delivery_address?.city_id,
+                ...item,
             },
             MyLANG.PleaseWait + '...',
             MyLANG.DeliveryMethodUpdated,
@@ -188,8 +211,9 @@ const ProductBuyPayment = ({route, navigation}: any) => {
         );
 
         if (data) {
-
-            setDeliveryMethodList(data);
+            if (data?.length > 0) {
+                setDeliveryMethodList(data);
+            }
 
             if (showInfoMessage !== false) {
                 MyUtil.showMessage(MyConstant.SHOW_MESSAGE.TOAST, MyLANG.DeliveryMethodUpdated, false);
@@ -200,41 +224,30 @@ const ProductBuyPayment = ({route, navigation}: any) => {
             MyUtil.showMessage(MyConstant.SHOW_MESSAGE.TOAST, MyLANG.DeliveryMethodUpdateFailed, false);
         }
 
+        MyFunction.fetchPaymentMethod(
+            {
+                'total'  : cart?.total,
+                'time'   : MyUtil.momentFormat(new Date(), MyConstant.MomentFormat["1970-01-01 20:01:01"]),
+                'zone_id': delivery_address?.zone_id,
+                'city_id': delivery_address?.city_id,
+                ...item,
+            }, false);
+
         MyUtil.printConsole(true, 'log', `LOG: getDeliveryMethod: `, {item, cart, data});
     }
 
-    const onDeliveryMethod = async (item: any) => {
-
-        let amount = 15; // TODO:
-        if (item) {
-
-        }
-
-        dispatch(cartUpdateDelivery(amount));
-
-        MyUtil.printConsole(true, 'log', `LOG: onDeliveryMethod: `, {item, amount});
-    }
-
-    //
     const onDeliveryType = (item: any) => {
 
         setValue('delivery_type', item, true);
 
+        if (item?.id === MyConfig.DeliveryType.Courier.id && !delivery_address?.id) {
+            getDefaultDeliveryAddress({'delivery_type': item?.id}, false);
+        } else {
+            onChangeDeliveryPayment({'delivery_type': item?.id});
+        }
+
         MyUtil.printConsole(true, 'log', `LOG: onDeliveryType: `, {item, delivery_address});
     }
-
-    const onAddressManage = () => {
-        // MyUtil.printConsole(true, 'log', `LOG: onDeliveryAddressAdd: `, {});
-
-        MyUtil.commonAction(true,
-                            navigation,
-                            MyConstant.CommonAction.navigate,
-                            MyConfig.routeName.MyAddress,
-                            {routeName: MyConfig.routeName.ProductBuyPayment, params: {'updateAddress': true}},
-                            null,
-        )
-    }
-
 
     const onModalVisible = (key: string) => {
 
@@ -253,7 +266,7 @@ const ProductBuyPayment = ({route, navigation}: any) => {
                 break;
 
             case 'delivery_method':
-                if (delivery_type?.id === MyConfig.DevlieryMethod.PickUp) {
+                if (delivery_type?.id === MyConfig.DeliveryType.PickUp.id) {
                     MyUtil.showMessage(MyConstant.SHOW_MESSAGE.TOAST, MyLANG.DeliveryMethodPickupErrorMessage, false);
                 } else if (deliveryMethodList?.length > 0) {
                     setModalVisibleDeliveryMethod(true);
@@ -283,11 +296,17 @@ const ProductBuyPayment = ({route, navigation}: any) => {
 
             case 'pickup_address':
                 setModalVisiblePickupAddress(false);
+
+                const points_pickup_fee: number = Number(item?.points_pickup_fee) > 0 ? Number(item?.points_pickup_fee) : 0;
+                if (Number(points_pickup_fee) > 0) {
+                    dispatch(cartUpdateDelivery(points_pickup_fee));
+                }
+
                 break;
 
             case 'delivery_address':
                 setModalVisibleDeliveryAddress(false);
-                getDeliveryMethod(item, true);
+                onChangeDeliveryPayment({'delivery_type': delivery_type?.id, 'zone_id': item?.zone_id, 'city_id': item?.city_id}, true);
                 break;
 
             case 'billing_address':
@@ -296,7 +315,12 @@ const ProductBuyPayment = ({route, navigation}: any) => {
 
             case 'delivery_method':
                 setModalVisibleDeliveryMethod(false);
-                onDeliveryMethod(item);
+
+                const delivery_cost: number = Number(item?.price) > 0 ? Number(item?.price) : 0;
+                if (Number(delivery_cost) > 0) {
+                    dispatch(cartUpdateDelivery(delivery_cost));
+                }
+
                 break;
 
             case 'payment_method':
@@ -406,6 +430,10 @@ const ProductBuyPayment = ({route, navigation}: any) => {
                 delivery_zone          : delivery_address?.zone_id,
                 delivery_country       : delivery_address?.countries_id,
 
+                receiver_name : values.receiver_name,
+                receiver_phone: values.receiver_phone,
+                receiver_ic   : values.receiver_ic,
+
                 billing_firstname     : billing_address?.firstname,
                 billing_lastname      : billing_address?.lastname,
                 billing_street_address: billing_address?.street,
@@ -415,20 +443,23 @@ const ProductBuyPayment = ({route, navigation}: any) => {
                 billing_zone          : billing_address?.zone_id,
                 billing_country       : billing_address?.countries_id,
 
-                payment_method : payment_method?.id,
-                totalPrice     : cart?.total,
-                currency_code  : MyConfig.Currency.MYR.code,
-                // shipping_cost  : user?.id,
                 shipping_method: delivery_method?.id,
-                comments       : order_note,
+                shipping_cost  : cart?.delivery_charge,
+                payment_method : payment_method?.id,
+
+                is_coupon_applied: cart?.voucher?.amount > 0,
+                coupon_amount    : cart?.voucher?.amount,
+                total_tax        : cart?.tax,
+                totalPrice       : cart?.total,
+
+                comments: values.order_note,
+
+                currency_code: MyConfig.Currency.MYR.code,
 
                 delivery_phone: delivery_address?.phone,
                 billing_phone : billing_address?.phone,
 
                 // currency_value   : user?.id,
-                total_tax        : cart?.tax,
-                is_coupon_applied: cart?.voucher?.amount > 0,
-                coupon_amount    : cart?.voucher?.amount,
             },
             MyLANG.PleaseWait + '...',
             MyLANG.OrderPlacedSuccessfully,
@@ -455,6 +486,27 @@ const ProductBuyPayment = ({route, navigation}: any) => {
         }
     };
 
+    const onAddressManage = () => {
+        // MyUtil.printConsole(true, 'log', `LOG: onDeliveryAddressAdd: `, {});
+
+        MyUtil.commonAction(true,
+                            navigation,
+                            MyConstant.CommonAction.navigate,
+                            MyConfig.routeName.MyAddress,
+                            {routeName: MyConfig.routeName.ProductBuyPayment, params: {'updateAddress': true}},
+                            null,
+        )
+    }
+
+    const onBack = () => {
+        MyUtil.stackAction(false,
+                           null,
+                           MyConstant.StackAction.pop,
+                           1,
+                           null,
+                           null
+        )
+    }
 
     return (
         <Fragment>
@@ -469,6 +521,14 @@ const ProductBuyPayment = ({route, navigation}: any) => {
                     >
 
                         <View style = {[MyStyleSheet.viewPageCard, {marginTop: MyStyle.marginViewGapCardTop}]}>
+                            <Text style = {[{...MyStyleSheet.headerPage, marginBottom: 4}]}>
+                                {MyLANG.CartItems}
+                            </Text>
+                            <CartListItemSmall items = {cart?.items}/>
+
+                        </View>
+
+                        <View style = {MyStyleSheet.viewPageCard}>
                             <Text style = {[{...MyStyleSheet.headerPage, marginBottom: 2}]}>
                                 {MyLANG.DeliveryType}
                             </Text>
@@ -477,32 +537,39 @@ const ProductBuyPayment = ({route, navigation}: any) => {
                             </Text>
 
                             <View style = {[MyStyle.RowBetweenCenter, {marginTop: MyStyle.marginVerticalList}]}>
-                                {MyConfig.deliveryTypes
-                                         .map((prop: any, key: any) =>
-                                                  (
-                                                      <MyMaterialRipple
-                                                          key = {key}
-                                                          style = {[MyStyle.ColumnCenter, styles.rippleDeliveryType, delivery_type?.id === prop?.id && styles.rippleDeliveryTypeSelected]}
-                                                          {...MyStyle.MaterialRipple.drawer}
-                                                          onPress = {() => onDeliveryType(prop)}
-                                                      >
-                                                          <MyIcon.Fontisto
-                                                              name = {prop?.icon}
-                                                              size = {32}
-                                                              color = {MyColor.Material.GREY["800"]}
-                                                              style = {{marginBottom: 12}}
-                                                          />
-                                                          <Text style = {[MyStyleSheet.textListItemTitleDark, {paddingBottom: 14}]}>
-                                                              {prop?.title}
-                                                          </Text>
-                                                      </MyMaterialRipple>
-                                                  )
-                                         )
-                                }
+                                {app_input?.delivery_type && app_input?.delivery_type.map(
+                                    (item: any, index: number) => (
+                                        <MyMaterialRipple
+                                            key = {index}
+                                            style = {[MyStyle.ColumnCenter, styles.rippleDeliveryType, delivery_type?.id === item?.id && styles.rippleDeliveryTypeSelected]}
+                                            {...MyStyle.MaterialRipple.drawer}
+                                            onPress = {() => onDeliveryType(item)}
+                                        >
+                                            <MyFastImage
+                                                source = {[item?.image?.length > 9 ? {'uri': item?.image} : MyImage.logo_white, MyImage.logo_white]}
+                                                style = {{
+                                                    width       : (MyStyle.screenWidth * 0.5) - 120,
+                                                    height      : (MyStyle.screenWidth * 0.5) - 120,
+                                                    marginBottom: 10,
+                                                }}
+                                                resizeMode = "contain"
+                                            />
+                                            {/*<MyIcon.Fontisto
+                                                name = {prop?.icon}
+                                                size = {32}
+                                                color = {MyColor.Material.GREY["800"]}
+                                                style = {{marginBottom: 12}}
+                                            />*/}
+                                            <Text style = {[MyStyleSheet.textListItemTitleDark, {paddingBottom: 14}]}>
+                                                {item?.name}
+                                            </Text>
+                                        </MyMaterialRipple>
+                                    )
+                                )}
                             </View>
                         </View>
 
-                        {(delivery_type?.id === MyConfig.DevlieryMethod.PickUp) &&
+                        {(delivery_type?.id === MyConfig.DeliveryType.PickUp.id) &&
                          <View style = {[MyStyleSheet.viewPageCard, {paddingHorizontal: 0}]}>
 
                              <View style = {[MyStyle.RowBetweenCenter, {paddingHorizontal: MyStyle.paddingHorizontalPage}]}>
@@ -571,13 +638,60 @@ const ProductBuyPayment = ({route, navigation}: any) => {
                          </View>
                         }
 
-                        {(delivery_type?.id === MyConfig.DevlieryMethod.Courier) &&
+                        {(delivery_type?.id === MyConfig.DeliveryType.PickUp.id) &&
+                         <View style = {[MyStyleSheet.viewPageCard, {}]}>
+
+                             <Text style = {[{...MyStyleSheet.headerPage, marginBottom: 2}]}>
+                                 {MyLANG.ReceiverDetails}
+                             </Text>
+                             <Text style = {[MyStyleSheet.textListItemSubTitle, {marginBottom: 4}]}>
+                                 {MyLANG.ReceiverDetailsDesc}
+                             </Text>
+
+                             <View style = {[{marginTop: MyStyle.marginVerticalList}]}>
+                                 <MyInput
+                                     mode = "line"
+                                     floatingLabel = {MyLANG.ReceiverName}
+                                     readyBorderColor = {{borderColor: MyColor.Primary.first}}
+                                     onChangeText = {(text: any) => setValue('receiver_name', text, true)}
+                                     value = {values.receiver_name}
+                                     viewStyle = {{borderColor: MyColor.Material.GREY["300"]}}
+                                     helperText = {{message: errors.receiver_name?.message ? errors.receiver_name.message : null}}
+                                 />
+                                 <MyInput
+                                     mode = "line"
+                                     floatingLabel = {MyLANG.ReceiverPhoneNumber}
+                                     placeholderLabel = "+60 00 0000 0000"
+                                     mask = {"+60 [00] [0000] [9999]"}
+                                     inputProps = {{keyboardType: 'phone-pad'}}
+                                     onChangeText = {(text: any) => setValue('receiver_phone', text, true)}
+                                     value = {values.receiver_phone}
+                                     viewStyle = {{borderColor: MyColor.Material.GREY["300"]}}
+                                     helperText = {{message: errors.receiver_phone?.message ? errors.receiver_phone.message : null}}
+                                 />
+                                 <MyInput
+                                     mode = "line"
+                                     floatingLabel = {MyLANG.ReceiverICPassport}
+                                     readyBorderColor = {{borderColor: MyColor.Primary.first}}
+                                     onChangeText = {(text: any) => setValue('receiver_ic', text, true)}
+                                     value = {values.receiver_ic}
+                                     viewStyle = {{borderColor: MyColor.Material.GREY["300"]}}
+                                     helperText = {{message: errors.receiver_ic?.message ? errors.receiver_ic.message : null}}
+                                 />
+                             </View>
+
+                         </View>
+                        }
+
+                        {(delivery_type?.id === MyConfig.DeliveryType.Courier.id) &&
                          <View style = {[MyStyleSheet.viewPageCard, {paddingHorizontal: 0}]}>
 
                              <View style = {[MyStyle.RowBetweenCenter, {paddingHorizontal: MyStyle.paddingHorizontalPage}]}>
                                  <Text style = {[{...MyStyleSheet.headerPage, marginBottom: 4}]}>{MyLANG.DeliveryAddress}</Text>
-                                 <TouchableOpacity activeOpacity = {0.8}
-                                                   onPress = {onAddressManage}>
+                                 <TouchableOpacity
+                                     activeOpacity = {0.8}
+                                     onPress = {onAddressManage}
+                                 >
                                      <Text style = {{...MyStyleSheet.linkTextList}}>{MyLANG.ManageAddress}</Text>
                                  </TouchableOpacity>
                              </View>
@@ -680,43 +794,7 @@ const ProductBuyPayment = ({route, navigation}: any) => {
                             }
                         </View>
 
-                        <View style = {[MyStyleSheet.viewPageCard, {}]}>
-
-                            <Text style = {[{...MyStyleSheet.headerPage, marginBottom: 2}]}>
-                                {MyLANG.OrderNote}
-                            </Text>
-                            <Text style = {[MyStyleSheet.textListItemSubTitle, {marginBottom: 4}]}>
-                                {MyLANG.PleaseWriteNotesOfYourOrder}
-                            </Text>
-
-                            <View style = {[{marginTop: MyStyle.marginVerticalList}]}>
-                                <TextInput
-                                    style = {{
-                                        fontFamily       : MyStyle.FontFamily.OpenSans.semiBold,
-                                        fontSize         : MyStyle.FontSize.small,
-                                        color            : MyColor.Material.BLACK,
-                                        borderColor      : MyColor.Material.GREY["300"],
-                                        borderWidth      : 1,
-                                        paddingHorizontal: MyStyle.paddingHorizontalList / 2,
-                                    }}
-                                    multiline = {true}
-                                    numberOfLines = {5}
-                                    onChangeText = {(text: any) => setValue('order_note', text, true)}
-                                    // value = {order_note}
-                                />
-                            </View>
-
-                        </View>
-
-                        <View style = {MyStyleSheet.viewPageCard}>
-                            <Text style = {[{...MyStyleSheet.headerPage, marginBottom: 4}]}>
-                                {MyLANG.CartItems}
-                            </Text>
-                            <CartListItemSmall items = {cart?.items}/>
-
-                        </View>
-
-                        {(delivery_type?.id === MyConfig.DevlieryMethod.Courier) &&
+                        {(delivery_type?.id === MyConfig.DeliveryType.Courier.id) &&
                          <View style = {[MyStyleSheet.viewPageCard, {paddingHorizontal: 0, paddingBottom: 0}]}>
                              <View style = {[MyStyle.RowBetweenCenter, {paddingHorizontal: MyStyle.paddingHorizontalPage}]}>
                                  <Text style = {[{...MyStyleSheet.headerPage, marginBottom: 4}]}>{MyLANG.DeliveryMethod}</Text>
@@ -741,11 +819,23 @@ const ProductBuyPayment = ({route, navigation}: any) => {
                                      delivery_method?.id ?
                                      <View style = {[MyStyle.ColumnCenterStart, {flex: 1, marginHorizontal: 14}]}>
                                          <Text style = {[MyStyleSheet.textListItemTitleDark]}>
-                                             {delivery_method?.table_name}
+                                             {delivery_method?.name}
                                          </Text>
-                                         <Text style = {[MyStyleSheet.textListItemSubTitle]}>
-                                             {'1 day delivery\nSuper express cost RM15.00'}
-                                         </Text>
+                                         <NumberFormat
+                                             value = {delivery_method?.price}
+                                             defaultValue = {0}
+                                             displayType = {'text'}
+                                             thousandSeparator = {true}
+                                             decimalScale = {2}
+                                             fixedDecimalScale = {true}
+                                             decimalSeparator = {'.'}
+                                             renderText = {
+                                                 (value: any) =>
+                                                     <Text style = {MyStyleSheet.textListItemSubTitle}>
+                                                         {MyLANG.DeliveryCost} {MyConfig.Currency.MYR.symbol} {value}
+                                                     </Text>
+                                             }
+                                         />
                                      </View>
                                                          :
                                      <View style = {[MyStyle.ColumnCenterStart, {flex: 1, marginHorizontal: 14}]}>
@@ -818,6 +908,34 @@ const ProductBuyPayment = ({route, navigation}: any) => {
 
                         </View>
 
+                        <View style = {[MyStyleSheet.viewPageCard, {}]}>
+
+                            <Text style = {[{...MyStyleSheet.headerPage, marginBottom: 2}]}>
+                                {MyLANG.OrderNote}
+                            </Text>
+                            <Text style = {[MyStyleSheet.textListItemSubTitle, {marginBottom: 4}]}>
+                                {MyLANG.PleaseWriteNotesOfYourOrder}
+                            </Text>
+
+                            <View style = {[{marginTop: MyStyle.marginVerticalList}]}>
+                                <TextInput
+                                    style = {{
+                                        fontFamily       : MyStyle.FontFamily.OpenSans.semiBold,
+                                        fontSize         : MyStyle.FontSize.small,
+                                        color            : MyColor.Material.BLACK,
+                                        borderColor      : MyColor.Material.GREY["300"],
+                                        borderWidth      : 1,
+                                        paddingHorizontal: MyStyle.paddingHorizontalList / 2,
+                                    }}
+                                    multiline = {true}
+                                    numberOfLines = {5}
+                                    onChangeText = {(text: any) => setValue('order_note', text, true)}
+                                    // value = {order_note}
+                                />
+                            </View>
+
+                        </View>
+
                         <CartPageTotal
                             cart = {cart}
                             service_charge = {false}
@@ -837,7 +955,7 @@ const ProductBuyPayment = ({route, navigation}: any) => {
 
                 </View>
 
-                {delivery_type?.id === MyConfig.DevlieryMethod.PickUp &&
+                {delivery_type?.id === MyConfig.DeliveryType.PickUp.id &&
                  <MyModal
                      visible = {modalVisiblePickupAddress}
                      onRequestClose = {() => setModalVisiblePickupAddress(false)}
@@ -860,7 +978,7 @@ const ProductBuyPayment = ({route, navigation}: any) => {
                  />
                 }
 
-                {delivery_type?.id === MyConfig.DevlieryMethod.Courier &&
+                {delivery_type?.id === MyConfig.DeliveryType.Courier.id &&
                  <MyModal
                      visible = {modalVisibleDeliveryAddress}
                      onRequestClose = {() => setModalVisibleDeliveryAddress(false)}
@@ -902,7 +1020,7 @@ const ProductBuyPayment = ({route, navigation}: any) => {
                     }
                 />
 
-                {(deliveryMethodList?.length > 0 && delivery_type?.id === MyConfig.DevlieryMethod.Courier) &&
+                {(deliveryMethodList?.length > 0 && delivery_type?.id === MyConfig.DeliveryType.Courier.id) &&
                  <MyModal
                      visible = {modalVisibleDeliveryMethod}
                      onRequestClose = {() => setModalVisibleDeliveryMethod(false)}
@@ -915,7 +1033,8 @@ const ProductBuyPayment = ({route, navigation}: any) => {
                                      selected = {delivery_method?.id}
                                      onItem = {(item: any) => onModalItem(item, 'delivery_method')}
                                      items = {deliveryMethodList}
-                                     subTitleText = "table_name"
+                                     titleText = "name"
+                                     bodyText = "priceText"
                                  />
                              }
                          />

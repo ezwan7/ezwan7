@@ -26,11 +26,12 @@ import {MyConfig, MyAPI} from "../shared/MyConfig";
 import MyIcon from "../components/MyIcon";
 import MyLANG from "./MyLANG";
 import MyMaterialRipple from "../components/MyMaterialRipple";
-import {getMyIcon, IconStar} from "../components/MyComponent";
+import {IconStar} from "../components/MyComponent";
+import {getMyIcon} from "../components/MyIcon";
 import {MyFastImage} from "../components/MyFastImage";
 import {store} from "../store/MyStore";
 import {MyButton} from "../components/MyButton";
-import {ShadowBox} from "react-native-neomorph-shadows";
+import {Shadow} from "react-native-neomorph-shadows";
 import NumberFormat from 'react-number-format';
 import {MyImageBackground} from "../components/MyImageBackground";
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
@@ -293,7 +294,7 @@ const CustomDrawerContent = ({props}: any) => {
                             <MyFastImage
                                 source = {[user?.customers_picture?.length > 9 ? {'uri': user?.customers_picture} : MyImage.defaultAvatar, MyImage.defaultAvatar]}
                                 style = {customDrawer.imageProfile}
-                                resizeMode="cover"
+                                resizeMode = "cover"
                             />
                         </View>
                         <Text
@@ -762,7 +763,40 @@ const ImageSliderProduct             = ({item, style}: any) => {
         </>
     )
 }
-const ImageSliderBanner              = ({item, onPress, style}: any) => {
+const ImageSliderCounter             = ({count, imageSliderIndex}: any) => {
+    // MyUtil.printConsole(true, 'log', 'LOG: ImageSliderBanner: ', {item, style});
+
+    return (
+        <View style = {[MyStyle.RowCenter, {
+            zIndex  : 1000,
+            position: "absolute",
+            left    : 0,
+            right   : 0,
+            top     : (MyStyle.screenWidth / 1.5) - 18,
+        }]}>
+            {
+                Number(count) > 0 ? Array(count).fill('').map(
+                    (item: any, index: number) => (
+                        <MyIcon.MaterialIcons
+                            key = {index}
+                            name = {index === imageSliderIndex ? "lens" : "panorama-fish-eye"}
+                            size = {12}
+                            color = {index === imageSliderIndex ? MyColor.Primary.first : MyColor.textDarkPrimary}
+                            style = {{marginRight: 5}}
+                        />
+                    ))
+                                  :
+                <MyIcon.MaterialIcons
+                    name = "lens"
+                    size = {12}
+                    color = {MyColor.Primary.first}
+                    style = {{marginRight: 5}}
+                />
+            }
+        </View>
+    )
+}
+const ImageSliderBanner              = ({item, onPress, resizeMode, style}: any) => {
     // MyUtil.printConsole(true, 'log', 'LOG: ImageSliderBanner: ', {item, style});
 
     return (
@@ -776,6 +810,7 @@ const ImageSliderBanner              = ({item, onPress, style}: any) => {
                 >
                     <MyImageBackground
                         source = {[{'uri': prop.image}, MyImage.defaultBanner]}
+                        resizeMode = {resizeMode || "cover"}
                         style = {[bannerHorizontalList.image, style]}
                         children = {
                             prop?.title &&
@@ -1083,10 +1118,10 @@ const CartListItem          = (props: any) => {
                                                  borderRadius     : 100,
                                              }]}>
                                                  <Text style = {[MyStyleSheet.textListItemSubTitle3AltDark, {}]}>{item.products_name}
-                                                 {
-                                                     (Number(item.products_price) > 0) &&
-                                                     <Text style = {[MyStyleSheet.textListItemSubTitle3, {}]}>&nbsp;&nbsp;+ {item.products_price}</Text>
-                                                 }
+                                                     {
+                                                         (Number(item.products_price) > 0) &&
+                                                         <Text style = {[MyStyleSheet.textListItemSubTitle3, {}]}>&nbsp;&nbsp;+ {item.products_price}</Text>
+                                                     }
                                                  </Text>
                                              </View>
                                          </View>
@@ -1158,23 +1193,9 @@ const CartPageHeader        = (props: any) => {
     // MyUtil.printConsole(true, 'log', 'LOG: CartPageHeader: ', props);
 
     return (
-        <ShadowBox
-            useSvg
-            style = {{
-                shadowOffset : {width: 0, height: 2},
-                shadowOpacity: 0.5,
-                shadowColor  : "#000000",
-                shadowRadius : 5,
-                width        : MyStyle.screenWidth,
-                height       : MyStyle.headerHeight,
-                zIndex       : 1000,
-            }}
-        >
+        <Shadow style = {MyStyle.neomorphShadow.header}>
             <LinearGradient
-                start = {MyStyle.LGHeaderPrimary.start}
-                end = {MyStyle.LGHeaderPrimary.end}
-                locations = {MyStyle.LGHeaderPrimary.locations}
-                colors = {MyStyle.LGHeaderPrimary.colors}
+                {...MyStyle.LGHeaderPrimary}
                 style = {{
                     flex          : 1,
                     flexDirection : "row",
@@ -1202,24 +1223,14 @@ const CartPageHeader        = (props: any) => {
 
                 </View>
             </LinearGradient>
-        </ShadowBox>
+        </Shadow>
     )
 }
 const CartPageBottomButtons = (props: any) => {
     // MyUtil.printConsole(true, 'log', 'LOG: CartPageBottomButtons: ', props);
 
     return (
-        <ShadowBox
-            useSvg
-            style = {{
-                shadowOffset : {width: 0, height: -1},
-                shadowOpacity: 0.2,
-                shadowColor  : "#000000",
-                shadowRadius : 2,
-                height       : 46,
-                width        : MyStyle.screenWidth,
-            }}
-        >
+        <Shadow style = {MyStyle.neomorphShadow.buttonBottom}>
             <View
                 style = {{
                     flexDirection  : "row",
@@ -1261,7 +1272,7 @@ const CartPageBottomButtons = (props: any) => {
                  />
                 }
             </View>
-        </ShadowBox>
+        </Shadow>
     )
 }
 const CartPageTotal         = (props: any) => {
@@ -1726,7 +1737,7 @@ const AddressListItem              = ({item, onPress, rippleStyle, iconLeft, add
                 }
                 <Text style = {[MyStyleSheet.textListItemSubTitleAlt, {marginBottom: 4}]}>{phone}</Text>
                 <Text style = {MyStyleSheet.textListItemSubTitleAlt}>{item?.street}</Text>
-                <Text style = {MyStyleSheet.textListItemSubTitleAlt}>{item?.city}</Text>
+                <Text style = {MyStyleSheet.textListItemSubTitleAlt}>{item?.city_name}</Text>
                 <Text style = {MyStyleSheet.textListItemSubTitleAlt}>{item?.zone_name}</Text>
                 <Text style = {MyStyleSheet.textListItemSubTitleAlt}>{item?.country_name}</Text>
                 <Text style = {MyStyleSheet.textListItemSubTitleAlt}>{item?.postcode}</Text>
@@ -2240,23 +2251,9 @@ const ModalFullScreenPage = (props: any) => {
 
     return (
         <>
-            <ShadowBox
-                useSvg
-                style = {{
-                    shadowOffset : {width: 0, height: 2},
-                    shadowOpacity: 0.5,
-                    shadowColor  : "#000000",
-                    shadowRadius : 5,
-                    width        : MyStyle.screenWidth,
-                    height       : MyStyle.headerHeightAdjusted,
-                    zIndex       : 1000,
-                }}
-            >
+            <Shadow style = {MyStyle.neomorphShadow.headerHeightAdjusted}>
                 <LinearGradient
-                    start = {MyStyle.LGHeaderPrimary.start}
-                    end = {MyStyle.LGHeaderPrimary.end}
-                    locations = {MyStyle.LGHeaderPrimary.locations}
-                    colors = {MyStyle.LGHeaderPrimary.colors}
+                    {...MyStyle.LGHeaderPrimary}
                     style = {{
                         flex          : 1,
                         flexDirection : "row",
@@ -2292,7 +2289,7 @@ const ModalFullScreenPage = (props: any) => {
                         </Text>
                     }
                 </LinearGradient>
-            </ShadowBox>
+            </Shadow>
 
             <ScrollView
                 contentInsetAdjustmentBehavior = "automatic"
@@ -3573,6 +3570,7 @@ export {
     ImageSliderProduct,
     ImageSliderBanner,
     ImageSliderBannerContentLoader,
+    ImageSliderCounter,
 
     ProductDetailsContentLoader,
     CartPageHeader,

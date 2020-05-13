@@ -1,20 +1,29 @@
 const initialState: any = {
-    user        : {},
-    device_token: null,
+    user          : {},
+    auth_token    : null,
+    firebase_token: null,
 };
 
 const types = {
-    UPDATE_DEVICE_TOKEN: 'UPDATE_DEVICE_TOKEN',
-    SIGN_IN            : 'SIGN_IN',
-    SIGN_OUT           : "SIGN_OUT",
-    SIGN_UP            : "SIGN_UP",
-    UPDATE_USER        : "UPDATE_USER",
-    EMPTY_AUTH         : 'EMPTY_AUTH',
+    UPDATE_AUTH_TOKEN    : 'UPDATE_AUTH_TOKEN',
+    UPDATE_FIREBASE_TOKEN: 'UPDATE_FIREBASE_TOKEN',
+    SIGN_IN              : 'SIGN_IN',
+    SIGN_OUT             : "SIGN_OUT",
+    SIGN_UP              : "SIGN_UP",
+    UPDATE_USER          : "UPDATE_USER",
+    EMPTY_AUTH           : 'EMPTY_AUTH',
 }
 
-export const device_token_update = (item: any) => {
+export const auth_token_update = (item: any) => {
     return {
-        type   : types.UPDATE_DEVICE_TOKEN,
+        type   : types.UPDATE_AUTH_TOKEN,
+        payload: item,
+    }
+}
+
+export const firebase_token_update = (item: any) => {
+    return {
+        type   : types.UPDATE_FIREBASE_TOKEN,
         payload: item,
     }
 }
@@ -52,10 +61,16 @@ export const authEmpty = () => {
 const AuthReducer = (state: any = initialState, action: any) => {
     switch (action.type) {
 
-        case types.UPDATE_DEVICE_TOKEN:
+        case types.UPDATE_AUTH_TOKEN:
             return {
                 ...state,
-                device_token: action.payload
+                auth_token: action.payload
+            }
+
+        case types.UPDATE_FIREBASE_TOKEN:
+            return {
+                ...state,
+                firebase_token: action.payload
             }
 
         case types.UPDATE_USER:

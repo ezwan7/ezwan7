@@ -6,8 +6,9 @@ import {createBottomTabNavigator} from "@react-navigation/bottom-tabs";
 import {createDrawerNavigator} from "@react-navigation/drawer";
 
 import {HeaderButtonLeft} from "./components/MyButton";
-import {getImage, getMyIcon, HeaderGradientPrimary, HeaderGradientPrimaryLogo, MyHeaderBackButton} from "./components/MyComponent";
+import {getImage, HeaderGradientPrimary, HeaderGradientPrimaryLogo, MyHeaderBackButton} from "./components/MyComponent";
 import {CustomDrawerContent, CartIconWithBadge} from "./shared/MyContainer";
+import {getMyIcon} from "./components/MyIcon";
 
 import SplashScreen from './screens/Splash';
 
@@ -164,7 +165,7 @@ const HomeScreens =
                   component = {HomeScreen}
                   options = {({route, navigation}: any) => ({
                       title           : "",
-                      headerLeft      : () =>
+                      /*headerLeft      : () =>
                           <HeaderButtonLeft
                               icon = {{name: 'menu'}}
                               onPress = {
@@ -176,7 +177,7 @@ const HomeScreens =
                                                             null
                                   )
                               }
-                          />,
+                          />,*/
                       headerBackground: HeaderGradientPrimaryLogo,
                       ...MyStyleCommon.StackOptions.BottomTabStack,
                   })}
@@ -186,7 +187,7 @@ const HomeScreens =
                   component = {CategoryListScreen}
                   options = {({route, navigation}: any) => ({
                       title           : "",
-                      headerLeft      : () =>
+                      /*headerLeft      : () =>
                           <HeaderButtonLeft
                               icon = {{name: 'menu'}}
                               onPress = {
@@ -198,7 +199,7 @@ const HomeScreens =
                                                             null
                                   )
                               }
-                          />,
+                          />,*/
                       headerBackground: HeaderGradientPrimaryLogo,
                       ...MyStyleCommon.StackOptions.BottomTabStack,
                   })}
@@ -229,9 +230,9 @@ const HomeScreens =
                   component = {ProductBuyScreen}
                   options = {({route, navigation}: any) => ({
                       title           : "",
-                      headerLeft      : (props: any) =>
-                          /* route?.params?.NAVIGATION_PARAMS_ACTION === MyConstant.NAVIGATION_PARAMS_ACTION.NO_HEADER_LEFT_PUSH ?
-                           <HeaderBackButton {...props}/>*/
+                      /*headerLeft      : (props: any) =>
+                          /!* route?.params?.NAVIGATION_PARAMS_ACTION === MyConstant.NAVIGATION_PARAMS_ACTION.NO_HEADER_LEFT_PUSH ?
+                           <HeaderBackButton {...props}/>*!/
                           <HeaderButtonLeft
                               icon = {{name: 'menu'}}
                               onPress = {
@@ -243,7 +244,7 @@ const HomeScreens =
                                                             null
                                   )
                               }
-                          />,
+                          />,*/
                       headerBackground: HeaderGradientPrimaryLogo,
                       ...MyStyleCommon.StackOptions.BottomTabStack,
                   })}
@@ -253,7 +254,7 @@ const HomeScreens =
                   component = {SettingsScreen}
                   options = {({route, navigation}: any) => ({
                       title           : "",
-                      headerLeft      : () =>
+                     /* headerLeft      : () =>
                           <HeaderButtonLeft
                               icon = {{name: 'menu'}}
                               onPress = {
@@ -265,7 +266,7 @@ const HomeScreens =
                                                             null
                                   )
                               }
-                          />,
+                          />,*/
                       headerBackground: HeaderGradientPrimaryLogo,
                       ...MyStyleCommon.StackOptions.BottomTabStack,
                   })}
@@ -563,6 +564,7 @@ const BottomTabNavigator = () => {
     return (
         <BottomTab.Navigator
             initialRouteName = {MyConfig.routeName.BottomTab1}
+            backBehavior = "history"
             screenOptions = {({route}) => ({
                 tabBarIcon: ({focused, color}) => {
                     let fontFamily = MyConstant.VectorIcon.SimpleLineIcons;
@@ -662,7 +664,7 @@ const BottomTabNavigator = () => {
 }
 
 // DRAWER:
-const Drawer          = createDrawerNavigator();
+/*const Drawer          = createDrawerNavigator();
 const DrawerNavigator = () => {
 
     return (
@@ -679,7 +681,7 @@ const DrawerNavigator = () => {
                 contentContainerStyle: {backgroundColor: MyColor.Primary.first},
                 style                : {},
             }}
-            /*drawerContentOptions = {{
+            /!*drawerContentOptions = {{
                 activeTintColor      : MyColor.Primary.first,
                 activeBackgroundColor: MyColor.Material.GREY["200"],
                 inactiveTintColor    : MyColor.Material.GREY["700"],
@@ -690,12 +692,12 @@ const DrawerNavigator = () => {
                 },
                 contentContainerStyle: {},
                 style                : {},
-            }}*/
+            }}*!/
         >
             <Drawer.Screen
                 name = {MyConfig.routeName.DrawerOne}
                 component = {BottomTabNavigator}
-                /*options = {{
+                /!*options = {{
                     drawerLabel: MyLANG.Home,
                     drawerIcon : ({focused: boolean, color: string, size: number}) => getImage(
                         {
@@ -708,10 +710,10 @@ const DrawerNavigator = () => {
                             }
                         }
                     )
-                }}*/
+                }}*!/
             />
         </Drawer.Navigator>
     );
-}
+}*/
 
-export {SplashStackScreen, IntroStackScreen, LoginStackScreen, DrawerNavigator};
+export {SplashStackScreen, IntroStackScreen, LoginStackScreen, BottomTabNavigator};

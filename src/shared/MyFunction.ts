@@ -17,6 +17,126 @@ import {cartUpdateTax} from "../store/CartRedux";
 
 const MyFunction = {
 
+    updateBiometryType: async (storeInRedux: boolean = true, showLoader: any = false, showInfoMessage: any = false, showErrorMessage: any = false) => {
+
+        const biometryType: any = await MyUtil.keychainGetBiometryType(showErrorMessage);
+        MyUtil.printConsole(true, 'log', 'LOG: keychainGetBiometryType: await-response: ', {'biometryType': biometryType});
+
+        if (storeInRedux === true) {
+            store.dispatch(appInfoUpdate(biometryType, 'biometryType'));
+        }
+    },
+
+    updateDeviceInfo: async (type: string = 'ALL', storeInRedux: boolean = true, updateBackend: boolean = true, askPermission: boolean = true, showLoader: any = false, showErrorMessage: any = false) => {
+
+        const device: any = await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getDeviceToken);
+
+        const deviceInfo: any = {
+            systemName     : await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getSystemName),
+            systemVersion  : await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getSystemVersion),
+            apiLevel       : await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getApiLevel),
+            model          : await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getModel),
+            manufacturer   : await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getManufacturer),
+            deviceId       : await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getDeviceId),
+            uniqueId       : await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getUniqueId),
+            applicationName: await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getApplicationName),
+            buildNumber    : await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getBuildNumber),
+            bundleId       : await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getBundleId),
+            totalMemory    : await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getTotalMemory),
+            userAgent      : await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getUserAgent),
+        }
+        MyUtil.printConsole(true, 'log', 'LOG: GetDeviceInfo: await-response: ', {'deviceInfo': deviceInfo});
+
+        if (storeInRedux === true) {
+            store.dispatch(appInfoUpdate(deviceInfo, 'deviceInfo'));
+        }
+
+        if (updateBackend) {
+
+            const {user, firebase_token} = store.getState().auth;
+            const user_location          = store.getState().user_location;
+
+            const response: any = await MyUtil
+                .myHTTP(true, MyConstant.HTTP_POST, MyAPI.register_device,
+                        {
+                            'language_id' : MyConfig.LanguageActive,
+                            'device_type' : deviceInfo.systemName,
+                            'ram'         : deviceInfo.totalMemory,
+                            'processor'   : null,
+                            'device_os'   : deviceInfo.systemName,
+                            'device_model': deviceInfo.model,
+                            'manufacturer': deviceInfo.manufacturer,
+
+                            'customers_id': user?.id,
+                            'device_id'   : firebase_token,
+                            'location'    : user_location?.formatted_address,
+
+                            'app_ver'      : MyConfig.app_version,
+                            'app_build_ver': MyConfig.app_build_version,
+                            'platform'     : MyConfig.app_platform,
+                            'device'       : null,
+                        }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, showLoader, true, false
+                );
+
+            MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
+                'apiURL': MyAPI.register_device, 'response': response
+            });
+
+            if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.status === 200 && response.data?.data?.success === '1') {
+
+                // MyUtil.showMessage(MyConstant.SHOW_MESSAGE.TOAST, response.data?.data?.message || MyLANG.Success, false);
+
+            } else {
+
+                if (showErrorMessage !== false) {
+                    MyUtil.showMessage(showErrorMessage.showMessage, showErrorMessage.message, false);
+                }
+            }
+        }
+    },
+
+    getUserLocation: async (type: string, options: any, askPermission: boolean = true, showLoader: any = false, showMessage: any) => {
+
+        const position: any = await MyUtil.GetCurrentPosition(options, askPermission, showLoader, showMessage);
+        MyUtil.printConsole(true, 'log', 'LOG: GetCurrentPosition: await-response: ', {
+            'position': position,
+        });
+        if (position?.type === MyConstant.RESPONSE.TYPE.data && position.data?.coords?.latitude && position.data?.coords?.longitude) {
+
+            const accuracy  = position.data?.coords?.accuracy;
+            const latitude  = position.data?.coords?.latitude;
+            const longitude = position.data?.coords?.longitude;
+
+            const geocodePosition: any = await MyUtil.GeocodePosition(latitude, longitude, showMessage);
+            MyUtil.printConsole(true, 'log', 'LOG: GeocodePosition: await-response: ', {
+                'geocodePosition': geocodePosition,
+            });
+            if (geocodePosition?.results?.[0]?.address_components?.[0]) {
+
+                const user_location: any = MyUtil.generateLocation(geocodePosition, accuracy, latitude, longitude);
+
+                switch (type) {
+                    case  MyConstant.GeolocationFetchType.store:
+                        store.dispatch(userLocationUpdate(user_location, 'all'));
+                        break;
+                    case  MyConstant.GeolocationFetchType.return:
+                        return user_location;
+                    default:
+                        return user_location;
+                }
+            }
+        }
+
+        return false;
+
+        /*const location: any = await MyFunction.getUserLocation(MyConstant.GeolocationFetchType.return,
+                                                               MyConfig.geoLocationOption,
+                                                               true,
+                                                               MyLANG.PleaseWait + '...',
+                                                               MyConstant.SHOW_MESSAGE.ALERT
+        );*/
+    },
+
     loginFacebook: async () => {
         const facebookLogin: any = await MyAuth.loginFacebook(MyConstant.SHOW_MESSAGE.TOAST);
         MyUtil.printConsole(true, 'log', 'LOG: facebookLogin: await-response: ', {
@@ -110,7 +230,7 @@ const MyFunction = {
 
             } else if (showInfoMessage !== false) {
 
-                MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message, false);
+                MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message || response.data?.data?.message, false);
             }
 
         } else {
@@ -152,7 +272,7 @@ const MyFunction = {
 
         } else {
             if (showInfoMessage !== false) {
-                MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message, false);
+                MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message || response.data?.data?.message, false);
             }
         }
     },
@@ -228,6 +348,38 @@ const MyFunction = {
         return false;
     },
 
+    fetchCities: async (state_id: number, showLoader: any = MyLANG.PleaseWait + '...', showInfoMessage: any = false, showErrorMessage: any = false) => {
+        const response: any = await MyUtil
+            .myHTTP(false, MyConstant.HTTP_POST, MyAPI.cities,
+                    {
+                        'language_id': MyConfig.LanguageActive,
+                        'zone_id'    : state_id,
+
+                        'app_ver'      : MyConfig.app_version,
+                        'app_build_ver': MyConfig.app_build_version,
+                        'platform'     : MyConfig.app_platform,
+                        'device'       : null,
+                    }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, showLoader, true, false
+            );
+
+        MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
+            'apiURL': MyAPI.cities, 'response': response
+        });
+
+        if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.status === 200 && response.data?.data?.data?.length > 0) {
+
+            return response.data.data.data;
+
+        } else {
+
+            if (showErrorMessage !== false) {
+                MyUtil.showMessage(showErrorMessage.showMessage, showErrorMessage.message, false);
+            }
+        }
+
+        return false;
+    },
+
     fetchPickUpAddress: async (showLoader: any = MyLANG.PleaseWait + '...', showInfoMessage: any = false, showErrorMessage: any = false) => {
         const response: any = await MyUtil
             .myHTTP(false, MyConstant.HTTP_POST, MyAPI.pickup_address,
@@ -264,7 +416,7 @@ const MyFunction = {
             store.dispatch(appInputUpdate(dataReduced, 'pickup_address'));
 
             if (showInfoMessage !== false) {
-                MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message, false);
+                MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message || response.data?.data?.message, false);
             }
 
         } else {
@@ -298,12 +450,12 @@ const MyFunction = {
 
             store.dispatch(appInputUpdate(data, 'tax_rate'));
 
-            if(Number.isFinite(Number(data?.tax_rate))){
+            if (Number.isFinite(Number(data?.tax_rate))) {
                 store.dispatch(cartUpdateTax(Number(data?.tax_rate)));
             }
 
             if (showInfoMessage !== false) {
-                MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message, false);
+                MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message || response.data?.data?.message, false);
             }
 
         } else {
@@ -314,11 +466,13 @@ const MyFunction = {
         }
     },
 
-    fetchPaymentMethod: async (showLoader: any = MyLANG.PleaseWait + '...', showInfoMessage: any = false, showErrorMessage: any = false) => {
+    fetchPaymentMethod: async (formParam: any, showLoader: any = MyLANG.PleaseWait + '...', showInfoMessage: any = false, showErrorMessage: any = false) => {
         const response: any = await MyUtil
             .myHTTP(false, MyConstant.HTTP_POST, MyAPI.payment_methods,
                     {
                         'language_id': MyConfig.LanguageActive,
+
+                        ...formParam,
 
                         'app_ver'      : MyConfig.app_version,
                         'app_build_ver': MyConfig.app_build_version,
@@ -338,7 +492,7 @@ const MyFunction = {
             store.dispatch(appInputUpdate(data, 'payment_method'));
 
             if (showInfoMessage !== false) {
-                MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message, false);
+                MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message || response.data?.data?.message, false);
             }
 
         } else {
@@ -349,18 +503,50 @@ const MyFunction = {
         }
     },
 
+    fetchDeliveryType: async (showLoader: any = MyLANG.PleaseWait + '...', showInfoMessage: any = false, showErrorMessage: any = false) => {
+        const response: any = await MyUtil
+            .myHTTP(false, MyConstant.HTTP_POST, MyAPI.delivery_type,
+                    {
+                        'language_id': MyConfig.LanguageActive,
+
+                        'app_ver'      : MyConfig.app_version,
+                        'app_build_ver': MyConfig.app_build_version,
+                        'platform'     : MyConfig.app_platform,
+                        'device'       : null,
+                    }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, showLoader, true, false
+            );
+
+        MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
+            'apiURL': MyAPI.delivery_type, 'response': response
+        });
+
+        if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.status === 200 && response.data.data) {
+
+            const data = response.data.data;
+
+            store.dispatch(appInputUpdate(data, 'delivery_type'));
+
+            if (showInfoMessage !== false) {
+                MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message || response.data?.data?.message, false);
+            }
+
+        } else {
+
+            if (showErrorMessage !== false) {
+                MyUtil.showMessage(showErrorMessage.showMessage, showErrorMessage.message, false);
+            }
+        }
+
+        return false;
+    },
+
     fetchDeliveryMethod: async (formParam: any, showLoader: any = MyLANG.PleaseWait + '...', showInfoMessage: any = false, showErrorMessage: any = false) => {
         const response: any = await MyUtil
             .myHTTP(false, MyConstant.HTTP_POST, MyAPI.delivery_method,
                     {
                         'language_id': MyConfig.LanguageActive,
 
-                        "tax_zone_id": formParam?.zone_id,
-                        "products"   : formParam?.products,
-                        "country_id" : formParam?.country_id,
-                        "postcode"   : formParam?.postal_code,
-                        "city"       : formParam?.city_id,
-                        "state"      : formParam?.state_id,
+                        ...formParam,
 
                         'app_ver'      : MyConfig.app_version,
                         'app_build_ver': MyConfig.app_build_version,
@@ -375,9 +561,42 @@ const MyFunction = {
 
         if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.status === 200 && response.data?.data?.success === '1') {
 
-            const data = response.data?.data?.data;
-            if (data?.length > 0) {
-                return data;
+
+            if (formParam?.delivery_type === MyConfig.DeliveryType.Courier.id) {
+                const data = response.data?.data?.data;
+                if (data.length > 0) {
+                    const dataReduced = data.reduce((accumulator: any, item: any) => {
+                        accumulator.push(
+                            {
+                                ...item,
+                                priceText: `${MyLANG.DeliveryCost} ${MyConfig.Currency.MYR.symbol} ${item.price}`,
+                            }
+                        );
+                        return accumulator;
+
+                    }, []);
+
+                    return dataReduced;
+                }
+
+            } else {
+                const data        = response.data?.data?.data?.[0]?.data;
+                const dataReduced = data.reduce((accumulator: any, item: any) => {
+                    accumulator.push(
+                        {
+                            ...item,
+                            id         : item?.points_id,
+                            addressText: `${item.points_address}\n${item.points_city}\n${item.points_state}\n${item.country_name}\n${item.points_zip}`,
+                            footerText : `${MyLANG.OpeningHours}: ${item.points_opening_hours}\n${MyLANG.PickupFee}: ${MyConfig.Currency.MYR.symbol} ${item.points_pickup_fee}`,
+                        }
+                    );
+                    return accumulator;
+
+                }, []);
+
+                store.dispatch(appInputUpdate(dataReduced, 'pickup_address'));
+
+                return true;
             }
 
         } else {
@@ -414,7 +633,7 @@ const MyFunction = {
             store.dispatch(appInputUpdate(data, 'filter_method'));
 
             if (showInfoMessage !== false) {
-                MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message, false);
+                MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message || response.data?.data?.message, false);
             }
 
         } else {
@@ -625,7 +844,7 @@ const MyFunction = {
                 const dataReduced = data.reduce((accumulator: any, item: any) => {
                     const addressText = MyUtil.generateAddress(null,
                                                                item?.street,
-                                                               item?.city,
+                                                               item?.city_name,
                                                                item?.zone_name,
                                                                item?.country_name,
                                                                item?.postcode
@@ -644,7 +863,7 @@ const MyFunction = {
             }
 
             if (showInfoMessage !== false) {
-                MyUtil.showMessage(showInfoMessage.showMessage, response.data?.data?.message || showInfoMessage.message, false);
+                MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message || response.data?.data?.message, false);
             }
 
         } else {
@@ -676,7 +895,7 @@ const MyFunction = {
                         'entry_street_address': formParam?.street_address,
                         'entry_suburb'        : formParam?.city,
                         'entry_postcode'      : formParam?.postal_code,
-                        'entry_city'          : formParam?.city,
+                        'entry_city_id'       : formParam?.city,
                         'entry_zone_id'       : formParam?.state,
                         'entry_country_id'    : formParam?.country,
                         'entry_company'       : formParam?.address_title,
@@ -698,7 +917,7 @@ const MyFunction = {
         if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.status === 200 && response.data?.data?.success === '1') {
 
             if (showInfoMessage !== false) {
-                MyUtil.showMessage(showInfoMessage.showMessage, response.data?.data?.message || showInfoMessage.message, false);
+                MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message || response.data?.data?.message, false);
             }
 
             if (navigationActions !== false) {
@@ -735,7 +954,7 @@ const MyFunction = {
                         'entry_street_address': formParam?.street_address,
                         'entry_suburb'        : formParam?.city,
                         'entry_postcode'      : formParam?.postal_code,
-                        'entry_city'          : formParam?.city,
+                        'entry_city_id'       : formParam?.city,
                         'entry_zone_id'       : formParam?.state,
                         'entry_country_id'    : formParam?.country,
                         'entry_company'       : formParam?.address_title,
@@ -757,7 +976,7 @@ const MyFunction = {
         if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.status === 200 && response.data?.data?.success === '1') {
 
             if (showInfoMessage !== false) {
-                MyUtil.showMessage(showInfoMessage.showMessage, response.data?.data?.message || showInfoMessage.message, false);
+                MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message || response.data?.data?.message, false);
             }
 
             if (navigationActions !== false) {
@@ -804,7 +1023,7 @@ const MyFunction = {
         if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.status === 200 && response.data?.data?.success === '1') {
 
             if (showInfoMessage !== false) {
-                MyUtil.showMessage(showInfoMessage.showMessage, response.data?.data?.message || showInfoMessage.message, false);
+                MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message || response.data?.data?.message, false);
             }
 
             if (navigationActions !== false) {
@@ -818,116 +1037,6 @@ const MyFunction = {
             }
         }
 
-    },
-
-    getUserLocation: async (type: string, options: any, askPermission: boolean = true, showLoader: any = false, showMessage: any) => {
-
-        const position: any = await MyUtil.GetCurrentPosition(options, askPermission, showLoader, showMessage);
-        MyUtil.printConsole(true, 'log', 'LOG: GetCurrentPosition: await-response: ', {
-            'position': position,
-        });
-        if (position?.type === MyConstant.RESPONSE.TYPE.data && position.data?.coords?.latitude && position.data?.coords?.longitude) {
-
-            const accuracy  = position.data?.coords?.accuracy;
-            const latitude  = position.data?.coords?.latitude;
-            const longitude = position.data?.coords?.longitude;
-
-            const geocodePosition: any = await MyUtil.GeocodePosition(latitude, longitude, showMessage);
-            MyUtil.printConsole(true, 'log', 'LOG: GeocodePosition: await-response: ', {
-                'geocodePosition': geocodePosition,
-            });
-            if (geocodePosition?.results?.[0]?.address_components?.[0]) {
-
-                const user_location: any = MyUtil.generateLocation(geocodePosition, accuracy, latitude, longitude);
-
-                switch (type) {
-                    case  MyConstant.GeolocationFetchType.store:
-                        store.dispatch(userLocationUpdate(user_location, 'all'));
-                        break;
-                    case  MyConstant.GeolocationFetchType.return:
-                        return user_location;
-                    default:
-                        return user_location;
-                }
-            }
-        }
-
-        return false;
-
-        /*const location: any = await MyFunction.getUserLocation(MyConstant.GeolocationFetchType.return,
-                                                               MyConfig.geoLocationOption,
-                                                               true,
-                                                               MyLANG.PleaseWait + '...',
-                                                               MyConstant.SHOW_MESSAGE.ALERT
-        );*/
-    },
-
-    updateDeviceInfo: async (type: string = 'ALL', storeInRedux: boolean = true, updateBackend: boolean = true, askPermission: boolean = true, showLoader: any = false, showErrorMessage: any = false) => {
-
-        const device: any = await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getDeviceToken);
-
-        const deviceInfo: any = {
-            systemName     : await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getSystemName),
-            systemVersion  : await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getSystemVersion),
-            apiLevel       : await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getApiLevel),
-            model          : await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getModel),
-            manufacturer   : await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getManufacturer),
-            deviceId       : await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getDeviceId),
-            uniqueId       : await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getUniqueId),
-            applicationName: await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getApplicationName),
-            buildNumber    : await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getBuildNumber),
-            bundleId       : await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getBundleId),
-            totalMemory    : await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getTotalMemory),
-            userAgent      : await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getUserAgent),
-        }
-        MyUtil.printConsole(true, 'log', 'LOG: GetDeviceInfo: await-response: ', {'deviceInfo': deviceInfo});
-
-        if (storeInRedux === true) {
-            store.dispatch(appInfoUpdate(deviceInfo, 'deviceInfo'));
-        }
-
-        if (updateBackend) {
-
-            const {user, device_token} = store.getState().auth;
-            const user_location        = store.getState().user_location;
-
-            const response: any = await MyUtil
-                .myHTTP(true, MyConstant.HTTP_POST, MyAPI.register_device,
-                        {
-                            'language_id' : MyConfig.LanguageActive,
-                            'device_type' : deviceInfo.systemName,
-                            'ram'         : deviceInfo.totalMemory,
-                            'processor'   : null,
-                            'device_os'   : deviceInfo.systemName,
-                            'device_model': deviceInfo.model,
-                            'manufacturer': deviceInfo.manufacturer,
-
-                            'customers_id': user?.id,
-                            'device_id'   : device_token,
-                            'location'    : user_location?.formatted_address,
-
-                            'app_ver'      : MyConfig.app_version,
-                            'app_build_ver': MyConfig.app_build_version,
-                            'platform'     : MyConfig.app_platform,
-                            'device'       : null,
-                        }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, showLoader, true, false
-                );
-
-            MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
-                'apiURL': MyAPI.register_device, 'response': response
-            });
-
-            if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.status === 200 && response.data?.data?.success === '1') {
-
-                // MyUtil.showMessage(MyConstant.SHOW_MESSAGE.TOAST, response.data?.data?.message || MyLANG.Success, false);
-
-            } else {
-
-                if (showErrorMessage !== false) {
-                    MyUtil.showMessage(showErrorMessage.showMessage, showErrorMessage.message, false);
-                }
-            }
-        }
     },
 
     uploadFile: async (formParam: any, showLoader: any = MyLANG.PleaseWait + '...', showInfoMessage: any = false, showErrorMessage: any = false) => {
@@ -957,7 +1066,7 @@ const MyFunction = {
         if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.status === 200 && response.data?.data?.length > 0) {
 
             if (showInfoMessage !== false) {
-                MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message, false);
+                MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message || response.data?.data?.message, false);
             }
 
             return true;

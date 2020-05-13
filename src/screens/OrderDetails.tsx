@@ -10,7 +10,6 @@ import {
 } from 'react-native';
 
 import HTML from 'react-native-render-html';
-import {ShadowBox} from "react-native-neomorph-shadows";
 import ImageViewer from "react-native-image-zoom-viewer";
 
 import {useDispatch, useSelector} from "react-redux";
@@ -28,7 +27,6 @@ import {MyButton} from "../components/MyButton";
 
 import {
     ActivityIndicatorLarge,
-    getMyIcon,
     IconStar,
     ListEmptyViewLottie,
     StatusBarLight
@@ -362,12 +360,15 @@ const OrderDetailsScreen = ({route, navigation}: any) => {
                                      </Text>
                                  </View>
 
-                                 <View style = {[MyStyle.RowBetweenCenter, {marginBottom: 6}]}>
-                                     <Text style = {[MyStyleSheet.textListItemTitle2Alt]}>{MyLANG.PaymentTime}</Text>
-                                     <Text style = {[MyStyleSheet.textListItemTitle2Alt]}>
-                                         {MyUtil.momentFormat(order?.date_purchased, MyConstant.MomentFormat["1st Jan, 1970 12:01 am"])}
-                                     </Text>
-                                 </View>
+                                 {
+                                     order?.payment_method !== MyConfig.PaymentMethod.CashOnDelivery.name &&
+                                     <View style = {[MyStyle.RowBetweenCenter, {marginBottom: 6}]}>
+                                         <Text style = {[MyStyleSheet.textListItemTitle2Alt]}>{MyLANG.PaymentTime}</Text>
+                                         <Text style = {[MyStyleSheet.textListItemTitle2Alt]}>
+                                             {MyUtil.momentFormat(order?.date_purchased, MyConstant.MomentFormat["1st Jan, 1970 12:01 am"])}
+                                         </Text>
+                                     </View>
+                                 }
 
                                  <View style = {[MyStyle.RowBetweenCenter, {marginBottom: 6}]}>
                                      <Text style = {[MyStyleSheet.textListItemTitle2Alt]}>{MyLANG.ShipTime}</Text>
@@ -602,9 +603,9 @@ const OrderDetailsScreen = ({route, navigation}: any) => {
 
                              <CartPageTotal
                                  cart = {{
-                                     subtotal       : order?.order_price,
-                                     discount       : order?.order_price,
-                                     voucher        : order?.order_price,
+                                     subtotal       : order?.subtotal,
+                                     discount       : order?.discount,
+                                     voucher        : order?.coupon_amount,
                                      delivery_charge: order?.shipping_cost,
                                      tax            : order?.total_tax,
                                      total          : order?.order_price,

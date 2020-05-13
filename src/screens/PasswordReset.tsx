@@ -219,17 +219,20 @@ const PasswordResetScreen = ({route, navigation}: any) => {
                                 }}
                             />
 
-                            <TouchableOpacity activeOpacity = {0.7}
-                                              onPress = {resendCode}>
-                                <View style = {[MyStyle.RowCenter, {marginTop: 44}]}>
-                                    <Text style = {styles.textAlreadyHaveCode}>
-                                        {MyLANG.DidnotReceivedCode}
-                                    </Text>
+                            <View style = {[MyStyle.RowCenter, {marginTop: 44}]}>
+                                <Text style = {styles.textAlreadyHaveCode}>
+                                    {MyLANG.DidnotReceivedCode}
+                                </Text>
+                                <TouchableOpacity
+                                    activeOpacity = {0.7}
+                                    onPress = {resendCode}
+                                >
                                     <Text style = {styles.textResetNow}>
                                         {MyLANG.ResendNow}
                                     </Text>
-                                </View>
-                            </TouchableOpacity>
+                                </TouchableOpacity>
+                            </View>
+
                         </View>
                     </ScrollView>
                 </LinearGradient>

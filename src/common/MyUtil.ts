@@ -21,7 +21,7 @@ import {DrawerActions, TabActions, StackActions, CommonActions} from '@react-nav
 import Splash from "react-native-splash-screen";
 
 import {store} from "../store/MyStore";
-import {device_token_update} from "../store//AuthRedux";
+import {firebase_token_update} from "../store//AuthRedux";
 
 // import {firebase} from '@react-native-firebase/messaging';
 
@@ -505,14 +505,14 @@ const MyUtil = {
 
             MyUtil.printConsole(true, 'log', 'LOG: Notification RemoteNotificationsRegistered: ', {'registered': registered});
 
-            const deviceToken = registered.deviceToken;
+            const firebaseToken = registered.deviceToken;
 
-            if (deviceToken?.length > 10) {
+            if (firebaseToken?.length > 10) {
 
-                const device_token = store.getState().auth.device_token;
-                if (deviceToken !== device_token) {
+                const firebase_token = store.getState().auth.firebase_token;
+                if (firebaseToken !== firebase_token) {
 
-                    store.dispatch(device_token_update(deviceToken));
+                    store.dispatch(firebase_token_update(firebaseToken));
                 }
 
                 MyUtil.firebaseNotificationListeners();

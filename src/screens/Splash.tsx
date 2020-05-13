@@ -54,6 +54,9 @@ const SplashScreen = ({}) => {
 
         MyUtil.printConsole(true, 'log', `LOG: ${SplashScreen.name}. prepareData: `, '');
 
+        // Update Biometry Type to Redux:
+        MyFunction.updateBiometryType();
+
         // Get Firebase Token
         await MyUtil.firebaseGetToken();
 

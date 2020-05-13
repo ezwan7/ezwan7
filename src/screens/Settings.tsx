@@ -1,7 +1,7 @@
 import React, {Fragment, useCallback, useEffect, useState} from 'react';
 
 import {
-    View, SafeAreaView, ScrollView, Image, Text, StyleSheet, TouchableWithoutFeedback, RefreshControl,
+    View, SafeAreaView, ScrollView, Image, Text, StyleSheet, TouchableWithoutFeedback, RefreshControl, BackHandler,
 } from 'react-native';
 import {useDispatch, useSelector} from "react-redux";
 import LinearGradient from "react-native-linear-gradient";
@@ -15,13 +15,15 @@ import MyLANG from '../shared/MyLANG';
 import {MyConstant} from '../common/MyConstant';
 import MyIcon from '../components/MyIcon';
 
-import {getMyIcon, StatusBarLight} from '../components/MyComponent';
+import {StatusBarLight} from '../components/MyComponent';
 import MyMaterialRipple from "../components/MyMaterialRipple";
+import {getMyIcon} from "../components/MyIcon";
 
 import MyAuth from "../common/MyAuth";
 import {appInfoUpdate} from "../store/AppInfoRedux";
 import MyFunction from "../shared/MyFunction";
 import {MyFastImage} from "../components/MyFastImage";
+import {useFocusEffect} from "@react-navigation/native";
 
 let renderCount = 0;
 
@@ -42,6 +44,20 @@ const SettingsScreen = ({route, navigation}: any) => {
 
     const user: any                    = useSelector((state: any) => state.auth.user);
     const [settings, setSettings]: any = useState([]);
+
+    useFocusEffect(
+        useCallback(() => {
+            const onBackPress = () => {
+                return MyUtil.onBackButtonPress(navigation);
+            };
+
+            BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+            return () =>
+                BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, [])
+    );
 
     useEffect(() => {
 
@@ -427,7 +443,7 @@ const SettingsScreen = ({route, navigation}: any) => {
                                 <MyFastImage
                                     source = {[user?.customers_picture?.length > 9 ? {'uri': user?.customers_picture} : MyImage.defaultAvatar, MyImage.defaultAvatar]}
                                     style = {settingsItem.imageProfile}
-                                    resizeMode="cover"
+                                    resizeMode = "cover"
                                 />
                             </View>
                             <TouchableWithoutFeedback

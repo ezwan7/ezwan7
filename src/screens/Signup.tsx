@@ -192,10 +192,10 @@ const SignupScreen = ({}) => {
                     >
 
                         <View style = {[MyStyleSheet.viewPageLogin, {alignItems: "center"}]}>
-                            <Image source = {MyImage.logo1024}
+                            {/*<Image source = {MyImage.logo1024}
                                    resizeMode = "contain"
                                    style = {styles.imageLogo}
-                            />
+                            />*/}
                             <Text style = {styles.textRegister}>
                                 {MyLANG.Register}
                             </Text>
@@ -293,27 +293,28 @@ const SignupScreen = ({}) => {
                                 />
                             </View>
 
-                            <TouchableOpacity
-                                activeOpacity = {0.7}
-                                onPress = {
-                                    () => MyUtil.commonAction(false,
-                                                              null,
-                                                              MyConstant.CommonAction.goBack,
-                                                              null,
-                                                              null,
-                                                              null
-                                    )
-                                }
-                            >
-                                <View style = {[MyStyle.RowCenter, {marginTop: 44}]}>
-                                    <Text style = {styles.textAlreadyHaveAccount}>
-                                        {MyLANG.AlreadyHaveAnAccount}
-                                    </Text>
+                            <View style = {[MyStyle.RowCenter, {marginTop: 44}]}>
+                                <Text style = {styles.textAlreadyHaveAccount}>
+                                    {MyLANG.AlreadyHaveAnAccount}
+                                </Text>
+                                <TouchableOpacity
+                                    activeOpacity = {0.7}
+                                    onPress = {
+                                        () => MyUtil.commonAction(false,
+                                                                  null,
+                                                                  MyConstant.CommonAction.goBack,
+                                                                  null,
+                                                                  null,
+                                                                  null
+                                        )
+                                    }
+                                >
                                     <Text style = {styles.textSignIn}>
                                         {MyLANG.SignIn}
                                     </Text>
-                                </View>
-                            </TouchableOpacity>
+                                </TouchableOpacity>
+                            </View>
+
                         </View>
                     </ScrollView>
                 </LinearGradient>
@@ -335,7 +336,6 @@ const styles = StyleSheet.create(
             marginTop: 24,
         },
         textRegister           : {
-            marginTop: 44,
             alignSelf: "flex-start",
             ...MyStyleSheet.headerPageLarge
         },

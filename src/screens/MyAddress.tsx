@@ -249,7 +249,7 @@ const MyAddress = ({route, navigation}: any) => {
                 const dataReduced = data.reduce((accumulator: any, item: any) => {
                     const addressText = MyUtil.generateAddress(null,
                                                                item?.street,
-                                                               item?.city,
+                                                               item?.city_name,
                                                                item?.zone_name,
                                                                item?.country_name,
                                                                item?.postcode

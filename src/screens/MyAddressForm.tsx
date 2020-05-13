@@ -19,7 +19,6 @@ import {MyButton} from "../components/MyButton";
 import {MyInput} from "../components/MyInput";
 
 import {Switch} from 'react-native-paper';
-import {ShadowBox} from "react-native-neomorph-shadows";
 import * as yup from "yup";
 import MyFunction from "../shared/MyFunction";
 import MyMaterialRipple from "../components/MyMaterialRipple";
@@ -53,10 +52,8 @@ const addressFormSchema: any = yup.object().shape(
                            .required(MyLANG.Country + ' ' + MyLANG.isRequired),
         state         : yup.object()
                            .required(MyLANG.State + ' ' + MyLANG.isRequired),
-        city          : yup.string()
-                           .required(MyLANG.City + ' ' + MyLANG.isRequired)
-                           .min(2, MyLANG.City + ' ' + MyLANG.mustBeMinimum + ' 2 ' + MyLANG.character)
-                           .max(256, MyLANG.City + ' ' + MyLANG.mustBeMaximum + ' 256 ' + MyLANG.character),
+        city          : yup.object()
+                           .required(MyLANG.City + ' ' + MyLANG.isRequired),
         postal_code   : yup.string()
                            .required(MyLANG.PostalCode + ' ' + MyLANG.isRequired)
                            .min(2, MyLANG.PostalCode + ' ' + MyLANG.mustBeMinimum + ' 2 ' + MyLANG.character)
@@ -108,7 +105,7 @@ const MyAddressForm = ({route, navigation}: any) => {
                 street_address: route?.params?.item?.street || '',
                 // country       : null,
                 // state         : null,
-                city          : route?.params?.item?.city || '',
+                // city          : route?.params?.item?.city || '',
                 postal_code   : route?.params?.item?.postcode || '',
                 note          : route?.params?.item?.note || '',
                 is_default    : route?.params?.item?.default_address === route?.params?.item?.id ? true : false,
@@ -131,8 +128,8 @@ const MyAddressForm = ({route, navigation}: any) => {
 
     }, [register]);
 
-    const values                       = getValues();
-    const {country, state, is_default} = watch(['country', 'state', 'is_default']);
+    const values                             = getValues();
+    const {country, state, city, is_default} = watch(['country', 'state', 'city', 'is_default']);
 
     useFocusEffect(
         useCallback(() => {
@@ -178,13 +175,14 @@ const MyAddressForm = ({route, navigation}: any) => {
             const country_find: any = countries.find((e: any) => e.id === item?.countries_id);
             if (country_find?.id) {
                 if (item?.zone_name) {
-                    populateState(country_find, item?.zone_name);
+                    populateState(country_find, item);
                 } else {
                     setValue('country', country_find, true);
-                    setValue('state', {}, true);
+                    setValue('state', undefined, true);
+                    setValue('city', undefined, true);
                 }
             } else {
-                setValue('country', {}, true);
+                setValue('country', undefined, true);
             }
 
             MyUtil.printConsole(true, 'log', `LOG: ${MyAddressForm.name}. useEffect: `, {countries, country_find, params: route?.params});
@@ -222,15 +220,14 @@ const MyAddressForm = ({route, navigation}: any) => {
         const street_address: any = location?.address?.street_number?.length > 0 && location?.address?.street?.length > 0 ? (location.address.street_number + ', ' + location.address.street) : location?.address?.street_number?.length > 0 ? location.address.street_number : location?.address?.street?.length > 0 ? location.address.street : '';
 
         setValue('street_address', street_address || '', true);
-        setValue('city', location?.address?.city || '', true);
         setValue('postal_code', location?.address?.postal_code || '', true);
-        setValue('location', location || {}, true);
+        setValue('location', location || undefined, true);
 
         if (location?.address?.country) {
             const country_find: any = countries.find((e: any) => e.countries_name === location?.address?.country);
             if (country_find?.id) {
                 if (location?.address?.state) {
-                    populateState(country_find, location?.address?.state);
+                    populateState(country_find, location?.address);
                 } else {
                     setValue('country', country_find, true);
                 }
@@ -238,25 +235,62 @@ const MyAddressForm = ({route, navigation}: any) => {
         }
     }
 
-    const populateState = async (country_find: any, state: any) => {
+    const populateState = async (country_find: any, address: any) => {
 
         const states: any = await MyFunction.fetchStates(country_find.id);
 
         if (states?.length > 0) {
-            const state_find: any = states.find((e: any) => e.zone_name === state);
+            const state_find: any = states.find((e: any) => e.zone_name === address?.state);
 
             if (state_find?.id) {
-                setValue('country', {...country_find, states: states}, false);
-                setValue('state', state_find, true);
+                if (address?.city_name) {
+                    populateCity(country_find, state_find, address, states);
+
+                } else {
+                    setValue('country', {...country_find, states: states}, false);
+                    setValue('state', state_find, true);
+                }
 
             } else {
                 setValue('country', country_find, true);
-                setValue('state', {}, true);
+                setValue('state', undefined, true);
+                setValue('city', undefined, true);
             }
+
+            MyUtil.printConsole(true, 'log', 'LOG: populateState: ', {country_find, address, states, state_find});
 
         } else {
             setValue('country', country_find, true);
-            setValue('state', {}, true);
+            setValue('state', undefined, true);
+            setValue('city', undefined, true);
+        }
+
+    }
+
+    const populateCity = async (country_find: any, state_find: any, address: any, states: any) => {
+
+        const cities: any = await MyFunction.fetchCities(state_find.id);
+
+        if (cities?.length > 0) {
+            const city_find: any = cities.find((e: any) => e.city_name === address?.city);
+
+            if (city_find?.id) {
+                setValue('country', {...country_find, states: states}, false);
+                setValue('state', {...state_find, cities: cities}, false);
+                setValue('city', city_find, true);
+
+            } else {
+                setValue('country', {...country_find, states: states}, false);
+                setValue('state', state_find, false);
+                setValue('city', undefined, true);
+            }
+
+            MyUtil.printConsole(true, 'log', 'LOG: populateCity: ', {country_find, address, states, state_find, cities, city_find});
+
+        } else {
+            setValue('country', {...country_find, states: states}, false);
+            setValue('state', state_find, false);
+            setValue('city', undefined, true);
         }
     }
 
@@ -276,7 +310,7 @@ const MyAddressForm = ({route, navigation}: any) => {
                                         title   : 'countries_name',
                                         subTitle: false,
                                     },
-                                    listSelected: values.country?.id,
+                                    listSelected: country?.id,
 
                                     onItem: {
                                         type      : MyConstant.OptionPageOnItem.select_and_go_back,
@@ -289,9 +323,14 @@ const MyAddressForm = ({route, navigation}: any) => {
                                         resetValue: [
                                             {
                                                 name          : 'state',
-                                                value         : {},
+                                                value         : undefined,
                                                 shouldValidate: false,
-                                            }
+                                            },
+                                            {
+                                                name          : 'city',
+                                                value         : undefined,
+                                                shouldValidate: false,
+                                            },
                                         ]
                                     },
                                 },
@@ -307,16 +346,16 @@ const MyAddressForm = ({route, navigation}: any) => {
 
     const onState = async () => {
 
-        if (values?.country?.id > 0) {
+        if (country?.id > 0) {
 
-            let states = values.country?.states;
+            let states = country?.states;
 
             if (!states?.length) {
 
-                states = await MyFunction.fetchStates(values.country.id);
+                states = await MyFunction.fetchStates(country.id);
 
                 if (states?.length > 0) {
-                    setValue('country', {...values.country, states: states}, false);
+                    setValue('country', {...country, states: states}, false);
 
                 } else {
                     return MyUtil.showMessage(MyConstant.SHOW_MESSAGE.TOAST, MyLANG.StateListNotFound, false);
@@ -337,17 +376,78 @@ const MyAddressForm = ({route, navigation}: any) => {
                                         title   : 'zone_name',
                                         subTitle: false,
                                     },
-                                    listSelected: values.state?.id,
+                                    listSelected: state?.id,
+
+                                    onItem: {
+                                        type      : MyConstant.OptionPageOnItem.select_and_go_back,
+                                        routeName : MyConfig.routeName.MyAddressForm,
+                                        setValue  : {
+                                            name          : 'state',
+                                            key           : 'zone_name',
+                                            shouldValidate: true,
+                                        },
+                                        resetValue: [
+                                            {
+                                                name          : 'city',
+                                                value         : undefined,
+                                                shouldValidate: false,
+                                            },
+                                        ]
+                                    },
+                                },
+                                null
+            );
+
+            route.params = null;
+
+        } else {
+            MyUtil.showMessage(MyConstant.SHOW_MESSAGE.TOAST, MyLANG.PleaseSelectCountryFirst, false);
+        }
+    }
+
+    const onCity = async () => {
+
+        if (state?.id > 0) {
+
+            let cities = state?.cities;
+
+            if (!cities?.length) {
+
+                cities = await MyFunction.fetchCities(state.id);
+
+                if (cities?.length > 0) {
+                    setValue('state', {...state, cities: cities}, false);
+
+                } else {
+                    return MyUtil.showMessage(MyConstant.SHOW_MESSAGE.TOAST, MyLANG.CityListNotFound, false);
+                }
+            }
+
+            MyUtil.commonAction(false,
+                                navigation,
+                                MyConstant.CommonAction.navigate,
+                                MyConfig.routeName.OptionPage,
+                                {
+                                    title       : MyLANG.SelectCity,
+                                    allowSearch : false,
+                                    items       : cities,
+                                    listLimit   : MyConfig.ListLimit.optionList,
+                                    listShow    : {
+                                        image   : false,
+                                        title   : 'city_name',
+                                        subTitle: false,
+                                    },
+                                    listSelected: city?.id,
 
                                     onItem: {
                                         type     : MyConstant.OptionPageOnItem.select_and_go_back,
                                         routeName: MyConfig.routeName.MyAddressForm,
                                         setValue : {
-                                            name          : 'state',
-                                            key           : 'zone_name',
+                                            name          : 'city',
+                                            key           : 'city_name',
                                             shouldValidate: true,
                                         },
-                                        // resetValue: {},
+                                        // resetValue: undefined,
                                     },
                                 },
                                 null
@@ -368,7 +468,7 @@ const MyAddressForm = ({route, navigation}: any) => {
 
             const address_string: string = MyUtil.generateAddress(null,
                                                                   formValue.data?.street_address,
-                                                                  formValue.data?.city,
+                                                                  formValue.data?.city?.city_name,
                                                                   formValue.data?.state?.zone_name,
                                                                   formValue.data?.country?.countries_name,
                                                                   formValue.data?.postal_code
@@ -388,7 +488,7 @@ const MyAddressForm = ({route, navigation}: any) => {
                         street_address: formValue.data?.street_address,
                         country       : formValue.data?.country?.id,
                         state         : formValue.data?.state?.id,
-                        city          : formValue.data?.city,
+                        city          : formValue.data?.city?.id,
                         postal_code   : formValue.data?.postal_code,
                         latitude      : geocodeAddress.data?.results?.[0].geometry?.location.lat,
                         longitude     : geocodeAddress.data?.results?.[0].geometry?.location.lng,
@@ -433,7 +533,7 @@ const MyAddressForm = ({route, navigation}: any) => {
 
             const address_string: string = MyUtil.generateAddress(null,
                                                                   formValue.data?.street_address,
-                                                                  formValue.data?.city,
+                                                                  formValue.data?.city?.city_name,
                                                                   formValue.data?.state?.zone_name,
                                                                   formValue.data?.country?.countries_name,
                                                                   formValue.data?.postal_code
@@ -454,7 +554,7 @@ const MyAddressForm = ({route, navigation}: any) => {
                         street_address: formValue.data?.street_address,
                         country       : formValue.data?.country?.id,
                         state         : formValue.data?.state?.id,
-                        city          : formValue.data?.city,
+                        city          : formValue.data?.city?.id,
                         postal_code   : formValue.data?.postal_code,
                         latitude      : geocodeAddress.data?.results?.[0].geometry?.location.lat,
                         longitude     : geocodeAddress.data?.results?.[0].geometry?.location.lng,
@@ -630,11 +730,17 @@ const MyAddressForm = ({route, navigation}: any) => {
                             <MyInput
                                 mode = "line"
                                 floatingLabel = {MyLANG.City}
+                                floatingLabelFloated = {true}
                                 readyBorderColor = {{borderColor: MyColor.Primary.first}}
-                                onChangeText = {(text: any) => setValue('city', text, true)}
-                                value = {values.city}
+                                placeholderLabel = {MyLANG.CityDescription}
+                                inputProps = {{
+                                    editable: false,
+                                }}
+                                value = {city?.city_name}
                                 viewStyle = {{borderColor: MyColor.Material.GREY["300"]}}
+                                iconRight = {{fontFamily: MyConstant.VectorIcon.Entypo, name: 'chevron-right'}}
                                 helperText = {{message: errors.city?.message ? errors.city.message : null}}
+                                onPress = {onCity}
                             />
                             <MyInput
                                 mode = "line"

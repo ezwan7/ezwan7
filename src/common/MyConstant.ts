@@ -35,7 +35,7 @@ const MyConstant = {
     LAST_NAME     : 'last_name',
     PHOTO         : 'photo',
     REFERENCE_CODE: 'reference_code',
-    DEVICE_TOKEN  : 'device_token',
+    FIREBASE_TOKEN: 'firebase_token',
 
     DataSetType: {
         fresh           : 'fresh',
@@ -360,6 +360,7 @@ const MyConstant = {
         '1st Jan, 1970 12:01 am'   : 'Do MMM, YYYY hh:mm a',
         '1st Jan, 1970'            : 'Do MMM, YYYY',
         '1970-01-01'               : 'YYYY-MM-DD',
+        '1970-01-01 20:01:01'      : 'YYYY-MM-DD HH:mm:ss',
 
         '08:30pm' : 'hh:mma',
         '23:00:00': 'HH:mm:ss',
