@@ -4,8 +4,8 @@ import {View, Text, SafeAreaView, ScrollView, RefreshControl, TouchableOpacity, 
 import LinearGradient from "react-native-linear-gradient";
 import {useForm} from "react-hook-form";
 import {useDispatch, useSelector} from "react-redux";
-import {MyFastImage} from "../components/MyFastImage";
-import MyMaterialRipple from "../components/MyMaterialRipple";
+import {useFocusEffect} from "@react-navigation/native";
+import NumberFormat from "react-number-format";
 import * as yup from "yup";
 
 import MyUtil from '../common/MyUtil';
@@ -18,6 +18,8 @@ import {MyConstant} from '../common/MyConstant';
 import MyIcon from '../components/MyIcon';
 import {MyInput} from "../components/MyInput";
 import MyFunction from "../shared/MyFunction";
+import MyMaterialRipple from "../components/MyMaterialRipple";
+import {MyFastImage} from "../components/MyFastImage";
 
 import {StatusBarLight} from '../components/MyComponent';
 import {MyButton} from "../components/MyButton";
@@ -25,8 +27,6 @@ import {AddressListItem, CartPageBottomButtons, CartPageTotal, ModalRadioList, C
 import {MyModal} from "../components/MyModal";
 import {cartUpdateDelivery} from "../store/CartRedux";
 import {MyWebView} from "../components/MyWebView";
-import {useFocusEffect} from "@react-navigation/native";
-import NumberFormat from "react-number-format";
 
 
 let renderCount = 0;
@@ -298,9 +298,7 @@ const ProductBuyPayment = ({route, navigation}: any) => {
                 setModalVisiblePickupAddress(false);
 
                 const points_pickup_fee: number = Number(item?.points_pickup_fee) > 0 ? Number(item?.points_pickup_fee) : 0;
-                if (Number(points_pickup_fee) > 0) {
-                    dispatch(cartUpdateDelivery(points_pickup_fee));
-                }
+                dispatch(cartUpdateDelivery(points_pickup_fee));
 
                 break;
 
@@ -317,9 +315,7 @@ const ProductBuyPayment = ({route, navigation}: any) => {
                 setModalVisibleDeliveryMethod(false);
 
                 const delivery_cost: number = Number(item?.price) > 0 ? Number(item?.price) : 0;
-                if (Number(delivery_cost) > 0) {
-                    dispatch(cartUpdateDelivery(delivery_cost));
-                }
+                dispatch(cartUpdateDelivery(delivery_cost));
 
                 break;
 
@@ -686,7 +682,7 @@ const ProductBuyPayment = ({route, navigation}: any) => {
                         {(delivery_type?.id === MyConfig.DeliveryType.Courier.id) &&
                          <View style = {[MyStyleSheet.viewPageCard, {paddingHorizontal: 0}]}>
 
-                             <View style = {[MyStyle.RowBetweenCenter, {paddingHorizontal: MyStyle.paddingHorizontalPage}]}>
+                             <View style = {[MyStyle.RowBetweenTop, {paddingHorizontal: MyStyle.paddingHorizontalPage}]}>
                                  <Text style = {[{...MyStyleSheet.headerPage, marginBottom: 4}]}>{MyLANG.DeliveryAddress}</Text>
                                  <TouchableOpacity
                                      activeOpacity = {0.8}
@@ -742,7 +738,7 @@ const ProductBuyPayment = ({route, navigation}: any) => {
 
                         <View style = {[MyStyleSheet.viewPageCard, {paddingHorizontal: 0}]}>
 
-                            <View style = {[MyStyle.RowBetweenCenter, {paddingHorizontal: MyStyle.paddingHorizontalPage}]}>
+                            <View style = {[MyStyle.RowBetweenTop, {paddingHorizontal: MyStyle.paddingHorizontalPage}]}>
                                 <Text style = {[{...MyStyleSheet.headerPage, marginBottom: 4}]}>{MyLANG.BillingAddress}</Text>
                                 <TouchableOpacity activeOpacity = {0.8}
                                                   onPress = {onAddressManage}>

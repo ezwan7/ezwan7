@@ -44,12 +44,18 @@ const SplashScreen = ({}) => {
 
         // 1: App is New -> Show Intro Slide Page. 1: Show Online Data, 2: Show Local Data.
         // 2: App is Old ->
-        //              Saved Login ->
-        //                    1: Login Success: Check routeAction -> Back, Home, No Action.
-        //                    1: Login Failed: Show Config Based ->
-        //              Config ->
-        //                    1: App Require Login: Show Login Page.
-        //                    2: App don't require Login: Show Home Tab.
+        //              Saved Login:->
+        //                  Auto Login:->
+        //                      1: No: Show Config Based ->
+        //                      2: Yes:
+        //                          Pre Login:->
+        //                              1: No: Go to Home page then call for Login, If failed do nothing.
+        //                              2: Yes: ->
+        //                                  1: Login Success: Check routeAction -> Back, Home, No Action.
+        //                                  2: Login Failed: Show Config Based ->
+        //              Config (Login Required): ->
+        //                  1: App Require Login: Show Login Page.
+        //                  2: App don't require Login: Show Home Tab.
         //
 
         MyUtil.printConsole(true, 'log', `LOG: ${SplashScreen.name}. prepareData: `, '');

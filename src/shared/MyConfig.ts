@@ -141,6 +141,8 @@ const MyConfig: any = {
 
     printConsole      : true,
     loginRequired     : false,
+    autoLogin         : true,
+    preLogin          : false,
     registrationAction: MyConstant.RegistrationAction.auto_login,
     showStatusBar     : true,
     timePeriodToExit  : 2000,

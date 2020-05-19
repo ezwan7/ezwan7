@@ -585,7 +585,6 @@ const MyFunction = {
                     accumulator.push(
                         {
                             ...item,
-                            id         : item?.points_id,
                             addressText: `${item.points_address}\n${item.points_city}\n${item.points_state}\n${item.country_name}\n${item.points_zip}`,
                             footerText : `${MyLANG.OpeningHours}: ${item.points_opening_hours}\n${MyLANG.PickupFee}: ${MyConfig.Currency.MYR.symbol} ${item.points_pickup_fee}`,
                         }
