@@ -431,10 +431,11 @@ const MyInput = (props: any) => {
                 </View>
             </TouchableWithoutFeedback>
             <View>
-                <Animated.Text numberOfLines = {1}
-                               style = {helperTextStyles}
+                <Animated.Text
+                    numberOfLines = {1}
+                    style = {helperTextStyles}
                 >
-                    {props.helperText?.message ? props.helperText?.message : ''}
+                    {props.helperText?.message || ''}
                 </Animated.Text>
             </View>
         </View>

@@ -105,6 +105,8 @@ const HomeScreen = ({route, navigation}: any) => {
         // MyFunction.fetchNotification(false);
         MyFunction.updateDeviceInfo();
 
+        MyFunction.fetchAppData(false);
+
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

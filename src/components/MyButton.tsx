@@ -80,6 +80,39 @@ const MyButton = (props: any) => {
                        props.size === "large" && MyStyle.buttonHeightLarge,
     };
 
+    const viewStyles = [
+        styles.viewStyle,
+
+        props.shadow === "none" && styles.shadowNone ||
+        props.shadow === "small" && styles.shadowSmall ||
+        props.shadow === "medium" && styles.shadowMedium ||
+        props.shadow === "large" && styles.shadowLarge,
+
+        props.display === "full" && styles.shadowNone,
+        props.display === "full" && ((props.fill === "outlined" && {
+            borderRadius      : 0,
+            borderLeftWidth   : 0,
+            borderRightWidth  : 0,
+            borderTopWidth    : 1.5,
+            borderBottomtWidth: 1.5,
+        }) || {
+            borderRadius: 0,
+        }),
+
+        props.display === "inline" && {
+            // alignSelf: "center",
+        } ||
+        props.display === "block" && {
+            flex     : 1,
+            alignSelf: "stretch",
+        } ||
+        props.display === "full" && props.fill === "outlined" && {
+            alignSelf: "stretch",
+        },
+
+        {...props.viewStyle}
+    ];
+
     const linearGradientStyles = [
         styles.linearGradient,
 
@@ -108,28 +141,6 @@ const MyButton = (props: any) => {
         props.shadow === "small" && styles.shadowSmall ||
         props.shadow === "medium" && styles.shadowMedium ||
         props.shadow === "large" && styles.shadowLarge,
-
-        props.display === "full" && styles.shadowNone,
-        props.display === "full" && ((props.fill === "outlined" && {
-            borderRadius      : 0,
-            borderLeftWidth   : 0,
-            borderRightWidth  : 0,
-            borderTopWidth    : 1.5,
-            borderBottomtWidth: 1.5,
-        }) || {
-            borderRadius: 0,
-        }),
-
-        props.display === "inline" && {
-            // alignSelf: "center",
-        } ||
-        props.display === "block" && {
-            flex     : 1,
-            alignSelf: "stretch",
-        } ||
-        props.display === "full" && props.fill === "outlined" && {
-            alignSelf: "stretch",
-        },
 
         {...props.linearGradientStyle}
     ];
@@ -513,6 +524,20 @@ const MyButton = (props: any) => {
                   useSvg
                   style = {shadowStyles}
               >
+                  <View style = {viewStyles}>
+                      <LinearGradient
+                          style = {linearGradientStyles}
+                          start = {LGButton.start}
+                          end = {LGButton.end}
+                          locations = {LGButton.locations}
+                          colors = {LGButton.colors}
+                      >
+                          {touchableComponent()}
+                      </LinearGradient>
+                  </View>
+              </Shadow>
+                                        :
+              <View style = {viewStyles}>
                   <LinearGradient
                       style = {linearGradientStyles}
                       start = {LGButton.start}
@@ -522,17 +547,7 @@ const MyButton = (props: any) => {
                   >
                       {touchableComponent()}
                   </LinearGradient>
-              </Shadow>
-                                        :
-              <LinearGradient
-                  style = {linearGradientStyles}
-                  start = {LGButton.start}
-                  end = {LGButton.end}
-                  locations = {LGButton.locations}
-                  colors = {LGButton.colors}
-              >
-                  {touchableComponent()}
-              </LinearGradient>
+              </View>
     ;
 
     return button;
@@ -551,6 +566,7 @@ MyButton.propTypes = {
     textTransform: PropTypes.string,
 
     shadowStyle        : PropTypes.any,
+    viewStyle          : PropTypes.any,
     linearGradientStyle: PropTypes.any,
     touchableStyle     : PropTypes.any,
     touchableProps     : PropTypes.any,
@@ -585,6 +601,7 @@ MyButton.defaultProps = {
     textTransform: "uppercase" || "lowercase" || "capitalize",
 
     shadowStyle        : null,
+    viewStyle          : {},
     linearGradientStyle: {},
     touchableStyle     : {},
     touchableProps     : {
@@ -633,6 +650,7 @@ const stylesHeaderButtonLeft = StyleSheet.create(
 const styles = StyleSheet.create(
     {
         shadowStyle   : {},
+        viewStyle     : {},
         linearGradient: {},
         touchable     : {},
         buttonView    : {},
@@ -770,6 +788,7 @@ const styles = StyleSheet.create(
     title = {MyLANG.OK}
 
     // shadowStyle = {{width: MyStyle.screenWidth - 64}} // width means use library shadow.
+    viewStyles = {{}}
     linearGradientStyle = {{}}
     touchableStyle = {{}}
     touchableProps = {{

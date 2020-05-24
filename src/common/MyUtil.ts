@@ -21,7 +21,7 @@ import {DrawerActions, TabActions, StackActions, CommonActions} from '@react-nav
 import Splash from "react-native-splash-screen";
 
 import {store} from "../store/MyStore";
-import {firebase_token_update} from "../store//AuthRedux";
+import {firebase_token_update} from "../store/AuthRedux";
 
 // import {firebase} from '@react-native-firebase/messaging';
 
@@ -499,7 +499,14 @@ const MyUtil = {
 
     firebaseGetToken: async () => {
 
-        // Notifications.registerRemoteNotifications();
+        // if (MyStyle.platformOS === "ios") {
+        /*Notifications.ios.checkPermissions().then((currentPermissions) => {
+            console.log('Badges enabled: ' + !!currentPermissions.badge);
+            console.log('Sounds enabled: ' + !!currentPermissions.sound);
+            console.log('Alerts enabled: ' + !!currentPermissions.alert);
+        });*/
+        Notifications.registerRemoteNotifications();
+        // }
 
         Notifications.events().registerRemoteNotificationsRegistered((registered: Registered) => {
 
@@ -647,9 +654,9 @@ const MyUtil = {
             completion({alert: true, sound: true, badge: false});
         });
 
-        Notifications.events().registerNotificationOpened((response: NotificationResponse, completion: () => void) => {
+        Notifications.events().registerNotificationOpened((notification: Notification, completion: () => void) => {
 
-            MyUtil.printConsole(true, 'log', 'LOG: Notification Opened: ', {'response': response});
+            MyUtil.printConsole(true, 'log', 'LOG: Notification Opened: ', {'notification': notification});
 
             completion();
         });
@@ -1180,24 +1187,36 @@ const MyUtil = {
             }
 
             if (askPermission === true) {
-                permission = await MyUtil.androidPermissionRequest(
-                    MyConstant.PermissionsAndroid.ACCESS_FINE_LOCATION,
-                    {
-                        title  : MyLANG?.Permission?.title,
-                        message: MyLANG?.Permission?.location
-                    },
-                    showMessage
-                );
-                MyUtil.printConsole(true, 'log', 'LOG: androidPermissionRequest: await-response: ', {
-                    'PermissionsAndroid': MyConstant.PermissionsAndroid.ACCESS_FINE_LOCATION,
-                    'permission'        : permission
-                });
-                if (permission !== true) {
-                    throw new Error(MyLANG.LocationPermissionDenied);
+
+                if (MyStyle.platformOS === "android") {
+                    permission = await MyUtil.androidPermissionRequest(
+                        MyConstant.PermissionsAndroid.ACCESS_FINE_LOCATION,
+                        {
+                            title  : MyLANG?.Permission?.title,
+                            message: MyLANG?.Permission?.location,
+                        },
+                        showMessage
+                    );
+                    MyUtil.printConsole(true, 'log', 'LOG: androidPermissionRequest: await-response: ', {
+                        'PermissionsAndroid': MyConstant.PermissionsAndroid.ACCESS_FINE_LOCATION,
+                        'permission'        : permission
+                    });
+                    if (permission !== true) {
+                        throw new Error(MyLANG.LocationPermissionDenied);
+                    }
+                } else if (MyStyle.platformOS === "ios") {
+                    permission = Geolocation.requestAuthorization();
+                    MyUtil.printConsole(true, 'log', 'LOG: requestAuthorization: await-response: ', {
+                        'permission': permission
+                    });
+                    if (permission !== 'granted') {
+                        // throw new Error(MyLANG.LocationPermissionDenied);
+                    }
                 }
             }
 
             const currentPosition = new Promise((resolve, reject) => {
+                Geolocation.requestAuthorization();
                 Geolocation.getCurrentPosition(
                     (position: any) => {
                         resolve(position);
@@ -1517,9 +1536,9 @@ const MyUtil = {
             let authReq: any = false;
             if (loginRequired !== false) {
                 const user: any = store.getState().auth.user;
-                // MyUtil.printConsole(true, 'log', 'LOG: myHTTP: ', {'user': user});
+                MyUtil.printConsole(true, 'log', 'LOG: myHTTP: ', {'user': user});
                 // if (user.id && user.token) {
-                if (user.id) {
+                if (user.token) {
                     auth_token = user.token;
                 } else {
                     auth_token         = null;
@@ -1927,11 +1946,18 @@ const MyUtil = {
             'url'        : url,
             'showMessage': showMessage,
         });
+        try {
+            const supported = await Linking.canOpenURL(url);
+            if (supported) {
+                await Linking.openURL(url);
 
-        const supported = await Linking.canOpenURL(url);
-        if (supported) {
-            await Linking.openURL(url);
-        } else {
+            } else {
+                MyUtil.showMessage(showMessage, MyLANG.UnableToOpen, false);
+            }
+
+        } catch (error) {
+            MyUtil.printConsole(true, 'log', 'LOG: linking: TRY-CATCH: ', {'error': error});
+
             MyUtil.showMessage(showMessage, MyLANG.UnableToOpen, false);
         }
     },
@@ -2631,15 +2657,16 @@ const MyUtil = {
         });
 
         const biometryOption: any = {
-            accessControl: Keychain.ACCESS_CONTROL.BIOMETRY_ANY,
+            accessControl: Keychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET_OR_DEVICE_PASSCODE,
             accessible   : Keychain.ACCESSIBLE.WHEN_PASSCODE_SET_THIS_DEVICE_ONLY,
+            // authenticationPrompt: {title: MyLANG.PleaseVerifyForAuth},
             // accessGroup  : '',
-            service      : MyConfig.android_package_name,
+            service      : MyStyle.platformOS === "ios" ? MyConfig.ios_app_id : MyConfig.android_package_name,
             // securityLevel: '',
         }
 
         try {
-            await Keychain.setGenericPassword(username, password);
+            await Keychain.setGenericPassword(username, password, biometryOption);
 
             return true;
         } catch (error) {

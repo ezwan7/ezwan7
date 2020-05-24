@@ -15,6 +15,7 @@ import {MyConfig} from "../shared/MyConfig";
 import MyLANG from "../shared/MyLANG";
 import {MyButton} from "./MyButton";
 import {getMyIcon} from "./MyIcon";
+import MyMaterialRipple from "./MyMaterialRipple";
 
 const getImage = (props: any) => {
     return (<Image {...props}/>)
@@ -163,17 +164,19 @@ const HeaderInputSearch = (props: any) => {
                     <TouchableOpacity
                         activeOpacity = {0.7}
                         onPress = {props.onRightIcon}
-                        style = {{paddingVertical: 8.9}}
+                        style = {{
+                            paddingVertical: 8.9,
+                            borderLeftWidth: 1,
+                            borderLeftColor: MyColor.Material.GREY["500"],
+                        }}
                     >
                         <MyIcon.Ionicons
                             name = "ios-options"
                             size = {17}
                             color = {MyColor.Material.BLACK}
                             style = {{
-                                paddingRight   : 14,
-                                paddingLeft    : 10,
-                                borderLeftWidth: 1,
-                                borderLeftColor: MyColor.Material.GREY["800"]
+                                paddingRight: 14,
+                                paddingLeft : 10,
                             }}
                         />
                     </TouchableOpacity>
@@ -191,22 +194,36 @@ const HeaderInputSearchOptionPage = (props: any) => {
                 style = {{
                     flex          : 1,
                     flexDirection : "row",
-                    justifyContent: "center",
-                    alignItems    : "flex-end",
+                    justifyContent: "flex-start",
+                    alignItems    : "center",
+                    paddingTop    : MyStyle.platformOS === "ios" ? (MyStyle.headerHeight / 2) : (MyStyle.headerHeightAdjusted / 2),
+                    paddingBottom : 2,
                 }}
             >
                 {
+                    props?.showBackButton !== false && <MyHeaderBackButton
+                        color = {MyColor.Material.WHITE}
+                        onPress = {props.onBack}
+                    />
+                }
+                {
+                    props?.title && <Text style = {[MyStyleSheet.textHeader2, {}]}>{props?.title}</Text>
+                }
+                {
                     props?.allowSearch &&
                     <View style = {{
-                        flexGrow      : 1,
+                        alignSelf: "flex-end",
+
+                        flexGrow: 1,
+
                         display       : "flex",
                         flexDirection : "row",
                         justifyContent: "flex-start",
                         alignItems    : "center",
 
-                        marginHorizontal: MyStyle.marginHorizontalPage,
-                        marginLeft      : 50,
-                        marginBottom    : 6,
+                        marginLeft  : MyStyle.marginHorizontalList / 2,
+                        marginRight : MyStyle.marginHorizontalPage,
+                        marginBottom: 6,
 
                         borderWidth    : 1.0,
                         borderRadius   : 50,
@@ -221,7 +238,8 @@ const HeaderInputSearchOptionPage = (props: any) => {
                         />
                         <TextInput
                             style = {{
-                                flex   : 1,
+                                width: MyStyle.screenWidth - 160,
+
                                 padding: 0,
 
                                 marginLeft: 10,
@@ -262,7 +280,10 @@ const HeaderGoogleMapSearch = (props: any) => {
     return (
         /*<Shadow style = {MyStyle.neomorphShadow.header}>*/
         <View style = {{
-            height: MyStyle.headerHeight,
+            position: "absolute",
+            width   : MyStyle.screenWidth,
+            height  : MyStyle.headerHeight,
+
             zIndex: 1000,
 
             flexDirection : "column",
@@ -280,6 +301,8 @@ const HeaderGoogleMapSearch = (props: any) => {
                     flexDirection : "row",
                     justifyContent: "space-between",
                     alignItems    : "center",
+
+                    backgroundColor: MyColor.Material.TRANSPARENT,
                 }}
             >
                 <MyHeaderBackButton onPress = {props.onBack}/>
@@ -346,7 +369,7 @@ const TopTabBarGradientPrimary = (props: any) => {
 }
 
 
-const MyHeaderBackButton = (props: any) => {
+const MyHeaderBackButtonRound = (props: any) => {
     return (
         <TouchableOpacity
             style = {{
@@ -373,6 +396,44 @@ const MyHeaderBackButton = (props: any) => {
                 style = {{paddingVertical: 7, paddingHorizontal: 8}}
             />
         </TouchableOpacity>
+    )
+}
+
+const MyHeaderBackButton = (props: any) => {
+    return (
+        MyStyle.platformOS === "ios" ?
+        <TouchableOpacity
+            style = {{
+                marginLeft   : -3,
+                paddingBottom: 2,
+            }}
+            activeOpacity = {0.9}
+            onPress = {props.onPress}
+        >
+            <MyIcon.Feather
+                name = "chevron-left"
+                size = {35}
+                color = {props.color || MyColor.Material.BLACK}
+                style = {{paddingVertical: 2}}
+            />
+        </TouchableOpacity>
+                                     :
+        <MyMaterialRipple
+            {...MyStyle.MaterialRipple.drawerRounded}
+            style = {{
+                marginLeft  : 6,
+                marginBottom: 2,
+                borderRadius: 100,
+            }}
+            onPress = {props.onPress}
+        >
+            <MyIcon.Feather
+                name = "arrow-left"
+                size = {23}
+                color = {props.color || MyColor.Material.BLACK}
+                style = {{paddingVertical: 8, paddingHorizontal: 8}}
+            />
+        </MyMaterialRipple>
     )
 }
 
@@ -491,9 +552,7 @@ const ListHeaderViewAll = (props: any) => {
                  activeOpacity = {0.8}
                  onPress = {props.onPress}
              >
-                 <Text style = {{
-                     ...MyStyleSheet.linkTextList,
-                 }}>
+                 <Text style = {MyStyleSheet.linkTextList}>
                      {props.textRight}
                  </Text>
              </TouchableOpacity>
@@ -543,6 +602,7 @@ export {
     TopTabBarGradientPrimary,
 
     MyHeaderBackButton,
+    MyHeaderBackButtonRound,
 
     Separator,
 

@@ -7,6 +7,7 @@ import {useDispatch, useSelector} from "react-redux";
 import {useFocusEffect} from "@react-navigation/native";
 import NumberFormat from "react-number-format";
 import * as yup from "yup";
+import {Checkbox} from 'react-native-paper';
 
 import MyUtil from '../common/MyUtil';
 import {MyStyle, MyStyleSheet} from '../common/MyStyle';
@@ -21,12 +22,23 @@ import MyFunction from "../shared/MyFunction";
 import MyMaterialRipple from "../components/MyMaterialRipple";
 import {MyFastImage} from "../components/MyFastImage";
 
+// import 'react-native-get-random-values';
+
 import {StatusBarLight} from '../components/MyComponent';
 import {MyButton} from "../components/MyButton";
-import {AddressListItem, CartPageBottomButtons, CartPageTotal, ModalRadioList, CartListItemSmall, ModalNotFullScreen} from "../shared/MyContainer";
+import {
+    AddressListItem,
+    CartPageBottomButtons,
+    CartPageTotal,
+    ModalRadioList,
+    CartListItemSmall,
+    ModalNotFullScreen,
+    ModalInfo
+} from "../shared/MyContainer";
 import {MyModal} from "../components/MyModal";
-import {cartUpdateDelivery} from "../store/CartRedux";
+import {cartEmpty, cartUpdateDelivery} from "../store/CartRedux";
 import {MyWebView} from "../components/MyWebView";
+import HTML from "react-native-render-html";
 
 
 let renderCount = 0;
@@ -34,50 +46,70 @@ let renderCount = 0;
 
 const orderFormSchema: any = yup.object().shape(
     {
-        id              : yup.number()
-                             .max(14, MyLANG.ID + ' ' + MyLANG.mustBeMaximum + ' 14 ' + MyLANG.character),
-        delivery_type   : yup.object()
-                             .required(MyLANG.DeliveryType + ' ' + MyLANG.isRequired),
-        pickup_address  : yup.object()
-                             .when('delivery_type', {
-                                 is  : (val: any) => val?.id === MyConfig.DeliveryType.PickUp.id,
-                                 then: yup.object().required(MyLANG.PickupAddress + ' ' + MyLANG.isRequired),
-                             }),
-        receiver_name   : yup.string()
-                             .max(255, MyLANG.ReceiverName + ' ' + MyLANG.mustBeMaximum + ' 255 ' + MyLANG.character)
-                             .when('delivery_type', {
-                                 is  : (val: any) => val?.id === MyConfig.DeliveryType.PickUp.id,
-                                 then: yup.string().required(MyLANG.ReceiverName + ' ' + MyLANG.isRequired),
-                             }),
-        receiver_phone  : yup.string()
-                             .max(16, MyLANG.ReceiverPhoneNumber + ' ' + MyLANG.mustBeMaximum + ' 16 ' + MyLANG.character)
-                             .matches(MyConstant.Validation.phone, MyLANG.InvalidPhone)
-                             .when('delivery_type', {
-                                 is  : (val: any) => val?.id === MyConfig.DeliveryType.PickUp.id,
-                                 then: yup.string().required(MyLANG.ReceiverPhoneNumber + ' ' + MyLANG.isRequired),
-                             }),
-        receiver_ic     : yup.string()
-                             .max(64, MyLANG.ReceiverICPassport + ' ' + MyLANG.mustBeMaximum + ' 64 ' + MyLANG.character)
-                             .when('delivery_type', {
-                                 is  : (val: any) => val?.id === MyConfig.DeliveryType.PickUp.id,
-                                 then: yup.string().required(MyLANG.ReceiverICPassport + ' ' + MyLANG.isRequired),
-                             }),
-        delivery_address: yup.object()
-                             .when('delivery_type', {
-                                 is  : (val: any) => val?.id === MyConfig.DeliveryType.Courier.id,
-                                 then: yup.object().required(MyLANG.DeliveryAddress + ' ' + MyLANG.isRequired),
-                             }),
-        delivery_method : yup.object()
-                             .when('delivery_type', {
-                                 is  : (val: any) => val?.id === MyConfig.DeliveryType.Courier.id,
-                                 then: yup.object().required(MyLANG.DeliveryMethod + ' ' + MyLANG.isRequired),
-                             }),
-        payment_method  : yup.object()
-                             .required(MyLANG.PaymentMethod + ' ' + MyLANG.isRequired),
-        billing_address : yup.object()
-                             .required(MyLANG.BillingAddress + ' ' + MyLANG.isRequired),
-        order_note      : yup.string()
-                             .max(1000, MyLANG.OrderNote + ' ' + MyLANG.mustBeMaximum + ' 1000 ' + MyLANG.character),
+        id                         : yup.number()
+                                        .max(14, MyLANG.ID + ' ' + MyLANG.mustBeMaximum + ' 14 ' + MyLANG.character),
+        delivery_type              : yup.object()
+                                        .required(MyLANG.DeliveryType + ' ' + MyLANG.isRequired),
+        pickup_address             : yup.object()
+                                        .when('delivery_type', {
+                                            is  : (val: any) => val?.id === MyConfig.DeliveryType.PickUp.id,
+                                            then: yup.object().required(MyLANG.PickupAddress + ' ' + MyLANG.isRequired),
+                                        }),
+        receiver_name              : yup.string()
+                                        .max(255, MyLANG.ReceiverName + ' ' + MyLANG.mustBeMaximum + ' 255 ' + MyLANG.character)
+                                        .when('delivery_type', {
+                                            is  : (val: any) => val?.id === MyConfig.DeliveryType.PickUp.id,
+                                            then: yup.string().required(MyLANG.ReceiverName + ' ' + MyLANG.isRequired),
+                                        }),
+        receiver_phone             : yup.string()
+                                        .max(16, MyLANG.ReceiverPhoneNumber + ' ' + MyLANG.mustBeMaximum + ' 16 ' + MyLANG.character)
+                                        .matches(MyConstant.Validation.phone, MyLANG.InvalidPhone)
+                                        .when('delivery_type', {
+                                            is  : (val: any) => val?.id === MyConfig.DeliveryType.PickUp.id,
+                                            then: yup.string().required(MyLANG.ReceiverPhoneNumber + ' ' + MyLANG.isRequired),
+                                        }),
+        receiver_ic                : yup.string()
+                                        .max(64, MyLANG.ReceiverICPassport + ' ' + MyLANG.mustBeMaximum + ' 64 ' + MyLANG.character)
+                                        .when('delivery_type', {
+                                            is  : (val: any) => val?.id === MyConfig.DeliveryType.PickUp.id,
+                                            then: yup.string().required(MyLANG.ReceiverICPassport + ' ' + MyLANG.isRequired),
+                                        }),
+        delivery_address           : yup.object()
+                                        .when('delivery_type', {
+                                            is  : (val: any) => val?.id === MyConfig.DeliveryType.Courier.id,
+                                            then: yup.object().required(MyLANG.DeliveryAddress + ' ' + MyLANG.isRequired),
+                                        }),
+        delivery_method            : yup.object()
+                                        .when('delivery_type', {
+                                            is  : (val: any) => val?.id === MyConfig.DeliveryType.Courier.id,
+                                            then: yup.object().required(MyLANG.DeliveryMethod + ' ' + MyLANG.isRequired),
+                                        }),
+        payment_method             : yup.object()
+                                        .required(MyLANG.PaymentMethod + ' ' + MyLANG.isRequired),
+        installment_membership_type: yup.object()
+                                        .when('payment_method', {
+                                            is  : (val: any) => val?.id === MyConfig.PaymentMethod.Installment.id,
+                                            then: yup.object().required(MyLANG.MembershipType + ' ' + MyLANG.isRequired),
+                                        }),
+        installment_period         : yup.object()
+                                        .when('payment_method', {
+                                            is  : (val: any) => val?.id === MyConfig.PaymentMethod.Installment.id,
+                                            then: yup.object().required(MyLANG.InstallmentPeriod + ' ' + MyLANG.isRequired),
+                                        }),
+        installment_amount         : yup.object()
+                                        .when('payment_method', {
+                                            is  : (val: any) => val?.id === MyConfig.PaymentMethod.Installment.id,
+                                            then: yup.object().required(MyLANG.InstallmentAmount + ' ' + MyLANG.isRequired),
+                                        }),
+        billing_address            : yup.object()
+                                        .required(MyLANG.BillingAddress + ' ' + MyLANG.isRequired),
+        order_note                 : yup.string()
+                                        .max(1000, MyLANG.OrderNote + ' ' + MyLANG.mustBeMaximum + ' 1000 ' + MyLANG.character),
+        terms_and_condition        : yup.bool()
+                                        .required(MyLANG.ReadAndAcceptTermsAndCondition)
+                                        .oneOf([true], MyLANG.ReadAndAcceptTermsAndCondition),
+        payment_reference_id       : yup.string()
+                                        .max(64, MyLANG.PaymentReferenceId + ' ' + MyLANG.mustBeMaximum + ' 64 ' + MyLANG.character),
     }
 );
 
@@ -90,18 +122,23 @@ const ProductBuyPayment = ({route, navigation}: any) => {
 
     const dispatch = useDispatch();
 
-    const user: any      = useSelector((state: any) => state.auth.user);
-    const app_input: any = useSelector((state: any) => state.app_input);
-    const addresses: any = useSelector((state: any) => state.addresses);
-    const cart: any      = useSelector((state: any) => state.cart);
+    const user: any          = useSelector((state: any) => state.auth.user);
+    const app_input: any     = useSelector((state: any) => state.app_input);
+    const addresses: any     = useSelector((state: any) => state.addresses);
+    const cart: any          = useSelector((state: any) => state.cart);
+    const payment_terms: any = useSelector((state: any) => state.app_info?.payment_terms);
 
     const [deliveryMethodList, setDeliveryMethodList] = useState([]);
 
-    const [modalVisiblePickupAddress, setModalVisiblePickupAddress]     = useState(false);
-    const [modalVisibleDeliveryAddress, setModalVisibleDeliveryAddress] = useState(false);
-    const [modalVisibleBillingAddress, setModalVisibleBillingAddress]   = useState(false);
-    const [modalVisibleDeliveryMethod, setModalVisibleDeliveryMethod]   = useState(false);
-    const [modalVisiblePaymentMethod, setModalVisiblePaymentMethod]     = useState(false);
+    const [modalVisiblePickupAddress, setModalVisiblePickupAddress]               = useState(false);
+    const [modalVisibleDeliveryAddress, setModalVisibleDeliveryAddress]           = useState(false);
+    const [modalVisibleBillingAddress, setModalVisibleBillingAddress]             = useState(false);
+    const [modalVisibleDeliveryMethod, setModalVisibleDeliveryMethod]             = useState(false);
+    const [modalVisiblePaymentMethod, setModalVisiblePaymentMethod]               = useState(false);
+    const [modalVisibleEMIMembershipType, setModalVisibleEMIMembershipType]       = useState(false);
+    const [modalVisibleEMIInstallmentPeriod, setModalVisibleEMIInstallmentPeriod] = useState(false);
+    const [modalVisibleBankAccounts, setModalVisibleBankAccounts]                 = useState(false);
+    const [modalVisibleTermsAndCondition, setModalVisibleTermsAndCondition]       = useState(false);
 
     const {register, getValues, setValue, handleSubmit, formState, errors, reset, triggerValidation, watch}: any = useForm(
         {
@@ -124,18 +161,34 @@ const ProductBuyPayment = ({route, navigation}: any) => {
         }
     }, [register]);
 
-    const values                                                                                              = getValues();
-    const {delivery_type, delivery_address, pickup_address, billing_address, delivery_method, payment_method} = watch(['delivery_type', 'delivery_address', 'pickup_address', 'billing_address', 'delivery_method', 'payment_method']);
+    const values                                                                                                                                                                                                              = getValues();
+    const {delivery_type, delivery_address, pickup_address, billing_address, delivery_method, payment_method, installment_membership_type, installment_period, installment_amount, payment_reference_id, terms_and_condition} = watch(
+        ['delivery_type', 'delivery_address', 'pickup_address', 'billing_address', 'delivery_method', 'payment_method', 'installment_membership_type', 'installment_period', 'installment_amount', 'payment_reference_id', 'terms_and_condition']);
 
 
     useFocusEffect(
         useCallback(() => {
 
-            MyUtil.printConsole(true, 'log', `LOG: ${ProductBuyPayment.name}. useFocusEffect: `, {addresses, params: route?.params});
+            MyUtil.printConsole(true, 'log', `LOG: ${ProductBuyPayment.name}. useFocusEffect: `, {params: route?.params, payment_reference_id});
 
             if (route?.params?.updateAddress === true) {
                 //await MyFunction.fetchAddress(user?.id, user?.customers_telephone);
                 getDefaultDeliveryAddress();
+
+            } else if (route?.params?.payment_status === 'SUCCESS' && route?.params?.payment_reference_id === payment_reference_id) {
+
+                orderPlace();
+
+            } else if (route?.params?.payment_status === 'FAILURE') {
+
+                MyUtil.showAlert(MyLANG.Attention, MyLANG.PaymenFailedDesc, false, [
+                    {
+                        text   : MyLANG.Ok,
+                        onPress: async () => {
+                            MyUtil.printConsole(true, 'log', 'LOG: showAlert: ', 'OK');
+                        }
+                    },
+                ])
             }
 
             // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -153,6 +206,8 @@ const ProductBuyPayment = ({route, navigation}: any) => {
         MyFunction.fetchAddress(user?.id, user?.customers_telephone);
 
         MyFunction.fetchTax(false);
+
+        MyFunction.InstallmentData(false);
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -249,6 +304,31 @@ const ProductBuyPayment = ({route, navigation}: any) => {
         MyUtil.printConsole(true, 'log', `LOG: onDeliveryType: `, {item, delivery_address});
     }
 
+    const onInstallment = async (formdata: any) => {
+
+        const data = await MyFunction.fetchInstallmentAmount(
+            {
+                'full_amount': cart?.total,
+                ...formdata,
+            },
+        );
+
+        if (data) {
+
+            setValue('installment_amount', data, true);
+
+            MyUtil.showMessage(MyConstant.SHOW_MESSAGE.TOAST, MyLANG.InstallmentAmountUpdated, false);
+
+        } else {
+
+            setValue('installment_amount', undefined, true);
+
+            MyUtil.showMessage(MyConstant.SHOW_MESSAGE.TOAST, MyLANG.InstallmentAmountUpdateFailed, false);
+        }
+
+        MyUtil.printConsole(true, 'log', `LOG: onInstallment: `, {installment_period, installment_membership_type});
+    }
+
     const onModalVisible = (key: string) => {
 
         switch (key) {
@@ -277,6 +357,14 @@ const ProductBuyPayment = ({route, navigation}: any) => {
 
             case 'payment_method':
                 setModalVisiblePaymentMethod(true);
+                break;
+
+            case 'installment_membership_type':
+                setModalVisibleEMIMembershipType(true);
+                break;
+
+            case 'installment_period':
+                setModalVisibleEMIInstallmentPeriod(true);
                 break;
 
             default:
@@ -321,6 +409,31 @@ const ProductBuyPayment = ({route, navigation}: any) => {
 
             case 'payment_method':
                 setModalVisiblePaymentMethod(false);
+                setValue('installment_membership_type', undefined, true);
+                setValue('installment_period', undefined, true);
+                setValue('installment_amount', undefined, true);
+                break;
+
+            case 'installment_membership_type':
+                setModalVisibleEMIMembershipType(false);
+                if (item?.id && installment_period?.id) {
+                    onInstallment(
+                        {
+                            'membership_type_id'   : item?.id,
+                            'installment_period_id': installment_period?.id,
+                        });
+                }
+                break;
+
+            case 'installment_period':
+                setModalVisibleEMIInstallmentPeriod(false);
+                if (item?.id && installment_membership_type?.id) {
+                    onInstallment(
+                        {
+                            'membership_type_id'   : installment_membership_type?.id,
+                            'installment_period_id': item?.id,
+                        });
+                }
                 break;
 
             default:
@@ -335,6 +448,26 @@ const ProductBuyPayment = ({route, navigation}: any) => {
                             {item, key, pickup_address, delivery_address, billing_address, delivery_method, payment_method}
         );
     };
+
+    /*const dec2hex = (dec: any) => {
+        return ('0' + dec.toString(16)).substr(-2)
+    }*/
+
+    /*const generateId = (length: number) => {
+        const arr = new Uint8Array((length || 40) / 2);
+        Crypto.getRandomValues(arr);
+        return Array.from(arr, dec2hex).join('');
+    }*/
+
+    const generateId = (length: number) => {
+        var result           = '';
+        var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        var charactersLength = characters.length;
+        for (var i = 0; i < length; i++) {
+            result += characters.charAt(Math.floor(Math.random() * charactersLength));
+        }
+        return result;
+    }
 
     const formSubmit = async (e: any) => {
 
@@ -357,27 +490,63 @@ const ProductBuyPayment = ({route, navigation}: any) => {
                     onPress: async () => {
                         MyUtil.printConsole(true, 'log', 'LOG: showAlert: ', 'OK');
 
-                        switch (payment_method?.id) {
+                        switch (payment_method?.name) {
 
-                            case MyConfig.PaymentMethod.CashOnDelivery.id:
+                            case MyConfig.PaymentMethod.CashOnDelivery.name:
+                            case MyConfig.PaymentMethod.Installment.name:
                                 orderPlace();
                                 break;
 
-                            case MyConfig.PaymentMethod.CreditCard:
+                            case MyConfig.PaymentMethod.CreditCard.name:
+                            case MyConfig.PaymentMethod.Grabpay.name:
 
-                                const paymentGatewayUrl: string = MyAPI.payment_gateway;
+                                const ref_id: any = generateId(20);
+                                setValue('payment_reference_id', ref_id, false);
+
+                                const url: string = `${payment_method?.request_url}?amount=${cart?.total}&user_id=${user?.id}&username=${user?.customers_firstname}&email=${user?.email}&phone=${user?.customers_telephone}&ref_id=${ref_id}`;
 
                                 MyUtil.commonAction(false,
                                                     null,
                                                     MyConstant.CommonAction.navigate,
                                                     MyConfig.routeName.MyWebViewPage,
-                                                    {source: paymentGatewayUrl},
+                                                    {
+                                                        source              : url,
+                                                        success_url         : payment_method?.success_url,
+                                                        failure_url         : payment_method?.failure_url,
+                                                        payment_reference_id: ref_id,
+                                                        showBackActionAlert : true,
+                                                    },
                                                     null,
                                 );
+                                route.params = null;
                                 break;
 
-                            case MyConfig.PaymentMethod.Grabpay:
+                            case MyConfig.PaymentMethod.DirectBank.name:
 
+                                let bankAccounts: string = '';
+                                if (payment_method?.bank_details?.length > 0) {
+                                    for (const [i, bank] of payment_method?.bank_details?.entries()) {
+                                        bankAccounts += `\n${MyLANG.BankName}: ${bank?.bank_name}\n${MyLANG.BankCode}: ${bank?.bank_code}\n${MyLANG.AccountHolderName}: ${bank?.account_holder_name}\n${MyLANG.AccountNumber}: ${bank?.account_number}\n`;
+                                    }
+                                }
+
+                                MyUtil.showAlert(MyLANG.BankInformation, bankAccounts, false, [
+                                    {
+                                        text   : MyLANG.No,
+                                        style  : 'cancel',
+                                        onPress: () => {
+                                            MyUtil.printConsole(true, 'log', 'LOG: showAlert: ', 'Cancel');
+                                        },
+                                    },
+                                    {
+                                        text   : MyLANG.Accept,
+                                        onPress: async () => {
+                                            MyUtil.printConsole(true, 'log', 'LOG: showAlert: ', 'OK');
+
+                                            orderPlace();
+                                        }
+                                    },
+                                ])
                                 break;
 
                             default:
@@ -400,9 +569,62 @@ const ProductBuyPayment = ({route, navigation}: any) => {
 
         const cart_array: any = new Array();
 
-        for (const key of Object.keys(cart)) {
+        for (const key of Object.keys(cart?.items)) {
             if (key) {
-                cart_array.push(cart?.[key]?.item);
+
+                const attributes_array: any = [];
+                if (cart.items?.[key]?.item?.attributes?.length > 0) {
+                    for (const [i, attribute] of cart.items?.[key]?.item?.attributes?.entries()) {
+                        if (attribute?.values?.length > 0) {
+                            for (const [i, value] of attribute?.values?.entries()) {
+                                if (value?.cart_selected === true) {
+                                    attributes_array.push(
+                                        {
+                                            'products_options'          : attribute?.option?.name,
+                                            'products_options_values'   : value?.value,
+                                            'options_values_price'      : value?.price,
+                                            'price_prefix'              : value?.price_prefix,
+                                            'products_options_id'       : attribute?.option?.id,
+                                            'products_options_values_id': value?.id,
+                                        }
+                                    );
+                                }
+                            }
+                        }
+                    }
+                }
+
+                const addons_array: any = [];
+                if (cart.items?.[key]?.item?.linked?.length > 0) {
+                    for (const [i, addon] of cart.items?.[key]?.item?.linked?.entries()) {
+                        if (addon?.products?.length > 0) {
+                            for (const [i, value] of addon?.products?.entries()) {
+                                if (value?.cart_selected === true) {
+                                    addons_array.push(
+                                        {
+                                            'products_id'       : addon?.subcat_id,
+                                            'addons_name'       : addon?.subcat_name,
+                                            'addons_value_name' : value?.products_name,
+                                            'addons_value_id'   : value?.products_id,
+                                            'addons_value_price': value?.products_price,
+                                        }
+                                    );
+                                }
+                            }
+                        }
+                    }
+                }
+
+                cart_array.push(
+                    {
+                        'products_id'              : cart.items?.[key]?.item?.id,
+                        'products_name'            : cart.items?.[key]?.item?.products_name,
+                        'customers_basket_quantity': cart.items?.[key]?.quantity,
+                        'final_price'              : cart.items?.[key]?.total,
+                        'price'                    : cart.items?.[key]?.price,
+                        'attributes'               : attributes_array,
+                        'addons'                   : addons_array,
+                    });
             }
         }
 
@@ -411,24 +633,25 @@ const ProductBuyPayment = ({route, navigation}: any) => {
 
                 products: cart_array,
 
-                // products_id,attributes in array products_options,products_options_values,options_values_price,price_prefix
-
                 customers_id       : user?.id,
                 email              : user?.email,
                 customers_telephone: user?.customers_telephone,
 
-                delivery_firstname     : delivery_address?.firstname,
-                delivery_lastname      : delivery_address?.lastname,
-                delivery_street_address: delivery_address?.street,
-                delivery_suburb        : delivery_address?.suburb,
-                delivery_city          : delivery_address?.city,
-                delivery_postcode      : delivery_address?.postcode,
-                delivery_zone          : delivery_address?.zone_id,
-                delivery_country       : delivery_address?.countries_id,
+                delivery_type: delivery_type?.id,
 
-                receiver_name : values.receiver_name,
-                receiver_phone: values.receiver_phone,
-                receiver_ic   : values.receiver_ic,
+                pickup_address: pickup_address?.id,
+                receiver_name : delivery_type?.id === MyConfig.DeliveryType.PickUp.id ? values.receiver_name : null,
+                receiver_phone: delivery_type?.id === MyConfig.DeliveryType.PickUp.id ? values.receiver_phone : null,
+                receiver_ic   : delivery_type?.id === MyConfig.DeliveryType.PickUp.id ? values.receiver_ic : null,
+
+                delivery_firstname     : delivery_type?.id === MyConfig.DeliveryType.Courier.id ? delivery_address?.firstname : null,
+                delivery_lastname      : delivery_type?.id === MyConfig.DeliveryType.Courier.id ? delivery_address?.lastname : null,
+                delivery_street_address: delivery_type?.id === MyConfig.DeliveryType.Courier.id ? delivery_address?.street : null,
+                delivery_suburb        : delivery_type?.id === MyConfig.DeliveryType.Courier.id ? delivery_address?.suburb : null,
+                delivery_city          : delivery_type?.id === MyConfig.DeliveryType.Courier.id ? delivery_address?.city : null,
+                delivery_postcode      : delivery_type?.id === MyConfig.DeliveryType.Courier.id ? delivery_address?.postcode : null,
+                delivery_zone          : delivery_type?.id === MyConfig.DeliveryType.Courier.id ? delivery_address?.zone_id : null,
+                delivery_country       : delivery_type?.id === MyConfig.DeliveryType.Courier.id ? delivery_address?.countries_id : null,
 
                 billing_firstname     : billing_address?.firstname,
                 billing_lastname      : billing_address?.lastname,
@@ -439,14 +662,22 @@ const ProductBuyPayment = ({route, navigation}: any) => {
                 billing_zone          : billing_address?.zone_id,
                 billing_country       : billing_address?.countries_id,
 
-                shipping_method: delivery_method?.id,
-                shipping_cost  : cart?.delivery_charge,
-                payment_method : payment_method?.id,
+                shipping_method: delivery_type?.id === MyConfig.DeliveryType.Courier.id ? delivery_method?.id : null,
+                shipping_cost  : delivery_type?.id === MyConfig.DeliveryType.Courier.id ? cart?.delivery_charge : null,
 
-                is_coupon_applied: cart?.voucher?.amount > 0,
-                coupon_amount    : cart?.voucher?.amount,
-                total_tax        : cart?.tax,
-                totalPrice       : cart?.total,
+                payment_method: payment_method?.id,
+
+                ref_id: (payment_method?.name === MyConfig.PaymentMethod.CreditCard.name || payment_method?.name === MyConfig.PaymentMethod.Grabpay.name) ? payment_reference_id : null,
+
+                installment_membership_type: payment_method?.name === MyConfig.PaymentMethod.Installment.name ? installment_membership_type?.id : null,
+                installment_period         : payment_method?.name === MyConfig.PaymentMethod.Installment.name ? installment_period?.id : null,
+                installment_amount         : payment_method?.name === MyConfig.PaymentMethod.Installment.name ? installment_amount?.data : null,
+
+                is_coupon_applied: Number(cart?.voucher?.amount) > 0 ? true : false,
+                coupon_amount    : Number(cart?.voucher?.amount) > 0 ? cart?.voucher?.amount : null,
+
+                total_tax : cart?.tax,
+                totalPrice: cart?.total,
 
                 comments: values.order_note,
 
@@ -462,7 +693,9 @@ const ProductBuyPayment = ({route, navigation}: any) => {
             MyLANG.OrderPlacedFailed,
         );
 
-        if (Number(response?.id) > 0) {
+        if (Number(response?.orders_id) > 0) {
+
+            dispatch(cartEmpty());
 
             MyUtil.showMessage(MyConstant.SHOW_MESSAGE.TOAST, MyLANG.OrderPlacedSuccessfully, false);
 
@@ -470,9 +703,10 @@ const ProductBuyPayment = ({route, navigation}: any) => {
                                 null,
                                 MyConstant.CommonAction.navigate,
                                 MyConfig.routeName.ProductBuySuccess,
-                                {id: response?.id, item: response},
+                                {id: response?.orders_id, item: response},
                                 null,
             );
+            route.params = null;
 
             // Reset Cart, Navigation Stack.
 
@@ -491,7 +725,8 @@ const ProductBuyPayment = ({route, navigation}: any) => {
                             MyConfig.routeName.MyAddress,
                             {routeName: MyConfig.routeName.ProductBuyPayment, params: {'updateAddress': true}},
                             null,
-        )
+        );
+        route.params = null;
     }
 
     const onBack = () => {
@@ -503,6 +738,7 @@ const ProductBuyPayment = ({route, navigation}: any) => {
                            null
         )
     }
+
 
     return (
         <Fragment>
@@ -801,7 +1037,7 @@ const ProductBuyPayment = ({route, navigation}: any) => {
                              </View>
 
                              <MyMaterialRipple
-                                 style = {[MyStyleSheet.viewPageCard, MyStyle.RowLeftCenter, {paddingRight: 8}]}
+                                 style = {[MyStyleSheet.viewPageCard, MyStyle.RowLeftTop, {paddingRight: 8}]}
                                  {...MyStyle.MaterialRipple.drawer}
                                  onPress = {() => onModalVisible('delivery_method')}
                              >
@@ -809,31 +1045,43 @@ const ProductBuyPayment = ({route, navigation}: any) => {
                                      name = "handbag"
                                      size = {26}
                                      color = {MyColor.textDarkSecondary}
-                                     style = {{}}
+                                     style = {{marginTop: 5}}
                                  />
                                  {
-                                     delivery_method?.id ?
+                                     (delivery_method?.id) ?
                                      <View style = {[MyStyle.ColumnCenterStart, {flex: 1, marginHorizontal: 14}]}>
                                          <Text style = {[MyStyleSheet.textListItemTitleDark]}>
                                              {delivery_method?.name}
                                          </Text>
-                                         <NumberFormat
-                                             value = {delivery_method?.price}
-                                             defaultValue = {0}
-                                             displayType = {'text'}
-                                             thousandSeparator = {true}
-                                             decimalScale = {2}
-                                             fixedDecimalScale = {true}
-                                             decimalSeparator = {'.'}
-                                             renderText = {
-                                                 (value: any) =>
-                                                     <Text style = {MyStyleSheet.textListItemSubTitle}>
-                                                         {MyLANG.DeliveryCost} {MyConfig.Currency.MYR.symbol} {value}
-                                                     </Text>
-                                             }
-                                         />
+                                         {
+                                             Number(delivery_method?.price) > 0 &&
+                                             <NumberFormat
+                                                 value = {delivery_method?.price}
+                                                 defaultValue = {0}
+                                                 displayType = {'text'}
+                                                 thousandSeparator = {true}
+                                                 decimalScale = {2}
+                                                 fixedDecimalScale = {true}
+                                                 decimalSeparator = {'.'}
+                                                 renderText = {
+                                                     (value: any) =>
+                                                         <Text style = {MyStyleSheet.textListItemSubTitle}>
+                                                             {MyLANG.DeliveryCost} {MyConfig.Currency.MYR.symbol} {value}
+                                                         </Text>
+                                                 }
+                                             />
+                                         }
+                                         {delivery_method?.description &&
+                                          <HTML
+                                              html = {delivery_method?.description}
+                                              tagsStyles = {MyStyle.textHTMLBody}
+                                              ignoredTags = {MyStyle.IGNORED_TAGS}
+                                              containerStyle = {{}}
+                                              textSelectable = {true}
+                                          />
+                                         }
                                      </View>
-                                                         :
+                                                           :
                                      <View style = {[MyStyle.ColumnCenterStart, {flex: 1, marginHorizontal: 14}]}>
                                          <Text style = {[MyStyleSheet.textListItemTitleDark]}>
                                              {MyLANG.SelectDeliveryMethod}
@@ -857,10 +1105,6 @@ const ProductBuyPayment = ({route, navigation}: any) => {
                         <View style = {[MyStyleSheet.viewPageCard, {paddingHorizontal: 0, paddingBottom: 0}]}>
                             <View style = {[MyStyle.RowBetweenCenter, {paddingHorizontal: MyStyle.paddingHorizontalPage}]}>
                                 <Text style = {[{...MyStyleSheet.headerPage, marginBottom: 4}]}>{MyLANG.PaymentMethod}</Text>
-                                {/*<TouchableOpacity activeOpacity = {0.8}
-                                                  onPress = {onAddressManage}>
-                                    <Text style = {{...MyStyleSheet.linkTextList}}>{MyLANG.AddAddress}</Text>
-                                </TouchableOpacity>*/}
                             </View>
 
                             <MyMaterialRipple
@@ -904,6 +1148,95 @@ const ProductBuyPayment = ({route, navigation}: any) => {
 
                         </View>
 
+                        {(payment_method?.name === MyConfig.PaymentMethod.Installment.name) &&
+                         <View style = {[MyStyleSheet.viewPageCard, {paddingHorizontal: 0, paddingBottom: 0}]}>
+                             <View style = {[MyStyle.RowBetweenCenter, {paddingHorizontal: MyStyle.paddingHorizontalPage}]}>
+                                 <Text style = {[{...MyStyleSheet.headerPage, marginBottom: 4}]}>{MyLANG.MembershipType}</Text>
+                             </View>
+
+                             <MyMaterialRipple
+                                 style = {[MyStyleSheet.viewPageCard, MyStyle.RowLeftCenter, {paddingRight: 8}]}
+                                 {...MyStyle.MaterialRipple.drawer}
+                                 onPress = {() => onModalVisible('installment_membership_type')}
+                             >
+                                 <MyIcon.SimpleLineIcons
+                                     name = "people"
+                                     size = {26}
+                                     color = {MyColor.textDarkSecondary}
+                                     style = {{}}
+                                 />
+                                 {
+                                     installment_membership_type?.id ?
+                                     <View style = {[MyStyle.ColumnCenterStart, {flex: 1, marginHorizontal: 14}]}>
+                                         <Text style = {[MyStyleSheet.textListItemTitleDark]}>
+                                             {installment_membership_type?.name}
+                                         </Text>
+                                     </View>
+                                                                     :
+                                     <View style = {[MyStyle.ColumnCenterStart, {flex: 1, marginHorizontal: 14}]}>
+                                         <Text style = {[MyStyleSheet.textListItemTitleDark]}>
+                                             {MyLANG.SelectMembershipType}
+                                         </Text>
+                                         <Text style = {[MyStyleSheet.textListItemSubTitle]}>
+                                             {MyLANG.SelectMembershipTypeDesc}
+                                         </Text>
+                                     </View>
+                                 }
+                                 <MyIcon.Entypo
+                                     name = "chevron-right"
+                                     size = {20}
+                                     color = {MyColor.Material.GREY["800"]}
+                                     style = {{}}
+                                 />
+                             </MyMaterialRipple>
+
+                         </View>
+                        }
+                        {(payment_method?.name === MyConfig.PaymentMethod.Installment.name) &&
+                         <View style = {[MyStyleSheet.viewPageCard, {paddingHorizontal: 0, paddingBottom: 0}]}>
+                             <View style = {[MyStyle.RowBetweenCenter, {paddingHorizontal: MyStyle.paddingHorizontalPage}]}>
+                                 <Text style = {[{...MyStyleSheet.headerPage, marginBottom: 4}]}>{MyLANG.InstallmentPeriod}</Text>
+                             </View>
+
+                             <MyMaterialRipple
+                                 style = {[MyStyleSheet.viewPageCard, MyStyle.RowLeftCenter, {paddingRight: 8}]}
+                                 {...MyStyle.MaterialRipple.drawer}
+                                 onPress = {() => onModalVisible('installment_period')}
+                             >
+                                 <MyIcon.SimpleLineIcons
+                                     name = "calendar"
+                                     size = {26}
+                                     color = {MyColor.textDarkSecondary}
+                                     style = {{}}
+                                 />
+                                 {
+                                     installment_period?.id ?
+                                     <View style = {[MyStyle.ColumnCenterStart, {flex: 1, marginHorizontal: 14}]}>
+                                         <Text style = {[MyStyleSheet.textListItemTitleDark]}>
+                                             {installment_period?.name}
+                                         </Text>
+                                     </View>
+                                                            :
+                                     <View style = {[MyStyle.ColumnCenterStart, {flex: 1, marginHorizontal: 14}]}>
+                                         <Text style = {[MyStyleSheet.textListItemTitleDark]}>
+                                             {MyLANG.SelectInstallmentPeriod}
+                                         </Text>
+                                         <Text style = {[MyStyleSheet.textListItemSubTitle]}>
+                                             {MyLANG.SelectInstallmentPeriodDesc}
+                                         </Text>
+                                     </View>
+                                 }
+                                 <MyIcon.Entypo
+                                     name = "chevron-right"
+                                     size = {20}
+                                     color = {MyColor.Material.GREY["800"]}
+                                     style = {{}}
+                                 />
+                             </MyMaterialRipple>
+
+                         </View>
+                        }
+
                         <View style = {[MyStyleSheet.viewPageCard, {}]}>
 
                             <Text style = {[{...MyStyleSheet.headerPage, marginBottom: 2}]}>
@@ -922,6 +1255,9 @@ const ProductBuyPayment = ({route, navigation}: any) => {
                                         borderColor      : MyColor.Material.GREY["300"],
                                         borderWidth      : 1,
                                         paddingHorizontal: MyStyle.paddingHorizontalList / 2,
+
+                                        minHeight: 110,
+                                        maxHeight: 110,
                                     }}
                                     multiline = {true}
                                     numberOfLines = {5}
@@ -935,8 +1271,43 @@ const ProductBuyPayment = ({route, navigation}: any) => {
                         <CartPageTotal
                             cart = {cart}
                             service_charge = {false}
+                            installment = {payment_method?.name === MyConfig.PaymentMethod.Installment.name ? {
+                                amount: installment_amount?.data,
+                                months: installment_period?.name
+                            } : null}
                             style = {{backgroundColor: MyColor.Material.WHITE, paddingBottom: MyStyle.paddingVerticalLogin}}
                         />
+
+                        <View style = {[MyStyle.RowLeftCenter, {
+                            paddingHorizontal: MyStyle.paddingHorizontalList,
+                            paddingTop       : MyStyle.paddingVerticalList / 2,
+                        }]}>
+                            <View style = {MyStyle.platformOS === "ios" && {
+                                marginRight : 10,
+                                borderRadius: 4,
+                                borderWidth : 1,
+                                borderColor : MyColor.Material.GREY["550"]
+                            }}>
+                                <Checkbox
+                                    color = {MyColor.Primary.first}
+                                    status = {terms_and_condition ? 'checked' : 'unchecked'}
+                                    onPress = {() => {
+                                        setValue('terms_and_condition', !terms_and_condition, true);
+                                    }}
+                                />
+                            </View>
+                            <Text style = {[MyStyleSheet.textListItemSubTitle, {}]}>
+                                {MyLANG.IAgreeToTermsAndCondition}
+                            </Text>
+                            <TouchableOpacity
+                                activeOpacity = {0.8}
+                                onPress = {() => setModalVisibleTermsAndCondition(true)}
+                            >
+                                <Text style = {[MyStyleSheet.linkTextList, {marginLeft: 5}]}>
+                                    {MyLANG.ReadHere}
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
 
                         <MyButton
                             color = {MyStyle.LGButtonPrimary}
@@ -974,7 +1345,7 @@ const ProductBuyPayment = ({route, navigation}: any) => {
                  />
                 }
 
-                {delivery_type?.id === MyConfig.DeliveryType.Courier.id &&
+                {(delivery_type?.id === MyConfig.DeliveryType.Courier.id) &&
                  <MyModal
                      visible = {modalVisibleDeliveryAddress}
                      onRequestClose = {() => setModalVisibleDeliveryAddress(false)}
@@ -1051,6 +1422,78 @@ const ProductBuyPayment = ({route, navigation}: any) => {
                                     onItem = {(item: any) => onModalItem(item, 'payment_method')}
                                     items = {app_input?.payment_method}
                                     subTitleText = "name"
+                                />
+                            }
+                        />
+                    }
+                />
+
+                {(payment_method?.name === MyConfig.PaymentMethod.Installment.name && app_input?.installment_membership_type?.length > 0) &&
+                 <MyModal
+                     visible = {modalVisibleEMIMembershipType}
+                     onRequestClose = {() => setModalVisibleEMIMembershipType(false)}
+                     children = {
+                         <ModalNotFullScreen
+                             onRequestClose = {() => setModalVisibleEMIMembershipType(false)}
+                             children = {
+                                 <ModalRadioList
+                                     title = {MyLANG.SelectMembershipType}
+                                     selected = {installment_membership_type?.id}
+                                     onItem = {(item: any) => onModalItem(item, 'installment_membership_type')}
+                                     items = {app_input?.installment_membership_type}
+                                     titleText = "name"
+                                 />
+                             }
+                         />
+                     }
+                 />
+                }
+                {(payment_method?.name === MyConfig.PaymentMethod.Installment.name && app_input?.installment_period?.length > 0) &&
+                 <MyModal
+                     visible = {modalVisibleEMIInstallmentPeriod}
+                     onRequestClose = {() => setModalVisibleEMIInstallmentPeriod(false)}
+                     children = {
+                         <ModalNotFullScreen
+                             onRequestClose = {() => setModalVisibleEMIInstallmentPeriod(false)}
+                             children = {
+                                 <ModalRadioList
+                                     title = {MyLANG.SelectInstallmentPeriod}
+                                     selected = {installment_period?.id}
+                                     onItem = {(item: any) => onModalItem(item, 'installment_period')}
+                                     items = {app_input?.installment_period}
+                                     titleText = "name"
+                                 />
+                             }
+                         />
+                     }
+                 />
+                }
+
+                <MyModal
+                    visible = {modalVisibleTermsAndCondition}
+                    onRequestClose = {() => setModalVisibleTermsAndCondition(false)}
+                    children = {
+                        <ModalNotFullScreen
+                            onRequestClose = {() => setModalVisibleTermsAndCondition(false)}
+                            children = {
+                                <ModalInfo
+                                    title = {MyLANG.TermsAndCondition}
+                                    bodyHTML = {payment_terms}
+                                />
+                            }
+                        />
+                    }
+                />
+                <MyModal
+                    visible = {modalVisibleBankAccounts}
+                    onRequestClose = {() => setModalVisibleBankAccounts(false)}
+                    children = {
+                        <ModalNotFullScreen
+                            onRequestClose = {() => setModalVisibleBankAccounts(false)}
+                            children = {
+                                <ModalInfo
+                                    title = {MyLANG.BankAccounts}
+                                    bodyHTML = {payment_terms}
                                 />
                             }
                         />

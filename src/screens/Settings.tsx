@@ -20,7 +20,6 @@ import MyMaterialRipple from "../components/MyMaterialRipple";
 import {getMyIcon} from "../components/MyIcon";
 
 import MyAuth from "../common/MyAuth";
-import {appInfoUpdate} from "../store/AppInfoRedux";
 import MyFunction from "../shared/MyFunction";
 import {MyFastImage} from "../components/MyFastImage";
 import {useFocusEffect} from "@react-navigation/native";
@@ -420,8 +419,6 @@ const SettingsScreen = ({route, navigation}: any) => {
 
     useEffect(() => {
 
-        MyFunction.fetchAppData(false);
-
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -599,15 +596,17 @@ const settingsItemOnPress = (loginRequired: boolean, navigation: any, actionType
                 MyUtil.tabAction(loginRequired, navigation, MyConstant.TabAction.jumpTo, routeName, params, null);
                 break;
             case MyConstant.DrawerOnPress.RateApp:
-                MyUtil.linking(MyConstant.Linking.openURL, MyConfig.android_store_link, MyConstant.SHOW_MESSAGE.TOAST);
+                MyUtil.linking(MyConstant.Linking.openURL,
+                               MyStyle.platformOS === "ios" ? MyConfig.iOS_store_link : MyConfig.android_store_link,
+                               MyConstant.SHOW_MESSAGE.TOAST,
+                );
                 break;
             case MyConstant.DrawerOnPress.ShareApp:
                 MyUtil.share(MyConstant.SHARE.TYPE.open,
                              false,
                              {
-                                 message: MyLANG.ShareUs,
+                                 message: `${MyLANG.ShareUs}\n\n${MyStyle.platformOS === "ios" ? MyConfig.iOS_store_link : MyConfig.android_store_link}`,
                                  subject: MyLANG.AppShare,
-                                 url    : MyConfig.android_store_link,
                              },
                              false
                 )

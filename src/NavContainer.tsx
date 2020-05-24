@@ -254,19 +254,19 @@ const HomeScreens =
                   component = {SettingsScreen}
                   options = {({route, navigation}: any) => ({
                       title           : "",
-                     /* headerLeft      : () =>
-                          <HeaderButtonLeft
-                              icon = {{name: 'menu'}}
-                              onPress = {
-                                  () => MyUtil.drawerAction(false,
-                                                            null,
-                                                            MyConstant.DrawerAction.toggleDrawer,
-                                                            null,
-                                                            null,
-                                                            null
-                                  )
-                              }
-                          />,*/
+                      /* headerLeft      : () =>
+                           <HeaderButtonLeft
+                               icon = {{name: 'menu'}}
+                               onPress = {
+                                   () => MyUtil.drawerAction(false,
+                                                             null,
+                                                             MyConstant.DrawerAction.toggleDrawer,
+                                                             null,
+                                                             null,
+                                                             null
+                                   )
+                               }
+                           />,*/
                       headerBackground: HeaderGradientPrimaryLogo,
                       ...MyStyleCommon.StackOptions.BottomTabStack,
                   })}
@@ -484,7 +484,6 @@ const HomeScreens =
                   component = {OptionPage}
                   options = {{
                       title                    : "",
-                      // headerBackground: HeaderGradientPrimary,
                       ...MyStyleCommon.StackOptions.BottomTabStack,
                       headerTitleContainerStyle: { // important
                           // right: 0,

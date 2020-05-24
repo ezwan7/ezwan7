@@ -68,3 +68,8 @@ buck-out/
 /android/app/build_defs.bzl
 /android/app/_BUCK
 /android/app/src/main/assets/index.android.bundle
+/android/app/src/debug/
+/android/app/debug.keystore
+/package-lock.json
+/ios/AirGoogleMaps/
+/ios/AirMaps/

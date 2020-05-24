@@ -6,6 +6,7 @@ const initialState: any = {
     privacy_policy: null,
     term_services : null,
     refund_policy : null,
+    payment_terms : null,
 }
 
 const types = {

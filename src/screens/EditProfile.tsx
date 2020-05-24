@@ -25,7 +25,7 @@ import MyLANG from '../shared/MyLANG';
 import {MyConstant} from '../common/MyConstant';
 import MyIcon from '../components/MyIcon';
 
-import {StatusBarDark} from '../components/MyComponent';
+import {StatusBarDark, StatusBarGradientPrimary} from '../components/MyComponent';
 import {useForm} from "react-hook-form";
 import {MyInput} from "../components/MyInput";
 import {MyButton} from "../components/MyButton";
@@ -310,7 +310,7 @@ const EditProfile = ({route, navigation}: any) => {
 
             MyUtil.printConsole(true, 'log', 'LOG: imagePicker: await-response: ', {'response': response});
 
-            if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.fileName && response.data?.fileSize > 0) {
+            if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.data && response.data?.type && Number(response.data?.fileSize) > 0) {
 
                 uploadProfilePhoto(response.data);
 
@@ -404,7 +404,7 @@ const EditProfile = ({route, navigation}: any) => {
 
     return (
         <Fragment>
-            <StatusBarDark/>
+            {MyStyle.platformOS === "ios" ? <StatusBarGradientPrimary/> : <StatusBarDark/>}
             <SafeAreaView style = {MyStyleSheet.SafeAreaView1}/>
             <SafeAreaView style = {MyStyleSheet.SafeAreaView2}>
                 <LinearGradient
@@ -426,14 +426,14 @@ const EditProfile = ({route, navigation}: any) => {
                             <MyFastImage
                                 source = {[user?.customers_picture?.length > 9 ? {'uri': user?.customers_picture} : MyImage.defaultAvatar, MyImage.defaultAvatar]}
                                 style = {MyStyleSheet.imagePageCard}
-                                resizeMode="cover"
+                                resizeMode = "cover"
                             />
                             <MyButton
                                 fill = "transparent"
                                 color = {MyColor.Primary.first}
                                 shadow = "none"
                                 title = {MyLANG.ChangePhoto}
-                                linearGradientStyle = {{marginTop: 15}}
+                                viewStyle = {{marginTop: 15}}
                                 textStyle = {{fontFamily: MyStyle.FontFamily.OpenSans.semiBold}}
                                 onPress = {() => setModalVisibleFileSource(true)}
                             />
@@ -513,7 +513,7 @@ const EditProfile = ({route, navigation}: any) => {
                             <MyButton
                                 color = {MyStyle.LGButtonPrimary}
                                 title = {MyLANG.UpdateProfile}
-                                linearGradientStyle = {{marginTop: MyStyle.marginButtonTop, marginBottom: MyStyle.marginButtonBottom}}
+                                viewStyle = {{marginTop: MyStyle.marginButtonTop, marginBottom: MyStyle.marginButtonBottom}}
                                 onPress = {(e: any) => {
                                     formSubmit(e);
                                 }}
@@ -571,7 +571,7 @@ const EditProfile = ({route, navigation}: any) => {
                                     <MyButton
                                         color = {MyStyle.LGButtonPrimary}
                                         title = {MyLANG.ChangePassword}
-                                        linearGradientStyle = {{marginTop: MyStyle.marginButtonTop, marginBottom: MyStyle.marginButtonBottom}}
+                                        viewStyle = {{marginTop: MyStyle.marginButtonTop, marginBottom: MyStyle.marginButtonBottom}}
                                         onPress = {(e: any) => {
                                             formSubmitPasswordForm(e);
                                         }}

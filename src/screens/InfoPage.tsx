@@ -51,14 +51,14 @@ const InfoPage = ({route, navigation}: any) => {
 
     return (
         <Fragment>
-            <StatusBarGradientPrimary/>
+            <StatusBarLight/>
             <SafeAreaView style = {MyStyleSheet.SafeAreaView1}/>
             <SafeAreaView style = {MyStyleSheet.SafeAreaView2}>
                 <View style = {[MyStyleSheet.SafeAreaView3, {backgroundColor: MyColor.Material.WHITE}]}>
 
                     <ScrollView
                         contentInsetAdjustmentBehavior = "automatic"
-                        contentContainerStyle = {{paddingTop: MyStyle.headerHeightAdjusted}}
+                        contentContainerStyle = {{paddingTop: MyStyle.platformOS === "ios" ? MyStyle.headerHeight - 20 : MyStyle.headerHeightAdjusted + 15}}
                     >
                         <HTML
                             html = {route?.params?.text ? route?.params?.text : MyLANG.NoText}

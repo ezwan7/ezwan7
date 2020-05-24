@@ -11,7 +11,7 @@ import MyLANG from '../shared/MyLANG';
 import {MyConstant} from '../common/MyConstant';
 import MyIcon from '../components/MyIcon';
 
-import {ActivityIndicatorLarge, HeaderInputSearchOptionPage, StatusBarLight} from '../components/MyComponent';
+import {ActivityIndicatorLarge, HeaderGradientPrimary, HeaderInputSearchOptionPage, StatusBarLight} from '../components/MyComponent';
 import {ListItemSeparator, OptionList} from "../shared/MyContainer";
 
 
@@ -40,7 +40,13 @@ const OptionPage = ({route, navigation}: any) => {
         if (route?.params?.title && route?.params?.allowSearch !== true) {
             navigation.setOptions(
                 {
-                    title: route?.params?.title,
+                    title           : route?.params?.title,
+                    headerBackground: HeaderGradientPrimary,
+                });
+        } else {
+            navigation.setOptions(
+                {
+                    headerBackTitleVisible: false,
                 });
         }
     }, [navigation, route]);
@@ -155,27 +161,37 @@ const OptionPage = ({route, navigation}: any) => {
 
     return (
         <Fragment>
-            <StatusBarLight/>
-            <SafeAreaView style = {MyStyleSheet.SafeAreaView1}/>
-            <SafeAreaView style = {MyStyleSheet.SafeAreaView2}>
-                <View style = {[MyStyleSheet.SafeAreaView3, {paddingTop: 0, backgroundColor: MyColor.Material.WHITE}]}>
+            {
+                route?.params?.allowSearch &&
+                <HeaderInputSearchOptionPage
+                    allowSearch = {route?.params?.allowSearch}
+                    onChangeText = {(text: any) => {
+                        setSearchText(text);
+                        searchItem(text);
+                    }}
+                    //onSubmitEditing = {(text: any) => searchItem(text)}
+                    onClearIcon = {() => {
+                        setSearchText(null);
+                        searchItem('');
+                    }}
+                    value = {searchText}
+                    onBack = {() => {
+                        MyUtil.stackAction(false,
+                                           navigation,
+                                           MyConstant.StackAction.pop,
+                                           1,
+                                           null,
+                                           null,
+                        );
+                    }}
+                />
+            }
 
-                    <HeaderInputSearchOptionPage
-                        allowSearch = {route?.params?.allowSearch}
-                        onChangeText = {(text: any) => {
-                            setSearchText(text);
-                            searchItem(text);
-                        }}
-                        //onSubmitEditing = {(text: any) => searchItem(text)}
-                        onClearIcon = {() => {
-                            setSearchText(null);
-                            searchItem('');
-                        }}
-                        value = {searchText}
-                    />
+            <SafeAreaView style = {MyStyleSheet.SafeAreaView2}>
+                <View style = {[MyStyleSheet.SafeAreaView3, {backgroundColor: MyColor.Material.WHITE}, route?.params?.allowSearch === true && {paddingTop: 0}]}>
 
                     <FlatList
-                        contentContainerStyle = {{flexGrow: 1}}
+                        contentContainerStyle = {[{flexGrow: 1}, route?.params?.allowSearch !== true && {paddingTop: MyStyle.headerHeightAdjusted}]}
                         data = {items}
                         renderItem = {({item, index}: any) =>
                             <OptionList

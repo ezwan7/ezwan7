@@ -35,31 +35,40 @@ const MyWebViewScreen = ({route, navigation}: any) => {
     useFocusEffect(
         useCallback(() => {
             const onBackPress = () => {
-                // Go back to Previous page:
-                MyUtil.showAlert(MyLANG.Attention, MyLANG.PaymentWebViewAlert, false, [
-                    {
-                        text   : MyLANG.StayOnThisPage,
-                        style  : 'cancel',
-                        onPress: () => {
-                            MyUtil.printConsole(true, 'log', 'LOG: showAlert: ', 'Cancel');
-                        },
-                    },
-                    {
-                        text   : MyLANG.GoBack,
-                        onPress: async () => {
-                            MyUtil.printConsole(true, 'log', 'LOG: showAlert: ', 'OK');
 
-                            MyUtil.stackAction(false,
-                                               navigation,
-                                               MyConstant.StackAction.pop,
-                                               1,
-                                               null,
-                                               null,
-                            );
-                        }
-                    },
-                ])
-                return true;
+                if (route?.params?.showBackActionAlert === true) {
+                    // Go back to Previous page:
+                    MyUtil.showAlert(MyLANG.Attention, MyLANG.PaymentWebViewAlert, false, [
+                        {
+                            text   : MyLANG.StayOnThisPage,
+                            style  : 'cancel',
+                            onPress: () => {
+                                MyUtil.printConsole(true, 'log', 'LOG: showAlert: ', 'Cancel');
+                            },
+                        },
+                        {
+                            text   : MyLANG.GoBack,
+                            onPress: async () => {
+                                MyUtil.printConsole(true, 'log', 'LOG: showAlert: ', 'OK');
+
+                                MyUtil.stackAction(false,
+                                                   navigation,
+                                                   MyConstant.StackAction.pop,
+                                                   1,
+                                                   null,
+                                                   null,
+                                );
+                            }
+                        },
+                    ])
+
+                    return true;
+
+                } else {
+
+                    return false;
+
+                }
             };
 
             BackHandler.addEventListener('hardwareBackPress', onBackPress);
@@ -92,11 +101,43 @@ const MyWebViewScreen = ({route, navigation}: any) => {
         //   canGoBack?: boolean;
         //   canGoForward?: boolean;
         // }
+
         const {url} = newNavState;
         if (!url) return;
 
+        if (url === route?.params?.success_url) {
+            webviewRef?.current?.stopLoading();
+            const navParams: any = {
+                payment_status: 'SUCCESS', payment_reference_id: route?.params?.payment_reference_id,
+            }
+            route.params         = null;
+            return MyUtil.commonAction(false,
+                                       navigation,
+                                       MyConstant.CommonAction.navigate,
+                                       MyConfig.routeName.ProductBuyPayment,
+                                       navParams,
+                                       null,
+            );
+        } else if (url === route?.params?.failure_url) {
+            webviewRef?.current?.stopLoading();
+            const navParams: any = {
+                payment_status: 'FAILURE', payment_reference_id: 'FAILURE',
+            }
+            route.params         = null;
+            return MyUtil.commonAction(false,
+                                       navigation,
+                                       MyConstant.CommonAction.navigate,
+                                       MyConfig.routeName.ProductBuyPayment,
+                                       navParams,
+                                       null,
+            );
+        }
+
+        // addons in order place api
+        // order details new entries, addone, emi,...
+
         // handle certain doctypes
-        if (url.includes('.pdf')) {
+        /*if (url.includes('.pdf')) {
             webviewRef?.current?.stopLoading();
             // open a modal with the PDF viewer
         }
@@ -117,7 +158,7 @@ const MyWebViewScreen = ({route, navigation}: any) => {
             const newURL     = 'https://reactnative.dev/';
             const redirectTo = 'window.location = "' + newURL + '"';
             webviewRef?.current?.injectJavaScript(redirectTo);
-        }
+        }*/
     };
 
     const backButtonHandler = () => {

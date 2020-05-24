@@ -196,7 +196,7 @@ const OrderDetailsScreen = ({route, navigation}: any) => {
 
             MyUtil.printConsole(true, 'log', 'LOG: sourcePicker: await-response: ', {'response': response});
 
-            if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.fileName && response.data?.fileSize > 0) {
+            if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.data && response.data?.type && Number(response.data?.fileSize) > 0) {
 
                 uploadReceipt(response.data);
             }
@@ -317,6 +317,19 @@ const OrderDetailsScreen = ({route, navigation}: any) => {
         }
     };
 
+    const onOrderTracking = () => {
+
+        const webUrl: string = order?.tracking_shipments?.[0]?.shipment_tracking_number;
+
+        MyUtil.commonAction(false,
+                            null,
+                            MyConstant.CommonAction.navigate,
+                            MyConfig.routeName.MyWebViewPage,
+                            {source: webUrl},
+                            null,
+        );
+    };
+
 
     return (
         <Fragment>
@@ -384,6 +397,47 @@ const OrderDetailsScreen = ({route, navigation}: any) => {
                                      </Text>
                                  </View>
 
+                             </View>
+
+                             <View style = {[MyStyleSheet.viewPageCard, {}]}>
+                                 <Text style = {[{...MyStyleSheet.headerPage, marginBottom: 15}]}>{MyLANG.TrackingInformation}</Text>
+
+                                 <View style = {[MyStyle.RowLeftTop, {marginBottom: 5}]}>
+                                     <MyIcon.SimpleLineIcons
+                                         name = "compass"
+                                         size = {26}
+                                         color = {MyColor.textDarkSecondary2}
+                                         style = {{marginTop: 4}}
+                                     />
+                                     <View style = {[MyStyle.ColumnCenterStart, {flex: 1, marginHorizontal: 14}]}>
+                                         <Text style = {[MyStyleSheet.textListItemTitleDark]}>
+                                             {order?.tracking_shipments?.[0]?.shipment_comment}
+                                         </Text>
+
+                                         <View style = {MyStyle.RowLeftCenter}>
+                                             <Text style = {[MyStyleSheet.textListItemSubTitle, {marginRight: 5}]}>
+                                                 {MyLANG.TrackingNumber}
+                                             </Text>
+                                             <Text style = {MyStyleSheet.linkTextList}>
+                                                 {order?.tracking_shipments?.[0]?.shipment_tracking_number}
+                                             </Text>
+                                             {/*{order?.tracking_shipments?.[0]?.shipment_tracking_number?.length > 0 &&
+                                              <TouchableOpacity
+                                                  activeOpacity = {0.8}
+                                                  onPress = {onOrderTracking}
+                                              >
+                                                  <Text style = {MyStyleSheet.linkTextList}>
+                                                      {order?.tracking_shipments?.[0]?.shipment_tracking_number}
+                                                  </Text>
+                                              </TouchableOpacity>
+                                             }*/}
+                                         </View>
+
+                                         <Text style = {[MyStyleSheet.textListItemSubTitleDark]}>
+                                             {order?.tracking_shipments?.[0]?.shipment_status}
+                                         </Text>
+                                     </View>
+                                 </View>
                              </View>
 
                              <View style = {[MyStyleSheet.viewPageCard, {paddingHorizontal: 0}]}>
@@ -490,6 +544,36 @@ const OrderDetailsScreen = ({route, navigation}: any) => {
                                                       }
                                                   </View>
 
+                                                  <View style = {{marginTop: 5}}>
+                                                      {prop?.addons?.length > 0 && prop.addons.map(
+                                                          (addon: any, i: number) => (
+                                                              <View key = {i}
+                                                                    style = {[MyStyle.RowLeftCenter, {marginVertical: 3}]}
+                                                              >
+                                                                  <Text style = {[MyStyleSheet.textListItemSubTitle3Alt, {marginRight: 6}]}>
+                                                                      {addon.addons_name}
+                                                                  </Text>
+                                                                  <View style = {[{
+                                                                      backgroundColor  : MyColor.Material.GREY["200"],
+                                                                      paddingVertical  : 3,
+                                                                      paddingHorizontal: 12,
+                                                                      borderRadius     : 100,
+                                                                  }]}>
+                                                                      <Text style = {[MyStyleSheet.textListItemSubTitle3AltDark, {}]}>
+                                                                          {addon.addons_value_name}
+                                                                          {
+                                                                              (Number(addon.addons_value_price) > 0) &&
+                                                                              <Text style = {[MyStyleSheet.textListItemSubTitle3, {}]}>
+                                                                                  &nbsp;&nbsp;+ {addon.addons_value_price}
+                                                                              </Text>
+                                                                          }
+                                                                      </Text>
+                                                                  </View>
+                                                              </View>
+                                                          ))
+                                                      }
+                                                  </View>
+
                                               </View>
 
                                           </MyMaterialRipple>
@@ -498,35 +582,100 @@ const OrderDetailsScreen = ({route, navigation}: any) => {
                              </View>
 
                              <View style = {[MyStyleSheet.viewPageCard, {}]}>
-                                 <Text style = {[{...MyStyleSheet.headerPage, marginBottom: 10}]}>{MyLANG.DeliveryAddress}</Text>
+                                 <Text style = {[{...MyStyleSheet.headerPage, marginBottom: 15}]}>{MyLANG.DeliveryType}</Text>
 
-                                 <View style = {[MyStyle.RowLeftCenter]}>
+                                 <View style = {[MyStyle.RowLeftCenter, {marginBottom: 5}]}>
                                      <MyIcon.SimpleLineIcons
-                                         name = "direction"
-                                         size = {22}
+                                         name = "handbag"
+                                         size = {26}
                                          color = {MyColor.textDarkSecondary2}
-                                         style = {{alignSelf: "flex-start", marginTop: 4, marginRight: 10}}
+                                         style = {{}}
                                      />
-                                     <View style = {[MyStyle.ColumnStart, {flex: 1}]}>
-                                         {order.delivery_company ?
-                                          <>
-                                              <Text style = {[MyStyleSheet.textListItemTitleAltDark, {}]}>{order?.delivery_company}</Text>
-                                              <Text style = {[MyStyleSheet.textListItemSubTitleAlt, {}]}>{order?.delivery_name}</Text>
-                                          </>
-                                                                 :
-                                          <Text style = {[MyStyleSheet.textListItemTitleAltDark, {marginBottom: 2}]}>{order?.delivery_name}</Text>
-                                         }
-                                         {order?.customers_telephone ?
-                                          <Text style = {[MyStyleSheet.textListItemSubTitleAlt, {marginBottom: 4}]}>{order.customers_telephone}</Text> : null
-                                         }
-                                         <Text style = {MyStyleSheet.textListItemSubTitleAlt}>{order?.delivery_street_address}</Text>
-                                         <Text style = {MyStyleSheet.textListItemSubTitleAlt}>{order?.delivery_city}</Text>
-                                         <Text style = {MyStyleSheet.textListItemSubTitleAlt}>{order?.delivery_state}</Text>
-                                         <Text style = {MyStyleSheet.textListItemSubTitleAlt}>{order?.delivery_country}</Text>
-                                         <Text style = {MyStyleSheet.textListItemSubTitleAlt}>{order?.delivery_postcode}</Text>
+                                     <View style = {[MyStyle.ColumnCenterStart, {flex: 1, marginHorizontal: 14}]}>
+                                         <Text style = {[MyStyleSheet.textListItemTitleDark]}>
+                                             {order?.delivery_type_name}
+                                         </Text>
                                      </View>
                                  </View>
                              </View>
+
+                             {(order?.delivery_type === MyConfig.DeliveryType.PickUp.id) &&
+                              <View style = {[MyStyleSheet.viewPageCard, {}]}>
+                                  <Text style = {[{...MyStyleSheet.headerPage, marginBottom: 15}]}>{MyLANG.PickupAddress}</Text>
+
+                                  <View style = {[MyStyle.RowLeftCenter, {marginBottom: 5}]}>
+                                      <MyIcon.Fontisto
+                                          name = "shopping-store"
+                                          size = {26}
+                                          color = {MyColor.textDarkSecondary2}
+                                          style = {{}}
+                                      />
+                                      <View style = {[MyStyle.ColumnCenterStart, {flex: 1, marginHorizontal: 14}]}>
+                                          <Text style = {[MyStyleSheet.textListItemTitleDark]}>
+                                              {order?.pickup_address}
+                                          </Text>
+                                      </View>
+                                  </View>
+                              </View>
+                             }
+                             {(order?.delivery_type === MyConfig.DeliveryType.PickUp.id) &&
+                              <View style = {[MyStyleSheet.viewPageCard, {}]}>
+                                  <Text style = {[{...MyStyleSheet.headerPage, marginBottom: 15}]}>{MyLANG.ReceiverDetails}</Text>
+
+                                  <View style = {[MyStyle.RowLeftCenter, {marginBottom: 5}]}>
+                                      <MyIcon.SimpleLineIcons
+                                          name = "user"
+                                          size = {26}
+                                          color = {MyColor.textDarkSecondary2}
+                                          style = {{}}
+                                      />
+                                      <View style = {[MyStyle.ColumnCenterStart, {flex: 1, marginHorizontal: 14}]}>
+                                          <Text style = {MyStyleSheet.textListItemTitleDark}>
+                                              {order?.receiver_name}
+                                          </Text>
+                                          <Text style = {MyStyleSheet.textListItemSubTitleAlt}>
+                                              {order?.receiver_phone}
+                                          </Text>
+                                          <Text style = {MyStyleSheet.textListItemSubTitleAlt}>
+                                              {order?.receiver_ic}
+                                          </Text>
+                                      </View>
+                                  </View>
+                              </View>
+                             }
+
+                             {(order?.delivery_type === MyConfig.DeliveryType.Courier.id) &&
+                              <View style = {[MyStyleSheet.viewPageCard, {}]}>
+                                  <Text style = {[{...MyStyleSheet.headerPage, marginBottom: 10}]}>{MyLANG.DeliveryAddress}</Text>
+
+                                  <View style = {[MyStyle.RowLeftCenter]}>
+                                      <MyIcon.SimpleLineIcons
+                                          name = "direction"
+                                          size = {22}
+                                          color = {MyColor.textDarkSecondary2}
+                                          style = {{alignSelf: "flex-start", marginTop: 4, marginRight: 10}}
+                                      />
+                                      <View style = {[MyStyle.ColumnStart, {flex: 1}]}>
+                                          {order.delivery_company ?
+                                           <>
+                                               <Text style = {[MyStyleSheet.textListItemTitleAltDark, {}]}>{order?.delivery_company}</Text>
+                                               <Text style = {[MyStyleSheet.textListItemSubTitleAlt, {}]}>{order?.delivery_name}</Text>
+                                           </>
+                                                                  :
+                                           <Text style = {[MyStyleSheet.textListItemTitleAltDark, {marginBottom: 2}]}>{order?.delivery_name}</Text>
+                                          }
+                                          {order?.customers_telephone ?
+                                           <Text style = {[MyStyleSheet.textListItemSubTitleAlt, {marginBottom: 4}]}>{order.customers_telephone}</Text> : null
+                                          }
+                                          <Text style = {MyStyleSheet.textListItemSubTitleAlt}>{order?.delivery_street_address}</Text>
+                                          <Text style = {MyStyleSheet.textListItemSubTitleAlt}>{order?.delivery_city}</Text>
+                                          <Text style = {MyStyleSheet.textListItemSubTitleAlt}>{order?.delivery_state}</Text>
+                                          <Text style = {MyStyleSheet.textListItemSubTitleAlt}>{order?.delivery_country}</Text>
+                                          <Text style = {MyStyleSheet.textListItemSubTitleAlt}>{order?.delivery_postcode}</Text>
+                                      </View>
+                                  </View>
+                              </View>
+                             }
 
                              <View style = {[MyStyleSheet.viewPageCard, {}]}>
                                  <Text style = {[{...MyStyleSheet.headerPage, marginBottom: 10}]}>{MyLANG.BillingAddress}</Text>
@@ -559,26 +708,28 @@ const OrderDetailsScreen = ({route, navigation}: any) => {
                                  </View>
                              </View>
 
-                             <View style = {[MyStyleSheet.viewPageCard, {}]}>
-                                 <Text style = {[{...MyStyleSheet.headerPage, marginBottom: 15}]}>{MyLANG.DeliveryMethod}</Text>
+                             {(order?.delivery_type === MyConfig.DeliveryType.Courier.id) &&
+                              <View style = {[MyStyleSheet.viewPageCard, {}]}>
+                                  <Text style = {[{...MyStyleSheet.headerPage, marginBottom: 15}]}>{MyLANG.DeliveryMethod}</Text>
 
-                                 <View style = {[MyStyle.RowLeftCenter, {marginBottom: 5}]}>
-                                     <MyIcon.SimpleLineIcons
-                                         name = "handbag"
-                                         size = {26}
-                                         color = {MyColor.textDarkSecondary2}
-                                         style = {{}}
-                                     />
-                                     <View style = {[MyStyle.ColumnCenterStart, {flex: 1, marginHorizontal: 14}]}>
-                                         <Text style = {[MyStyleSheet.textListItemTitleDark]}>
-                                             {order?.shipping_method}
-                                         </Text>
-                                         {/*<Text style = {[MyStyleSheet.textListItemSubTitle]}>
+                                  <View style = {[MyStyle.RowLeftCenter, {marginBottom: 5}]}>
+                                      <MyIcon.SimpleLineIcons
+                                          name = "handbag"
+                                          size = {26}
+                                          color = {MyColor.textDarkSecondary2}
+                                          style = {{}}
+                                      />
+                                      <View style = {[MyStyle.ColumnCenterStart, {flex: 1, marginHorizontal: 14}]}>
+                                          <Text style = {[MyStyleSheet.textListItemTitleDark]}>
+                                              {order?.shipping_method}
+                                          </Text>
+                                          {/*<Text style = {[MyStyleSheet.textListItemSubTitle]}>
                                              {MyLANG.SelectedPaymentMethodDesc}
                                          </Text>*/}
-                                     </View>
-                                 </View>
-                             </View>
+                                      </View>
+                                  </View>
+                              </View>
+                             }
 
                              <View style = {[MyStyleSheet.viewPageCard, {}]}>
                                  <Text style = {[{...MyStyleSheet.headerPage, marginBottom: 15}]}>{MyLANG.PaymentMethod}</Text>
@@ -594,9 +745,57 @@ const OrderDetailsScreen = ({route, navigation}: any) => {
                                          <Text style = {[MyStyleSheet.textListItemTitleDark]}>
                                              {order?.payment_method}
                                          </Text>
-                                         {/*<Text style = {[MyStyleSheet.textListItemSubTitle]}>
-                                             {MyLANG.SelectedPaymentMethodDesc}
-                                         </Text>*/}
+                                     </View>
+                                 </View>
+                             </View>
+
+                             {(order?.payment_method === MyConfig.PaymentMethod.Installment.name) &&
+                              <View style = {[MyStyleSheet.viewPageCard, {}]}>
+                                  <Text style = {[{...MyStyleSheet.headerPage, marginBottom: 15}]}>{MyLANG.MembershipType}</Text>
+
+                                  <View style = {[MyStyle.RowLeftCenter, {marginBottom: 5}]}>
+                                      <MyIcon.SimpleLineIcons
+                                          name = "people"
+                                          size = {26}
+                                          color = {MyColor.textDarkSecondary2}
+                                          style = {{}}
+                                      />
+                                      <View style = {[MyStyle.ColumnCenterStart, {flex: 1, marginHorizontal: 14}]}>
+                                          <Text style = {[MyStyleSheet.textListItemTitleDark]}>
+                                              {order?.installment_membership_type_name}
+                                          </Text>
+                                      </View>
+                                  </View>
+                              </View>
+                             }
+                             {(order?.payment_method === MyConfig.PaymentMethod.Installment.name) &&
+                              <View style = {[MyStyleSheet.viewPageCard, {}]}>
+                                  <Text style = {[{...MyStyleSheet.headerPage, marginBottom: 15}]}>{MyLANG.InstallmentPeriod}</Text>
+
+                                  <View style = {[MyStyle.RowLeftCenter, {marginBottom: 5}]}>
+                                      <MyIcon.SimpleLineIcons
+                                          name = "calendar"
+                                          size = {26}
+                                          color = {MyColor.textDarkSecondary2}
+                                          style = {{}}
+                                      />
+                                      <View style = {[MyStyle.ColumnCenterStart, {flex: 1, marginHorizontal: 14}]}>
+                                          <Text style = {[MyStyleSheet.textListItemTitleDark]}>
+                                              {order?.installment_period_name}
+                                          </Text>
+                                      </View>
+                                  </View>
+                              </View>
+                             }
+
+                             <View style = {[MyStyleSheet.viewPageCard, {}]}>
+                                 <Text style = {[{...MyStyleSheet.headerPage, marginBottom: 15}]}>{MyLANG.OrderNote}</Text>
+
+                                 <View style = {[MyStyle.RowLeftCenter, {marginBottom: 5}]}>
+                                     <View style = {[MyStyle.ColumnCenterStart, {flex: 1}]}>
+                                         <Text style = {[MyStyleSheet.textListItemTitleDark]}>
+                                             {order?.customer_comments}
+                                         </Text>
                                      </View>
                                  </View>
                              </View>
@@ -611,6 +810,10 @@ const OrderDetailsScreen = ({route, navigation}: any) => {
                                      total          : order?.order_price,
                                  }}
                                  service_charge = {false}
+                                 installment = {order?.payment_method === MyConfig.PaymentMethod.Installment.name ? {
+                                     amount: order?.installment_amount,
+                                     months: order?.installment_period_name,
+                                 } : null}
                                  style = {{backgroundColor: MyColor.Material.WHITE, marginBottom: MyStyle.marginViewGapCard}}
                              />
 

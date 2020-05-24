@@ -119,7 +119,7 @@ const NotificationScreen = ({}) => {
         setLoading(true);
 
         const response: any = await MyUtil
-            .myHTTP(false, MyConstant.HTTP_POST, MyAPI.notifications,
+            .myHTTP({required: true, promptLogin: true}, MyConstant.HTTP_POST, MyAPI.notifications,
                     {
                         'language_id': MyConfig.LanguageActive,
 

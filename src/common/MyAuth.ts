@@ -141,13 +141,14 @@ const MyAuth = {
         const response: any = await MyUtil
             .myHTTP(false, MyConstant.HTTP_POST, API,
                     {
+                        'language_id': MyConfig.LanguageActive,
 
                         [MyConstant.USERNAME]: formParam?.username,
                         [MyConstant.PASSWORD]: formParam?.password,
 
                         [MyConstant.FACEBOOK_ID]   : formParam?.facebook_id,
                         [MyConstant.GOOGLE_ID]     : formParam?.google_id,
-                        // [MyConstant.EMAIL]       : formParam?.email,
+                        [MyConstant.EMAIL]         : formParam?.username || formParam?.email,
                         [MyConstant.NAME]          : formParam?.name,
                         [MyConstant.FIRST_NAME]    : formParam?.first_name,
                         [MyConstant.LAST_NAME]     : formParam?.last_name,
@@ -230,12 +231,12 @@ const MyAuth = {
             formParam.password  = formParam.password ? formParam.password : '-';
             const keychain: any = await MyUtil.keychainSet(JSON.stringify(formParam),
                                                            formParam?.password,
-                                                           MyConfig.android_package_name,
+                                                           MyStyle.platformOS === "ios" ? MyConfig.ios_app_id : MyConfig.android_package_name,
                                                            showMessage
             );
             MyUtil.printConsole(true, 'log', 'LOG: keychainSet: await-response: ', {
-                'android_package_name': MyConfig.android_package_name,
-                'keychain'            : keychain
+                'package_name': MyStyle.platformOS === "ios" ? MyConfig.ios_app_id : MyConfig.android_package_name,
+                'keychain'    : keychain
             });
             // Username, password stored successfully:
             if (keychain === true) {

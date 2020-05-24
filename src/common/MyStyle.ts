@@ -1,5 +1,6 @@
 import {Platform, Dimensions, StyleSheet, StatusBar} from 'react-native';
-import {getBottomSpace, getStatusBarHeight} from "react-native-iphone-x-helper";
+import {getStatusBarHeight} from 'react-native-status-bar-height';
+import {getBottomSpace} from "react-native-iphone-x-helper";
 import MyColor from "./MyColor";
 import MyIcon from "../components/MyIcon";
 import React from "react";
@@ -10,23 +11,30 @@ const screenWidth       = Dimensions.get('window').width;
 const screenAspectRatio = screenWidth / screenHeight;
 
 const platformOS = Platform.OS;
-const isIphoneX  = Platform.OS === "ios" && !Platform.isPad && !Platform.isTVOS && (screenHeight >= 812 || screenWidth >= 812);
+const isIphoneX  = Platform.OS === "ios" && (screenHeight === 812 || screenWidth === 812);
+const isIphoneXR = Platform.OS === "ios" && (screenHeight === 896 || screenWidth === 896);
 
 const statusBarHeight      = Platform.select(
     {
-        ios    : isIphoneX ? 44 : 20,
+        ios    : getStatusBarHeight(),
         android: StatusBar.currentHeight,
         default: 0
     }
 );
 const headerHeight         = Platform.select(
     {
-        ios    : isIphoneX ? 40 : 40,
+        ios    : isIphoneX ? 110 : 80,
         android: 80,
         default: 0
     }
 );
-const headerHeightAdjusted = headerHeight - statusBarHeight;
+const headerHeightAdjusted = Platform.select(
+    {
+        ios    : (headerHeight - statusBarHeight) + 10,
+        android: headerHeight - statusBarHeight,
+        default: 0
+    }
+);
 
 const MyStyle: any = {
 
@@ -385,7 +393,7 @@ const MyStyle: any = {
             },
             textColor     : "#000000",
             textStyle     : {
-                fontFamily: 'open_sans_regular',
+                fontFamily: 'OpenSans-Regular',
                 fontSize  : 13
             },
         },
@@ -399,7 +407,7 @@ const MyStyle: any = {
             },
             textColor     : "#FFFFFF",
             textStyle     : {
-                fontFamily: 'open_sans_regular',
+                fontFamily: 'OpenSans-Regular',
                 fontSize  : 13
             },
         },
@@ -449,7 +457,17 @@ const MyStyle: any = {
             shadowRadius   : 5,
             zIndex         : 1000,
             width          : screenWidth,
-            height         : headerHeight,
+            height         : platformOS === "ios" ? headerHeight + 10 : headerHeight,
+        },
+        headerModal         : {
+            shadowOffset   : {width: 0, height: 2},
+            shadowOpacity  : 0.5,
+            shadowColor    : "#000000",
+            backgroundColor: "#ffffff",
+            shadowRadius   : 5,
+            zIndex         : 1000,
+            width          : screenWidth,
+            height         : platformOS === "ios" ? headerHeight + 10 : headerHeightAdjusted,
         },
         headerHeightAdjusted: {
             shadowOffset   : {width: 0, height: 2},
@@ -479,7 +497,7 @@ const MyStyle: any = {
         ],
     textHTMLBody: {
         p    : {
-            fontFamily: 'open_sans_regular',
+            fontFamily: 'OpenSans-Regular',
             fontSize  : 14,
             color     : MyColor.Material.GREY["700"],
             textAlign : "justify",
@@ -540,14 +558,15 @@ const MyStyleCommon: any = {
             },
             headerTintColor          : MyColor.Material.WHITE,
             headerTitleContainerStyle: {
-                right: MyStyle.marginHorizontalPage,
+                right: platformOS === "android" ? MyStyle.marginHorizontalPage : 0,
             },
             headerTitleStyle         : {
                 color     : MyColor.Material.WHITE,
                 fontSize  : 18,
                 fontFamily: MyStyle.FontFamily.OpenSans.semiBold,
+                // textAlign : "center",
             },
-            // headerTitleAlign : "center",
+            // headerTitleAlign         : "center",
         },
     },
     StackScreenOptions: {
@@ -619,8 +638,7 @@ const MyStyleSheet = StyleSheet.create(
 
         //
         SafeAreaView1: {
-            flex           : 0,
-            backgroundColor: MyColor.Material.RED["500"],
+            flex: 0,
         },
 
         SafeAreaView2: {
@@ -630,7 +648,13 @@ const MyStyleSheet = StyleSheet.create(
 
         SafeAreaView3: {
             flex      : 1,
-            paddingTop: MyStyle.statusBarHeight,
+            paddingTop: Platform.select(
+                {
+                    ios    : 0,
+                    android: MyStyle.statusBarHeight,
+                    default: 0
+                }
+            )
         },
 
         viewPageLogin: {
@@ -672,6 +696,22 @@ const MyStyleSheet = StyleSheet.create(
             justifyContent: "flex-start",
         },
 
+
+        textHeader : {
+            fontFamily  : MyStyle.FontFamily.OpenSans.semiBold,
+            fontSize    : 18,
+            color       : MyColor.Material.WHITE,
+            marginLeft  : 27,
+            marginBottom: 2,
+        },
+        textHeader2: {
+            fontFamily  : MyStyle.FontFamily.OpenSans.semiBold,
+            fontSize    : 18,
+            color       : MyColor.Material.WHITE,
+            flex:1,
+            textAlign: "center",
+            marginBottom: 4,
+        },
 
         linkTextList: {
             fontFamily: MyStyle.FontFamily.OpenSans.regular,

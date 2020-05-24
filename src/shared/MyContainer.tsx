@@ -1,8 +1,8 @@
-import React from 'react';
+import React, {Fragment} from 'react';
 
 import {
     Image,
-    ImageBackground,
+    ImageBackground, SafeAreaView,
     ScrollView,
     StatusBar,
     StyleSheet,
@@ -26,7 +26,7 @@ import {MyConfig, MyAPI} from "../shared/MyConfig";
 import MyIcon from "../components/MyIcon";
 import MyLANG from "./MyLANG";
 import MyMaterialRipple from "../components/MyMaterialRipple";
-import {IconStar} from "../components/MyComponent";
+import {IconStar, StatusBarLight} from "../components/MyComponent";
 import {getMyIcon} from "../components/MyIcon";
 import {MyFastImage} from "../components/MyFastImage";
 import {store} from "../store/MyStore";
@@ -35,6 +35,7 @@ import {Shadow} from "react-native-neomorph-shadows";
 import NumberFormat from 'react-number-format';
 import {MyImageBackground} from "../components/MyImageBackground";
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
+import HTML from "react-native-render-html";
 // const MaterialTopTabBarComponent = (props: any) => (<MaterialTopTabBar {...props} />);
 
 const drawerItemOnPress = (loginRequired: boolean, navigation: any, actionType: string, routeName: any, params: any, navigationActions: any) => {
@@ -1108,9 +1109,9 @@ const CartListItem          = (props: any) => {
                                         (addon: any, i: number) => (addon?.products?.length > 0 && addon.products.map(
                                             (item: any, j: number) => (item?.cart_selected === true && (
                                          <View key = {`${i}_${j}`}
-                                               style = {[MyStyle.ColumnStart, {marginVertical: 3}]}
+                                               style = {[MyStyle.RowLeftCenter, {marginVertical: 3}]}
                                          >
-                                             <Text style = {[MyStyleSheet.textListItemSubTitle3Alt, {marginBottom: 2}]}>{addon.subcat_name}</Text>
+                                             <Text style = {[MyStyleSheet.textListItemSubTitle3Alt, {marginRight: 6}]}>{addon.subcat_name}</Text>
                                              <View style = {[{
                                                  backgroundColor  : MyColor.Material.GREY["200"],
                                                  paddingVertical  : 3,
@@ -1426,6 +1427,36 @@ const CartPageTotal         = (props: any) => {
                     </View>
                 </>
             }
+            {
+                props.installment &&
+                <>
+                    <View style = {cartPageTotal.textsView}>
+                        <Text style = {cartPageTotal.textTitle}>
+                            {MyLANG.EMI}
+                        </Text>
+                        {
+                            (props.installment?.months && props.installment?.amount) &&
+                            <View style = {MyStyle.RowRightCenter}>
+                                <NumberFormat
+                                    value = {props.installment?.amount}
+                                    defaultValue = {0}
+                                    displayType = {'text'}
+                                    thousandSeparator = {true}
+                                    decimalScale = {2}
+                                    fixedDecimalScale = {true}
+                                    decimalSeparator = {'.'}
+                                    renderText = {
+                                        (value: any) => <Text style = {cartPageTotal.textAmount}>{MyConfig.Currency.MYR.symbol} {value}</Text>
+                                    }
+                                />
+                                <Text style = {[cartPageTotal.textTitle, {marginLeft: 5}]}>
+                                    {MyLANG.for} {props.installment?.months}
+                                </Text>
+                            </View>
+                        }
+                    </View>
+                </>
+            }
         </View>
     )
 }
@@ -1502,17 +1533,23 @@ const CartListItemSmall = (props: any) => {
                                                 <View key = {`${i}_${j}`}
                                                       style = {[MyStyle.RowLeftCenter, {marginVertical: 2}]}
                                                 >
-                                                    <Text style = {[MyStyleSheet.textListItemSubTitle3Alt, {marginRight: 6}]}>{attribute.option?.name}</Text>
+                                                    <Text style = {[MyStyleSheet.textListItemSubTitle3Alt, {marginRight: 6}]}>
+                                                        {attribute.option?.name}
+                                                    </Text>
                                                     <View style = {[MyStyle.RowLeftCenter, {
                                                         backgroundColor  : MyColor.Material.GREY["200"],
                                                         paddingVertical  : 1.5,
                                                         paddingHorizontal: 9,
                                                         borderRadius     : 100,
                                                     }]}>
-                                                        <Text style = {[MyStyleSheet.textListItemSubTitle3AltDark, {marginRight: 5}]}>{item.value}</Text>
+                                                        <Text style = {[MyStyleSheet.textListItemSubTitle3AltDark, {marginRight: 5}]}>
+                                                            {item.value}
+                                                        </Text>
                                                         {
                                                             (item.price_prefix && item.price) &&
-                                                            <Text style = {[MyStyleSheet.textListItemSubTitle3, {}]}>{item.price_prefix} {item.price}</Text>
+                                                            <Text style = {[MyStyleSheet.textListItemSubTitle3, {}]}>
+                                                                {item.price_prefix} {item.price}
+                                                            </Text>
                                                         }
                                                     </View>
                                                 </View>
@@ -1525,19 +1562,24 @@ const CartListItemSmall = (props: any) => {
                                                (addon: any, i: number) => (addon?.products?.length > 0 && addon.products.map(
                                                    (item: any, j: number) => (item?.cart_selected === true && (
                                                 <View key = {`${i}_${j}`}
-                                                      style = {[MyStyle.ColumnStart, {marginVertical: 3}]}
+                                                      style = {[MyStyle.RowLeftCenter, {marginVertical: 3}]}
                                                 >
-                                                    <Text style = {[MyStyleSheet.textListItemSubTitle3Alt, {marginBottom: 2}]}>{addon.subcat_name}</Text>
+                                                    <Text style = {[MyStyleSheet.textListItemSubTitle3Alt, {marginRight: 6}]}>
+                                                        {addon.subcat_name}
+                                                    </Text>
                                                     <View style = {[{
                                                         backgroundColor  : MyColor.Material.GREY["200"],
                                                         paddingVertical  : 3,
                                                         paddingHorizontal: 12,
                                                         borderRadius     : 100,
                                                     }]}>
-                                                        <Text style = {[MyStyleSheet.textListItemSubTitle3AltDark, {}]}>{item.products_name}
+                                                        <Text style = {[MyStyleSheet.textListItemSubTitle3AltDark, {}]}>
+                                                            {item.products_name}
                                                             {
                                                                 (Number(item.products_price) > 0) &&
-                                                                <Text style = {[MyStyleSheet.textListItemSubTitle3, {}]}>&nbsp;&nbsp;+ {item.products_price}</Text>
+                                                                <Text style = {[MyStyleSheet.textListItemSubTitle3, {}]}>
+                                                                    &nbsp;&nbsp;+ {item.products_price}
+                                                                </Text>
                                                             }
                                                         </Text>
                                                     </View>
@@ -2088,9 +2130,113 @@ const OptionList = ({item, index, listShow, listSelected, onItem}: any) => {
     )
 }
 
+const ModalNotFullScreen = (props: any) => {
+    // MyUtil.printConsole(true, 'log', 'LOG: ModalNotFullScreen: ', {props});
+
+    return (
+        <TouchableOpacity
+            style = {{
+                flex          : 1,
+                justifyContent: 'center',
+                alignItems    : "center",
+
+                backgroundColor: 'rgba(0,0,0,0.6)',
+            }}
+            onPressOut = {props.onRequestClose}
+        >
+
+            <View style = {props?.viewMain || {
+                marginVertical: MyStyle.screenHeight * 0.08,
+                width         : MyStyle.screenWidth * 0.85,
+
+                backgroundColor: '#f9f9f9',
+                borderRadius   : 4,
+            }}>
+                <ScrollView contentInsetAdjustmentBehavior = "automatic">
+                    <TouchableOpacity
+                        activeOpacity = {1}
+                        onPress = {() => ''}
+                        style = {props?.viewTouchable || {}}
+                    >
+                        <>
+                            {props.children}
+                        </>
+                    </TouchableOpacity>
+                </ScrollView>
+            </View>
+        </TouchableOpacity>
+    )
+}
+
+const ModalFullScreenPage = (props: any) => {
+    // MyUtil.printConsole(true, 'log', 'LOG: ModalFullscreenPage: ', {props});
+
+    return (
+        <Fragment>
+            <Shadow style = {MyStyle.neomorphShadow.headerModal}>
+                <LinearGradient
+                    {...MyStyle.LGHeaderPrimary}
+                    style = {{
+                        flex          : 1,
+                        flexDirection : "row",
+                        justifyContent: "flex-start",
+                        alignItems    : "center",
+                        paddingTop    : MyStyle.platformOS === "ios" ? (MyStyle.headerHeight / 2) : 0,
+                    }}
+                >
+                    {
+                        props.backButton !== false &&
+                        <MyMaterialRipple
+                            style = {{marginLeft: 6}}
+                            {...MyStyle.MaterialRipple.drawerRounded}
+                            onPress = {props.onBackPress}
+                        >
+                            <MyIcon.Feather
+                                name = "arrow-left"
+                                size = {23}
+                                color = {MyColor.Material.WHITE}
+                                style = {{paddingVertical: 7, paddingHorizontal: 8}}
+                            />
+                        </MyMaterialRipple>
+                    }
+
+                    {
+                        props.title &&
+                        <Text style = {{
+                            fontFamily      : MyStyle.FontFamily.OpenSans.semiBold,
+                            fontSize        : 18,
+                            color           : MyColor.Material.WHITE,
+                            marginHorizontal: 27,
+                        }}>
+                            {props.title}
+                        </Text>
+                    }
+                </LinearGradient>
+            </Shadow>
+
+            <SafeAreaView style = {MyStyleSheet.SafeAreaView2}>
+                <View style = {[MyStyleSheet.SafeAreaView3, {paddingTop: 0}]}>
+                    <ScrollView
+                        contentInsetAdjustmentBehavior = "automatic"
+                        contentContainerStyle = {props.contentContainerStyle || {flexGrow: 1, backgroundColor: MyColor.Material.WHITE}}
+                    >
+
+                        {props.children}
+
+                    </ScrollView>
+
+                    {props.footer && props.footer}
+
+                </View>
+            </SafeAreaView>
+
+        </Fragment>
+    )
+}
+
 // Modal Radio List:
 const ModalRadioList = (props: any) => {
-    MyUtil.printConsole(true, 'log', 'LOG: ModalRadioList: ', {props});
+    // MyUtil.printConsole(true, 'log', 'LOG: ModalRadioList: ', {props});
 
     return (
         <>
@@ -2168,7 +2314,7 @@ const ModalRadioList = (props: any) => {
                                      </Text>
                                     }
 
-                                    {props.bodyText &&
+                                    {(props.bodyText && prop[props.bodyText]) &&
                                      <Text
                                          numberOfLines = {5}
                                          style = {modalRadioList.textItemBody}
@@ -2208,102 +2354,42 @@ const ModalRadioList = (props: any) => {
     )
 }
 
-const ModalNotFullScreen = (props: any) => {
-    // MyUtil.printConsole(true, 'log', 'LOG: ModalNotFullScreen: ', {props});
-
-    return (
-        <TouchableOpacity
-            style = {{
-                flex          : 1,
-                justifyContent: 'center',
-                alignItems    : "center",
-
-                backgroundColor: 'rgba(0,0,0,0.6)',
-            }}
-            onPressOut = {props.onRequestClose}
-        >
-
-            <View style = {props?.viewMain || {
-                marginVertical: MyStyle.screenHeight * 0.08,
-                width         : MyStyle.screenWidth * 0.85,
-
-                backgroundColor: '#f9f9f9',
-                borderRadius   : 4,
-            }}>
-                <ScrollView contentInsetAdjustmentBehavior = "automatic">
-                    <TouchableOpacity
-                        activeOpacity = {1}
-                        onPress = {() => ''}
-                        style = {props?.viewTouchable || {}}
-                    >
-                        <>
-                            {props.children}
-                        </>
-                    </TouchableOpacity>
-                </ScrollView>
-            </View>
-        </TouchableOpacity>
-    )
-}
-
-const ModalFullScreenPage = (props: any) => {
-    // MyUtil.printConsole(true, 'log', 'LOG: ModalFullscreenPage: ', {props});
+// Modal Info:
+const ModalInfo = (props: any) => {
+    // MyUtil.printConsole(true, 'log', 'LOG: ModalInfo: ', {props});
 
     return (
         <>
-            <Shadow style = {MyStyle.neomorphShadow.headerHeightAdjusted}>
-                <LinearGradient
-                    {...MyStyle.LGHeaderPrimary}
-                    style = {{
-                        flex          : 1,
-                        flexDirection : "row",
-                        justifyContent: "flex-start",
-                        alignItems    : "center",
-                    }}
-                >
-                    {
-                        props.backButton !== false &&
-                        <MyMaterialRipple
-                            style = {{marginLeft: 6}}
-                            {...MyStyle.MaterialRipple.drawerRounded}
-                            onPress = {props.onBackPress}
-                        >
-                            <MyIcon.Feather
-                                name = "arrow-left"
-                                size = {23}
-                                color = {MyColor.Material.WHITE}
-                                style = {{paddingVertical: 7, paddingHorizontal: 8}}
-                            />
-                        </MyMaterialRipple>
-                    }
+            {props.title && <Text style = {modalRadioList.textTitle}>{props.title}</Text>}
+            {props.subTitle && <Text style = {modalRadioList.textSubtitle}>{props.subTitle}</Text>}
 
-                    {
-                        props.title &&
-                        <Text style = {{
-                            fontFamily      : MyStyle.FontFamily.OpenSans.semiBold,
-                            fontSize        : 18,
-                            color           : MyColor.Material.WHITE,
-                            marginHorizontal: 27,
-                        }}>
-                            {props.title}
-                        </Text>
-                    }
-                </LinearGradient>
-            </Shadow>
+            <View style = {{
+                paddingHorizontal: MyStyle.paddingHorizontalModal,
+                marginTop        : MyStyle.paddingVerticalModal / 2,
+                marginBottom     : MyStyle.paddingVerticalModal,
+                backgroundColor  : '#f9f9f9',
+            }}>
 
-            <ScrollView
-                contentInsetAdjustmentBehavior = "automatic"
-                contentContainerStyle = {props.contentContainerStyle || {flexGrow: 1, backgroundColor: MyColor.Material.WHITE}}
-            >
+                {props.bodyText &&
+                 <Text
+                     style = {modalRadioList.textItemBody}
+                 >
+                     {props.bodyText}
+                 </Text>
+                }
 
-                {props.children}
+                {props.bodyHTML &&
+                 <HTML
+                     html = {props.bodyHTML || MyLANG.NoInformationFound}
+                     tagsStyles = {MyStyle.textHTMLBody}
+                     ignoredTags = {MyStyle.IGNORED_TAGS}
+                     containerStyle = {{}}
+                     textSelectable = {true}
+                 />
+                }
 
-            </ScrollView>
-
-            {props.footer && props.footer}
-
+            </View>
         </>
-
     )
 }
 
@@ -3579,6 +3665,7 @@ export {
     CartPageTotal,
 
     OptionList,
+    ModalInfo,
     ModalRadioList,
 
     ModalNotFullScreen,

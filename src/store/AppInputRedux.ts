@@ -1,11 +1,14 @@
 const initialState: any = {
-    payment_method : [],
-    delivery_type  : [],
-    delivery_method: [],
-    countries      : [],
-    filter_method  : [],
-    pickup_address : [],
-    tax_rate       : {},
+    payment_method              : [],
+    installment_membership_type  : [],
+    installment_period: [],
+    installment_plans            : [],
+    delivery_type               : [],
+    delivery_method             : [],
+    countries                   : [],
+    filter_method               : [],
+    pickup_address              : [],
+    tax_rate                    : {},
 }
 
 const types = {

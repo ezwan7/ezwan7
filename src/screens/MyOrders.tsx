@@ -119,7 +119,7 @@ const MyOrdersScreen = ({}) => {
         setLoading(true);
 
         const response: any = await MyUtil
-            .myHTTP(false, MyConstant.HTTP_POST, MyAPI.orders,
+            .myHTTP({required: true, promptLogin: true}, MyConstant.HTTP_POST, MyAPI.orders,
                     {
                         'language_id': MyConfig.LanguageActive,
 

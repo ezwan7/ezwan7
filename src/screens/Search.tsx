@@ -403,18 +403,15 @@ const SearchScreen = ({route, navigation}: any) => {
 
     return (
         <Fragment>
-            <StatusBarLight/>
-            <SafeAreaView style = {MyStyleSheet.SafeAreaView1}/>
+            <HeaderInputSearch
+                onChangeText = {(text: any) => onChangeText(text)}
+                onSubmitEditing = {(text: any) => onSubmitEditing(text)}
+                value = {searchText}
+                onClearIcon = {() => onClearIcon()}
+                onRightIcon = {onModalVisible}
+            />
             <SafeAreaView style = {MyStyleSheet.SafeAreaView2}>
                 <View style = {[MyStyleSheet.SafeAreaView3, {paddingTop: 0, backgroundColor: MyColor.Material.WHITE}]}>
-
-                    <HeaderInputSearch
-                        onChangeText = {(text: any) => onChangeText(text)}
-                        onSubmitEditing = {(text: any) => onSubmitEditing(text)}
-                        value = {searchText}
-                        onClearIcon = {() => onClearIcon()}
-                        onRightIcon = {onModalVisible}
-                    />
 
                     {/*<View>
                         <Slider

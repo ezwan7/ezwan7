@@ -62,15 +62,19 @@ const AuthReducer = (state: any = initialState, action: any) => {
     switch (action.type) {
 
         case types.UPDATE_AUTH_TOKEN:
+            const auth_token: any = action?.payload;
+
             return {
                 ...state,
-                auth_token: action.payload
+                auth_token: auth_token
             }
 
         case types.UPDATE_FIREBASE_TOKEN:
+            const firebase_token: any = action?.payload;
+
             return {
                 ...state,
-                firebase_token: action.payload
+                firebase_token: firebase_token,
             }
 
         case types.UPDATE_USER:

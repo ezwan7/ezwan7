@@ -12,7 +12,7 @@ import {MyConstant} from '../common/MyConstant';
 import MyUtil from '../common/MyUtil';
 import MyAuth from '../common/MyAuth';
 
-import {StatusBarDark} from '../components/MyComponent';
+import {StatusBarDark, StatusBarGradientPrimary} from '../components/MyComponent';
 import {MyButton} from "../components/MyButton";
 import {useSelector} from "react-redux";
 
@@ -40,7 +40,7 @@ const ReferAndEarn = ({route, navigation}: any) => {
 
     return (
         <Fragment>
-            <StatusBarDark/>
+            {MyStyle.platformOS === "ios" ? <StatusBarGradientPrimary/> : <StatusBarDark/>}
             <SafeAreaView style = {MyStyleSheet.SafeAreaView1}/>
             <SafeAreaView style = {MyStyleSheet.SafeAreaView2}>
                 <LinearGradient
@@ -75,14 +75,13 @@ const ReferAndEarn = ({route, navigation}: any) => {
                             <MyButton
                                 color = {MyStyle.LGButtonPrimary}
                                 title = {MyLANG.Share}
-                                linearGradientStyle = {{marginTop: 10}}
+                                viewStyle = {{marginTop: 10}}
                                 onPress = {(e: any) => {
                                     if (user?.referral_code?.length > 0) {
                                         MyUtil.share(MyConstant.SHARE.TYPE.open,
                                                      false,
                                                      {
-                                                         message: `${MyLANG.ShareRefereCodeDetails}\n${user?.referral_code}`,
-                                                         url    : MyConfig.android_store_link,
+                                                         message: `${MyLANG.ShareRefereCodeDetails}\n${user?.referral_code}\n\n${MyStyle.platformOS === "ios" ? MyConfig.iOS_store_link : MyConfig.android_store_link}`,
                                                      },
                                                      false
                                         )

@@ -266,9 +266,15 @@ const MyFunction = {
                 privacy_policy: data.find((e: any) => e.slug === 'privacy-policy')?.description,
                 term_services : data.find((e: any) => e.slug === 'term-services')?.description,
                 refund_policy : data.find((e: any) => e.slug === 'refund-policy')?.description,
+                payment_terms : data.find((e: any) => e.slug === 'paymentmethods')?.description,
             }
 
-            store.dispatch(appInfoUpdate(app_info, 'all'));
+            store.dispatch(appInfoUpdate(app_info?.about_us, 'about_us'));
+            store.dispatch(appInfoUpdate(app_info?.contact_us, 'contact_us'));
+            store.dispatch(appInfoUpdate(app_info?.privacy_policy, 'privacy_policy'));
+            store.dispatch(appInfoUpdate(app_info?.term_services, 'term_services'));
+            store.dispatch(appInfoUpdate(app_info?.refund_policy, 'refund_policy'));
+            store.dispatch(appInfoUpdate(app_info?.payment_terms, 'payment_terms'));
 
         } else {
             if (showInfoMessage !== false) {
@@ -559,8 +565,7 @@ const MyFunction = {
             'apiURL': MyAPI.delivery_method, 'response': response
         });
 
-        if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.status === 200 && response.data?.data?.success === '1') {
-
+        if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.status === 200 && response.data.data?.success === '1') {
 
             if (formParam?.delivery_type === MyConfig.DeliveryType.Courier.id) {
                 const data = response.data?.data?.data;
@@ -569,7 +574,8 @@ const MyFunction = {
                         accumulator.push(
                             {
                                 ...item,
-                                priceText: `${MyLANG.DeliveryCost} ${MyConfig.Currency.MYR.symbol} ${item.price}`,
+                                priceText  : Number(item.price) > 0 ? `${MyLANG.DeliveryCost} ${MyConfig.Currency.MYR.symbol} ${item.price}` : null,
+                                description: item.description || null,
                             }
                         );
                         return accumulator;
@@ -580,7 +586,7 @@ const MyFunction = {
                 }
 
             } else {
-                const data        = response.data?.data?.data?.[0]?.data;
+                const data        = response.data.data.data?.[0]?.data;
                 const dataReduced = data.reduce((accumulator: any, item: any) => {
                     accumulator.push(
                         {
@@ -606,6 +612,122 @@ const MyFunction = {
         }
 
         return false;
+    },
+
+    fetchInstallmentAmount: async (formParam: any, showLoader: any = MyLANG.PleaseWait + '...', showInfoMessage: any = false, showErrorMessage: any = false) => {
+        const response: any = await MyUtil
+            .myHTTP(false, MyConstant.HTTP_POST, MyAPI.installment_amount,
+                    {
+                        'language_id': MyConfig.LanguageActive,
+
+                        ...formParam,
+
+                        'app_ver'      : MyConfig.app_version,
+                        'app_build_ver': MyConfig.app_build_version,
+                        'platform'     : MyConfig.app_platform,
+                        'device'       : null,
+                    }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, showLoader, true, false
+            );
+
+        MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
+            'apiURL': MyAPI.installment_amount, 'response': response
+        });
+
+        if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.status === 200 && response.data.data?.success === '1' && response.data.data.data) {
+
+            return response.data.data;
+
+        } else {
+
+            if (showErrorMessage !== false) {
+                MyUtil.showMessage(showErrorMessage.showMessage, showErrorMessage.message, false);
+            }
+        }
+
+        return false;
+    },
+
+    InstallmentData: async (showLoader: any = MyLANG.PleaseWait + '...', showInfoMessage: any = false, showErrorMessage: any = false) => {
+        const response_membership_type: any = await MyUtil
+            .myHTTP(false, MyConstant.HTTP_POST, MyAPI.installment_membership_type,
+                    {
+                        'language_id': MyConfig.LanguageActive,
+
+                        'app_ver'      : MyConfig.app_version,
+                        'app_build_ver': MyConfig.app_build_version,
+                        'platform'     : MyConfig.app_platform,
+                        'device'       : null,
+                    }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, showLoader, true, false
+            );
+
+        MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
+            'apiURL': MyAPI.installment_membership_type, 'response': response_membership_type
+        });
+        if (response_membership_type?.type === MyConstant.RESPONSE.TYPE.data && response_membership_type.data?.status === 200 && response_membership_type.data.data) {
+            const data = response_membership_type.data.data;
+            store.dispatch(appInputUpdate(data, 'installment_membership_type'));
+            if (showInfoMessage !== false) {
+                MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message || response_membership_type.data?.data?.message, false);
+            }
+        } else {
+            if (showErrorMessage !== false) {
+                MyUtil.showMessage(showErrorMessage.showMessage, showErrorMessage.message, false);
+            }
+        }
+
+        const response_installment_period: any = await MyUtil
+            .myHTTP(false, MyConstant.HTTP_POST, MyAPI.installment_period,
+                    {
+                        'language_id': MyConfig.LanguageActive,
+
+                        'app_ver'      : MyConfig.app_version,
+                        'app_build_ver': MyConfig.app_build_version,
+                        'platform'     : MyConfig.app_platform,
+                        'device'       : null,
+                    }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, showLoader, true, false
+            );
+
+        MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
+            'apiURL': MyAPI.installment_period, 'response': response_installment_period
+        });
+        if (response_installment_period?.type === MyConstant.RESPONSE.TYPE.data && response_installment_period.data?.status === 200 && response_installment_period.data.data) {
+            const data = response_installment_period.data.data;
+            store.dispatch(appInputUpdate(data, 'installment_period'));
+            if (showInfoMessage !== false) {
+                MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message || response_installment_period.data?.data?.message, false);
+            }
+        } else {
+            if (showErrorMessage !== false) {
+                MyUtil.showMessage(showErrorMessage.showMessage, showErrorMessage.message, false);
+            }
+        }
+
+        const response_installment_plans: any = await MyUtil
+            .myHTTP(false, MyConstant.HTTP_POST, MyAPI.installment_plans,
+                    {
+                        'language_id': MyConfig.LanguageActive,
+
+                        'app_ver'      : MyConfig.app_version,
+                        'app_build_ver': MyConfig.app_build_version,
+                        'platform'     : MyConfig.app_platform,
+                        'device'       : null,
+                    }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, showLoader, true, false
+            );
+
+        MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
+            'apiURL': MyAPI.installment_plans, 'response': response_installment_plans
+        });
+        if (response_installment_plans?.type === MyConstant.RESPONSE.TYPE.data && response_installment_plans.data?.status === 200 && response_installment_plans.data.data) {
+            const data = response_installment_plans.data.data;
+            store.dispatch(appInputUpdate(data, 'installment_plans'));
+            if (showInfoMessage !== false) {
+                MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message || response_installment_plans.data?.data?.message, false);
+            }
+        } else {
+            if (showErrorMessage !== false) {
+                MyUtil.showMessage(showErrorMessage.showMessage, showErrorMessage.message, false);
+            }
+        }
     },
 
     fetchFilterMethod: async (showLoader: any = MyLANG.PleaseWait + '...', showInfoMessage: any = false, showErrorMessage: any = false) => {
@@ -662,9 +784,9 @@ const MyFunction = {
             'apiURL': MyAPI.order_place, 'response': response
         });
 
-        if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.status === 200 && response.data?.data?.success === '1' && response.data?.data?.data?.id) {
+        if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.status === 200 && response.data.data?.success === '1' && response.data.data.data?.orders_data?.[0].orders_id) {
 
-            const data = response.data?.data?.data;
+            const data = response.data.data.data.orders_data[0];
 
             return data;
 

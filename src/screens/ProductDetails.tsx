@@ -506,7 +506,7 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                                                  style = {{marginRight: 5}}
                                              />
                                              <Text style = {[MyStyleSheet.textListItemTitle2Dark, {}]}>
-                                                 {product?.products_ordered > 0 ? product?.products_ordered : '0'} {MyLANG.Sold}
+                                                 {Number(product?.products_ordered) > 0 ? product?.products_ordered : '0'} {MyLANG.Sold}
                                              </Text>
                                          </View>
                                      </View>
@@ -522,7 +522,7 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                                               </Text>
                                              }
                                          </View>
-                                         {product?.current_stock > 0 ?
+                                         {Number(product?.current_stock) > 0 ?
                                           <View style = {[MyStyle.RowLeftBottom, {marginTop: 10}]}>
                                               <MyIcon.SimpleLineIcons
                                                   name = "check"
@@ -534,7 +534,7 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                                                   {MyLANG.InStock}
                                               </Text>
                                           </View>
-                                                                     :
+                                                                             :
                                           <View style = {[MyStyle.RowLeftBottom, {marginTop: 7}]}>
                                               <MyIcon.SimpleLineIcons
                                                   name = "close"
@@ -729,11 +729,12 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                                      <View style = {{width: MyStyle.screenWidth}}>
                                          {(product?.products_video && product?.products_video?.slice(product.products_video.indexOf('watch?v=') + 'watch?v='.length)) ?
                                           <WebView
-                                              style = {{width: MyStyle.screenWidth, maxHeight: MyStyle.screenWidth}}
+                                              style = {{width: MyStyle.screenWidth, height: MyStyle.screenWidth}}
                                               javaScriptEnabled = {true}
                                               domStorageEnabled = {true}
                                               source = {{
-                                                  uri: 'https://www.youtube.com/embed/mm6E_JEb-JI'
+                                                  uri: `https://www.youtube.com/embed/${product.products_video?.slice(product.products_video.indexOf(
+                                                      'watch?v=') + 'watch?v='.length)}`
                                               }}
                                           />
                                                                                                                                                                       :

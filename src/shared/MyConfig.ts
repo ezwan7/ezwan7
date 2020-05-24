@@ -11,6 +11,8 @@ import MyImage from "../shared/MyImage";
 import {MyConstant} from "../common/MyConstant";
 import MyLANG from "./MyLANG";
 
+const platformOS = Platform.OS;
+
 const primaryColor    = {
     first        : '#0e018d',
     second       : '#1301d8',
@@ -37,9 +39,9 @@ const primaryGradient = {
 const MyConfig: any = {
 
     app_name         : 'DirectD',
-    app_version      : '0.96',
-    app_build_version: 96,
-    app_platform     : 'android_customer',
+    app_version      : '0.98',
+    app_build_version: 98,
+    app_platform     : platformOS,
 
     app_email    : 'directd@gmail.com',
     app_phone    : '01888065565',
@@ -182,12 +184,20 @@ const MyConfig: any = {
             name: 'Cash on Delivery'
         },
         CreditCard    : {
-            id  : 6,
+            id  : 26,
             name: 'Credit Card'
         },
         Grabpay       : {
             id  : 27,
             name: 'Grabpay'
+        },
+        DirectBank    : {
+            id  : 28,
+            name: 'Direct Bank'
+        },
+        Installment   : {
+            id  : 29,
+            name: 'Installment'
         },
     },
 
@@ -466,7 +476,7 @@ const MyConfig: any = {
         timeout              : 10000,
         maximumAge           : 0,
         forceRequestLocation : true,
-        useSignificantChanges: true,
+        useSignificantChanges: false,
         showLocationDialog   : true,
     },
     geoLocationOptionSilent: {
@@ -474,7 +484,7 @@ const MyConfig: any = {
         timeout              : 10000,
         maximumAge           : 0,
         forceRequestLocation : false,
-        useSignificantChanges: true,
+        useSignificantChanges: false,
         showLocationDialog   : false,
     },
 
@@ -495,23 +505,27 @@ const MyAPI = {
     password_forgot: MyConfig.apiUrl + MyConfig.api_version + 'processforgotpassword',
     password_reset : MyConfig.apiUrl + MyConfig.api_version + 'resetotppassword',
 
-    register_device     : MyConfig.apiUrl + MyConfig.api_version + 'registerdevices',
-    app_update_check    : MyConfig.apiUrl + MyConfig.api_version + 'appupdate',
-    app_info            : MyConfig.apiUrl + MyConfig.api_version + 'getallpages',
-    countries           : MyConfig.apiUrl + MyConfig.api_version + 'getcountries',
-    states              : MyConfig.apiUrl + MyConfig.api_version + 'getzones',
-    cities              : MyConfig.apiUrl + MyConfig.api_version + 'getcities',
-    payment_methods     : MyConfig.apiUrl + MyConfig.api_version + 'getpaymentmethods',
-    pickup_address      : MyConfig.apiUrl + MyConfig.api_version + 'pickuppoints',
-    featured_products   : MyConfig.apiUrl + MyConfig.api_version + 'getfeaturedproducts',
-    new_arrival_products: MyConfig.apiUrl + MyConfig.api_version + 'getnewarrivalproducts',
-    categories          : MyConfig.apiUrl + MyConfig.api_version + 'allcategories',
-    product_by_category : MyConfig.apiUrl + MyConfig.api_version + 'productsbycategory',
-    product             : MyConfig.apiUrl + MyConfig.api_version + 'getallproducts',
-    search              : MyConfig.apiUrl + MyConfig.api_version + 'getsearchdata',
-    filter              : MyConfig.apiUrl + MyConfig.api_version + 'getfilters',
-    filter_product      : MyConfig.apiUrl + MyConfig.api_version + 'getfilterproducts',
-    banner              : MyConfig.apiUrl + MyConfig.api_version + 'getbanners',
+    register_device            : MyConfig.apiUrl + MyConfig.api_version + 'registerdevices',
+    app_update_check           : MyConfig.apiUrl + MyConfig.api_version + 'appupdate',
+    app_info                   : MyConfig.apiUrl + MyConfig.api_version + 'getallpages',
+    countries                  : MyConfig.apiUrl + MyConfig.api_version + 'getcountries',
+    states                     : MyConfig.apiUrl + MyConfig.api_version + 'getzones',
+    cities                     : MyConfig.apiUrl + MyConfig.api_version + 'getcities',
+    installment_membership_type: MyConfig.apiUrl + MyConfig.api_version + 'getmembershiptypes',
+    installment_period         : MyConfig.apiUrl + MyConfig.api_version + 'getinstallmentperiod',
+    installment_plans          : MyConfig.apiUrl + MyConfig.api_version + 'getemiplans',
+    installment_amount         : MyConfig.apiUrl + MyConfig.api_version + 'gettotalemiamount',
+    payment_methods            : MyConfig.apiUrl + MyConfig.api_version + 'getpaymentmethods',
+    pickup_address             : MyConfig.apiUrl + MyConfig.api_version + 'pickuppoints',
+    featured_products          : MyConfig.apiUrl + MyConfig.api_version + 'getfeaturedproducts',
+    new_arrival_products       : MyConfig.apiUrl + MyConfig.api_version + 'getnewarrivalproducts',
+    categories                 : MyConfig.apiUrl + MyConfig.api_version + 'allcategories',
+    product_by_category        : MyConfig.apiUrl + MyConfig.api_version + 'productsbycategory',
+    product                    : MyConfig.apiUrl + MyConfig.api_version + 'getallproducts',
+    search                     : MyConfig.apiUrl + MyConfig.api_version + 'getsearchdata',
+    filter                     : MyConfig.apiUrl + MyConfig.api_version + 'getfilters',
+    filter_product             : MyConfig.apiUrl + MyConfig.api_version + 'getfilterproducts',
+    banner                     : MyConfig.apiUrl + MyConfig.api_version + 'getbanners',
 
     coupon_apply          : MyConfig.apiUrl + MyConfig.api_version + 'getcoupon',
     wishlist              : MyConfig.apiUrl + MyConfig.api_version + 'getwishlist',

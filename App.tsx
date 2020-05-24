@@ -71,6 +71,11 @@ export default App;
 // TODO: Auto login: API call redirect or page redirect: go back to prev page or reroute
 
 
+
+// TODO: Online Cart
+// TODO: Auth Clear careful with tokens on logout
+
+
 // No Internet Lottie
 
 

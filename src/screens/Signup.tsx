@@ -13,7 +13,7 @@ import MyUtil from '../common/MyUtil';
 import MyAuth from '../common/MyAuth';
 import MyFunction from "../shared/MyFunction";
 
-import {StatusBarDark} from '../components/MyComponent';
+import {StatusBarDark, StatusBarGradientPrimary} from '../components/MyComponent';
 import {MyInput} from "../components/MyInput";
 import {MyButton} from "../components/MyButton";
 
@@ -178,7 +178,7 @@ const SignupScreen = ({}) => {
 
     return (
         <Fragment>
-            <StatusBarDark/>
+            {MyStyle.platformOS === "ios" ? <StatusBarGradientPrimary/> : <StatusBarDark/>}
             <SafeAreaView style = {MyStyleSheet.SafeAreaView1}/>
             <SafeAreaView style = {MyStyleSheet.SafeAreaView2}>
                 <LinearGradient style = {[MyStyleSheet.SafeAreaView3, {}]}

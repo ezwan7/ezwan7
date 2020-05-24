@@ -160,7 +160,7 @@ const GoogleMapScreen = ({route, navigation}: any) => {
 
     const getCurrentLocation = async () => {
         const location: any = await MyFunction.getUserLocation(MyConstant.GeolocationFetchType.return,
-                                                               MyConfig.geoLocationOption,
+                                                               MyStyle.platformOS === "ios" ? MyConfig.geoLocationOptionSilent : MyConfig.geoLocationOption,
                                                                true,
                                                                false,
                                                                MyConstant.SHOW_MESSAGE.ALERT
@@ -260,28 +260,25 @@ const GoogleMapScreen = ({route, navigation}: any) => {
 
     return (
         <Fragment>
-            <StatusBarLight/>
-            <SafeAreaView style = {MyStyleSheet.SafeAreaView1}/>
+            <HeaderGoogleMapSearch
+                onSearch = {() => getCurrentLocation()}
+                onMarker = {() => getCurrentLocation()}
+                onBack = {
+                    () =>
+                        MyUtil.stackAction(false,
+                                           null,
+                                           MyConstant.StackAction.pop,
+                                           1,
+                                           null,
+                                           null
+                        )
+                }
+            />
             <SafeAreaView style = {MyStyleSheet.SafeAreaView2}>
                 <View style = {[MyStyleSheet.SafeAreaView3, {paddingTop: 0, backgroundColor: MyColor.backgroundGrey}]}>
 
-                    <HeaderGoogleMapSearch
-                        onBack = {
-                            () =>
-                                MyUtil.stackAction(false,
-                                                   null,
-                                                   MyConstant.StackAction.pop,
-                                                   1,
-                                                   null,
-                                                   null
-                                )
-                        }
-                        onSearch = {() => getCurrentLocation()}
-                        onMarker = {() => getCurrentLocation()}
-                    />
-
                     {
-                        location?.region ?
+                        (location?.region) ?
                         <View style = {styles.container}>
 
                             <MapView
@@ -330,14 +327,14 @@ const GoogleMapScreen = ({route, navigation}: any) => {
                                     fill = "solid"
                                     color = {MyColor.Material.INDIGO["A700"]}
                                     display = "block"
-                                    linearGradientStyle = {styles.buttonAddress}
+                                    viewStyle = {styles.buttonAddress}
                                     touchableStyle = {{}}
                                     iconLeft = {{fontFamily: MyConstant.VectorIcon.Fontisto, name: 'check'}}
                                     onPress = {onSubmit}
                                 />
                             </View>
                         </View>
-                                         :
+                                           :
                         <ListEmptyViewLottie
                             source = {MyImage.lottie_map_marker}
                             style = {{view: {}, image: {}, text: {}}}

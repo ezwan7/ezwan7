@@ -300,7 +300,7 @@ const ProductBuyScreen = ({route, navigation}: any) => {
                                                  color = {MyColor.Material.BLUEGREY["A400"]}
                                                  display = "inline"
                                                  title = {MyLANG.Remove}
-                                                 linearGradientStyle = {{flex: 0.32, height: 46}}
+                                                 viewStyle = {{flex: 0.32, height: 32}}
                                                  onPress = {(e: any) => dispatch(cartUpdateVoucher({}, 0))}
                                              />
                                          </>
@@ -322,7 +322,7 @@ const ProductBuyScreen = ({route, navigation}: any) => {
                                                  color = {MyColor.Material.GREEN["700"]}
                                                  display = "inline"
                                                  title = {MyLANG.Apply}
-                                                 linearGradientStyle = {{flex: 0.32, height: 46}}
+                                                 viewStyle = {{flex: 0.32, height: 46}}
                                                  onPress = {(e: any) => applyCoupon(e)}
                                              />
                                          </>
