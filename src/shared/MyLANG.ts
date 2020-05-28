@@ -25,7 +25,7 @@ export default new LocalizedStrings(
             UpdateAlert               : "New version is available at play store.\nWould you like to update now?",
             LoginRequired             : "You need to Login to access this service",
             LogoutConfirmation        : "Are you sure you want to logout",
-            BiometryNAFingerprint     : "Please login first using email/password or Facebook/Google to enable Fingerprint login",
+            BiometryNAFingerprint     : "Please login using email/password or Social login first to enable Fingerprint login",
             BiometryVerificationFailed: "Unable to verify your biometry",
             LoginSuccessfully         : "Login Successfully",
             LogoutSuccessfully        : "Logout Successfully",
@@ -83,6 +83,7 @@ export default new LocalizedStrings(
             OrRegisterUsing                      : "Or register using",
             LoginusingTouchID                    : "Login using TouchID",
             LoginUsingFingerPrint                : "Login using Fingerprint",
+            LoginUsingFaceID                     : "Login using FaceID",
             DontHaveAnAccount                    : "Don't have an account?",
             AlreadyHaveAnAccount                 : "Already have an account?",
             AlreadyHaveCode                      : "Already have code?",
@@ -156,6 +157,7 @@ export default new LocalizedStrings(
 
             Facebook : "Facebook",
             Google   : "Google",
+            Apple    : "Apple",
             GoogleMap: "Google Map",
 
             // Home
@@ -246,6 +248,7 @@ export default new LocalizedStrings(
             GoogleLoginInProgress         : "Google login already in progress",
             GoogleLoginNoPlayService      : "Google service not available, please install",
             GoogleLoginFailed             : "Google login failed",
+            AppleLoginFailed              : "Apple login failed",
             FacebookUserCanceled          : "User canceled facebook login",
             FacebookLoginFailed           : "Failed to login using facebook",
             FacebookLogoutFailed          : "Failed to logout from facebook",

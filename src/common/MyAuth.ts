@@ -1,6 +1,11 @@
 import {GoogleSignin, statusCodes} from "@react-native-community/google-signin";
 import {AccessToken, GraphRequest, GraphRequestManager, LoginManager} from "react-native-fbsdk";
-
+import appleAuth, {
+    AppleButton,
+    AppleAuthRequestOperation,
+    AppleAuthRequestScope,
+    AppleAuthCredentialState,
+} from '@invertase/react-native-apple-authentication';
 
 import MyUtil from "../common/MyUtil";
 import {MyConstant} from "./MyConstant";
@@ -120,6 +125,9 @@ const MyAuth = {
 
         let API = ''; //CHANGE
         switch (formParam?.mode) {
+            case MyConstant.LOGIN_MODE.APPLE:
+                API = MyAPI.login_google;
+                break;
             case MyConstant.LOGIN_MODE.GOOGLE:
                 API = MyAPI.login_google;
                 break;
@@ -176,6 +184,7 @@ const MyAuth = {
 
             // If Facebook/Google API called, then check if new account or existing:
             switch (formParam?.mode) {
+                case MyConstant.LOGIN_MODE.APPLE:
                 case MyConstant.LOGIN_MODE.GOOGLE:
                 case MyConstant.LOGIN_MODE.FACEBOOK:
                     if (response?.data?.data?.api_use_type === 'login') {
@@ -579,6 +588,42 @@ const MyAuth = {
             return error;
         }
     },
+    loginApple    : async (showMessage: any) => {
+        MyUtil.printConsole(true, 'log', 'LOG: loginApple:', {'showMessage': showMessage});
+
+        try {
+            const appleAuthRequestResponse = await appleAuth.performRequest(
+                {
+                    requestedOperation: AppleAuthRequestOperation.LOGIN,
+                    requestedScopes   : [AppleAuthRequestScope.EMAIL, AppleAuthRequestScope.FULL_NAME],
+                });
+
+            MyUtil.printConsole(true, 'log', 'LOG: appleAuthRequestResponse: ', {appleAuthRequestResponse});
+
+            // get current authentication state for user
+            // const credentialState = await appleAuth.getCredentialStateForUser(appleAuthRequestResponse.user);
+
+            // MyUtil.printConsole(true, 'log', 'LOG: credentialState: ', {credentialState});
+
+            // use credentialState response to ensure the user is authenticated
+            // if (credentialState === AppleAuthCredentialState.AUTHORIZED) {
+
+            if (appleAuthRequestResponse?.user) {
+                return appleAuthRequestResponse;
+
+            } else {
+
+                throw 'Apple signin id not found';
+            }
+
+        } catch (error) {
+
+            MyUtil.showMessage(showMessage, MyLANG.AppleLoginFailed, false);
+            MyUtil.printConsole(true, 'log', 'LOG: loginApple: TRY-CATCH: ', {'error': error});
+
+            return error;
+        }
+    },
 
 
     signup: async (formParam: any, showMessage: any, showLoader: any, doReRoute: any, routeTo: any, navigationActions: any) => {
@@ -593,6 +638,9 @@ const MyAuth = {
 
         let API = ''; //CHANGE
         switch (formParam?.mode) {
+            case MyConstant.LOGIN_MODE.APPLE:
+                API = MyAPI.login_google;
+                break;
             case MyConstant.LOGIN_MODE.GOOGLE:
                 API = MyAPI.login_google;
                 break;
@@ -649,6 +697,7 @@ const MyAuth = {
 
             // If Facebook/Google API called, then check if new account or existing:
             switch (formParam?.mode) {
+                case MyConstant.LOGIN_MODE.APPLE: // If registration is done vai social login:
                 case MyConstant.LOGIN_MODE.GOOGLE: // If registration is done vai social login:
                 case MyConstant.LOGIN_MODE.FACEBOOK:
                     if (response?.data?.data?.api_use_type === 'login') { // If social login already exists => auto login and redirect:

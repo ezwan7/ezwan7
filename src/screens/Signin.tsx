@@ -291,7 +291,7 @@ const SigninScreen = ({route, navigation}: any) => {
                             {
                                 // If already logged in using any kind of method, check which id available, disable auto ask, call the id, hide if none
                                 // Icon change based on available biometry type
-                                biometryType === MyConstant.BiometryTypes.Fingerprint &&
+                                (biometryType === MyConstant.BiometryTypes.Fingerprint || biometryType === MyConstant.BiometryTypes.FaceID || biometryType === MyConstant.BiometryTypes.TouchID) &&
                                 <TouchableOpacity
                                     activeOpacity = {0.7}
                                     onPress = {
@@ -306,15 +306,35 @@ const SigninScreen = ({route, navigation}: any) => {
                                     }
                                     style = {{marginTop: 40}}
                                 >
-                                    <MyIcon.Ionicons
-                                        name = "md-finger-print"
-                                        size = {40}
-                                        color = {MyColor.textDarkPrimary2}
-                                        style = {{textAlign: "center"}}
-                                    />
-                                    <Text style = {styles.textTouchID}>
-                                        {MyLANG.LoginUsingFingerPrint}
-                                    </Text>
+                                    {
+                                        (biometryType === MyConstant.BiometryTypes.Fingerprint || biometryType === MyConstant.BiometryTypes.TouchID) &&
+                                        <>
+                                            <MyIcon.Ionicons
+                                                name = "md-finger-print"
+                                                size = {40}
+                                                color = {MyColor.textDarkPrimary2}
+                                                style = {{textAlign: "center"}}
+                                            />
+                                            <Text style = {styles.textTouchID}>
+                                                {MyLANG.LoginUsingFingerPrint}
+                                            </Text>
+                                        </>
+                                    }
+                                    {
+                                        (biometryType === MyConstant.BiometryTypes.FaceID) &&
+                                        <>
+                                            <MyIcon.Ionicons
+                                                name = "md-qr-scanner"
+                                                size = {40}
+                                                color = {MyColor.textDarkPrimary2}
+                                                style = {{textAlign: "center"}}
+                                            />
+                                            <Text style = {styles.textTouchID}>
+                                                {MyLANG.LoginUsingFaceID}
+                                            </Text>
+                                        </>
+                                    }
+
                                 </TouchableOpacity>
                             }
 
@@ -337,6 +357,16 @@ const SigninScreen = ({route, navigation}: any) => {
                                     linearGradientStyle = {{marginLeft: 7}}
                                     title = {MyLANG.Google}
                                     onPress = {MyFunction.loginGoogle}
+                                />
+                            </View>
+                            <View style = {[MyStyle.RowCenter, {marginTop: 7}]}>
+                                <MyButton
+                                    color = {MyStyle.LGButtonApple}
+                                    textTransform = "capitalize"
+                                    iconLeft = {{fontFamily: MyConstant.VectorIcon.Fontisto, name: 'apple'}}
+                                    linearGradientStyle = {{marginTop: 7}}
+                                    title = {MyLANG.Apple}
+                                    onPress = {MyFunction.loginApple}
                                 />
                             </View>
 

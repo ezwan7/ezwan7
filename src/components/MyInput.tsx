@@ -108,23 +108,37 @@ const MyInput = (props: any) => {
 
     const placeholderTextColor = props.placeholderStyle ? props.placeholderStyle?.color : MyColor.Material.GREY["500"];
 
-    const labelTextColorFocused        = ((props.helperText?.message && (props.helperText?.type === "success" && MyColor.sucessDark ||
-                                                                         props.helperText?.type === "warning" && MyColor.warningDark ||
-                                                                         props.helperText?.type === "error" && MyColor.errorDark ||
-                                                                         MyColor.errorDark)) ||
-                                          (isFocused && (props.focusedBorderColor?.borderColor && props.focusedBorderColor.borderColor || MyColor.Primary.first)) ||
-                                          ((value && props.readyBorderColor?.borderColor) && props.readyBorderColor.borderColor) ||
-                                          (props.mode === "line" && MyColor.Material.GREY["600"] ||
-                                          props.mode === "outlined" && MyColor.Material.GREY["800"] ||
-                                          props.mode === "rounded" && MyColor.Material.GREY["800"])
+    const labelTextColorFocused = ((props.helperText?.message && (props.helperText?.type === "success" && MyColor.sucessDark ||
+                                                                  props.helperText?.type === "warning" && MyColor.warningDark ||
+                                                                  props.helperText?.type === "error" && MyColor.errorDark ||
+                                                                  MyColor.errorDark)) ||
+                                   (isFocused && (props.focusedBorderColor?.borderColor && props.focusedBorderColor.borderColor || MyColor.Primary.first)) ||
+                                   ((value && props.readyBorderColor?.borderColor) && props.readyBorderColor.borderColor) ||
+                                   (props.mode === "line" && MyColor.Material.GREY["600"] ||
+                                   props.mode === "outlined" && MyColor.Material.GREY["800"] ||
+                                   props.mode === "rounded" && MyColor.Material.GREY["800"])
     );
-    const labelTextBottomFocused1: any = props.mode === "line" && 4 ||
-                                         props.mode === "outlined" && 4 ||
-                                         props.mode === "rounded" && 4;
-    const labelTextBottomFocused2: any = props.mode === "line" && 26 ||
-                                         props.mode === "outlined" && 33 ||
-                                         props.mode === "rounded" && 30;
-    const floatingLabelStyles          = [
+
+    const labelTextBottomFocused1: any = MyStyle.platformOS === "ios" ?
+                                         (props.mode === "line" && 4 ||
+                                          props.mode === "outlined" && 4 ||
+                                          props.mode === "rounded" && -4)
+                                                                      :
+                                         (props.mode === "line" && 4 ||
+                                          props.mode === "outlined" && 4 ||
+                                          props.mode === "rounded" && 4);
+
+    const labelTextBottomFocused2: any = MyStyle.platformOS === "ios" ?
+                                         (props.mode === "line" && 26 ||
+                                          props.mode === "outlined" && 33 ||
+                                          props.mode === "rounded" && 18)
+                                                                      :
+                                         (props.mode === "line" && 26 ||
+                                          props.mode === "outlined" && 33 ||
+                                          props.mode === "rounded" && 30);
+
+
+    const floatingLabelStyles = [
 
         styles.floatingLabel,
 
@@ -554,10 +568,11 @@ const styles = StyleSheet.create(
         },
 
         view       : {
-            display       : "flex",
-            flexDirection : "row",
-            justifyContent: "flex-start",
-            alignItems    : "center",
+            display          : "flex",
+            flexDirection    : "row",
+            justifyContent   : "flex-start",
+            alignItems       : "center",
+            textAlignVertical: "bottom",
         },
         viewSuccess: {
             borderColor: MyColor.sucessDark,
@@ -594,7 +609,7 @@ const styles = StyleSheet.create(
         floatingLabel   : {},
         placeholderLabel: {
             position  : "absolute",
-            bottom    : 3,
+            bottom    : MyStyle.platformOS === "ios" ? -4 : 3,
             fontFamily: MyStyle.FontFamily.OpenSans.regular,
             fontSize  : MyStyle.FontSize.placeHolder,
             color     : MyColor.Material.GREY["600"],

@@ -28,12 +28,12 @@ const ProductBuySuccess = ({route, navigation}: any) => {
         useCallback(() => {
             const onBackPress = () => {
                 // Go back to Login page:
-                MyUtil.commonAction(false,
-                                    null,
-                                    MyConstant.CommonAction.navigate,
-                                    MyConfig.routeName.Home,
-                                    null,
-                                    null,
+                MyUtil.stackAction(false,
+                                   navigation,
+                                   MyConstant.StackAction.pop,
+                                   3,
+                                   null,
+                                   null,
                 );
                 return true;
             };
@@ -42,6 +42,8 @@ const ProductBuySuccess = ({route, navigation}: any) => {
 
             return () =>
                 BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+
+            // eslint-disable-next-line react-hooks/exhaustive-deps
         }, [])
     );
 
@@ -90,12 +92,12 @@ const ProductBuySuccess = ({route, navigation}: any) => {
                                 title = {MyLANG.Close}
                                 linearGradientStyle = {{marginTop: 10}}
                                 onPress = {(e: any) => {
-                                    MyUtil.commonAction(false,
-                                                        null,
-                                                        MyConstant.CommonAction.navigate,
-                                                        MyConfig.routeName.Home,
-                                                        null,
-                                                        null,
+                                    MyUtil.stackAction(false,
+                                                       navigation,
+                                                       MyConstant.StackAction.pop,
+                                                       3,
+                                                       null,
+                                                       null,
                                     );
                                 }}
                             />

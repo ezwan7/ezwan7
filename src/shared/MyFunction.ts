@@ -164,10 +164,10 @@ const MyFunction = {
 
     loginGoogle: async () => {
         const googleSignin: any = await MyAuth.loginGoogle(MyConstant.SHOW_MESSAGE.TOAST);
-        MyUtil.printConsole(true, 'log', 'LOG: googlePlusLogin: await-response: ', {
+        MyUtil.printConsole(true, 'log', 'LOG: googleSignin: await-response: ', {
             'googleSignin': googleSignin
         });
-        if (googleSignin && googleSignin['user']) {
+        if (googleSignin?.user) {
             MyAuth.login({
                              mode      : MyConstant.LOGIN_MODE.GOOGLE,
                              google_id : googleSignin?.user?.id,
@@ -176,6 +176,31 @@ const MyFunction = {
                              first_name: googleSignin?.user?.givenName,
                              last_name : googleSignin?.user?.familyName,
                              photo     : googleSignin?.user?.photo,
+                         },
+                         MyConstant.SHOW_MESSAGE.TOAST,
+                         MyConstant.SHOW_MESSAGE.ALERT,
+                         MyLANG.Login + '...',
+                         false,
+                         null,
+                         MyConstant.NAVIGATION_ACTIONS.POP_TO_ROOT
+            );
+        }
+    },
+
+    loginApple: async () => {
+        const appleSignin: any = await MyAuth.loginApple(MyConstant.SHOW_MESSAGE.TOAST);
+        MyUtil.printConsole(true, 'log', 'LOG: appleSignin: await-response: ', {
+            'appleSignin': appleSignin
+        });
+        if (appleSignin?.user) {
+            MyAuth.login({
+                             mode      : MyConstant.LOGIN_MODE.APPLE,
+                             google_id : appleSignin?.user,
+                             email     : appleSignin?.email,
+                             name      : appleSignin?.fullName?.givenName,
+                             first_name: appleSignin?.fullName?.givenName,
+                             last_name : appleSignin?.fullName?.familyName,
+                             // photo     : appleSignin?.user?.photo,
                          },
                          MyConstant.SHOW_MESSAGE.TOAST,
                          MyConstant.SHOW_MESSAGE.ALERT,

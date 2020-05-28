@@ -488,6 +488,7 @@ const EditProfile = ({route, navigation}: any) => {
                                 value = {date_of_birth?.formatted}
                                 iconLeft = {{name: 'calendar'}}
                                 iconRight = {{fontFamily: MyConstant.VectorIcon.Entypo, name: 'chevron-down'}}
+                                iconRightOnPress = {showDatePicker}
                                 helperText = {{message: errors.date_of_birth?.message ? errors.date_of_birth.message : null}}
                                 onPress = {showDatePicker}
                             />
@@ -499,6 +500,7 @@ const EditProfile = ({route, navigation}: any) => {
                                 value = {gender?.name}
                                 iconLeft = {{name: 'symbol-female'}}
                                 iconRight = {{fontFamily: MyConstant.VectorIcon.Entypo, name: 'chevron-down'}}
+                                iconRightOnPress = {openGenderModal}
                                 helperText = {{message: errors.gender?.message ? errors.gender.message : null}}
                                 onPress = {openGenderModal}
                             />

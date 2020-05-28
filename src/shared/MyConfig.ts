@@ -39,8 +39,8 @@ const primaryGradient = {
 const MyConfig: any = {
 
     app_name         : 'DirectD',
-    app_version      : '0.98',
-    app_build_version: 98,
+    app_version      : '0.99',
+    app_build_version: 99,
     app_platform     : platformOS,
 
     app_email    : 'directd@gmail.com',

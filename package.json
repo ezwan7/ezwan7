@@ -10,6 +10,7 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
   },
   "dependencies": {
+    "@invertase/react-native-apple-authentication": "^1.0.0",
     "@ptomasroos/react-native-multi-slider": "^2.2.2",
     "@react-native-community/art": "^1.2.0",
     "@react-native-community/async-storage": "^1.10.3",

@@ -166,6 +166,12 @@ const MyStyle: any = {
         locations: [0.0, 1.0],
         colors   : MyColor.Gradient.google,
     },
+    LGButtonApple         : {
+        start    : {x: 0.0, y: 0.0},
+        end      : {x: 1.0, y: 1.0},
+        locations: [0.0, 1.0],
+        colors   : MyColor.Gradient.apple,
+    },
 
     LGWhite  : {
         start    : {x: 0, y: 0},

@@ -2666,7 +2666,7 @@ const MyUtil = {
         }
 
         try {
-            await Keychain.setGenericPassword(username, password, biometryOption);
+            await Keychain.setGenericPassword(username, password);
 
             return true;
         } catch (error) {

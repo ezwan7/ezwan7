@@ -59,6 +59,7 @@ const MyConstant = {
         EMAIL   : 'EMAIL',
         FACEBOOK: 'FACEBOOK',
         GOOGLE  : 'GOOGLE',
+        APPLE   : 'APPLE',
         SMS     : 'SMS',
     },
 

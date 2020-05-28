@@ -709,6 +709,7 @@ const MyAddressForm = ({route, navigation}: any) => {
                                 value = {country?.countries_name}
                                 viewStyle = {{borderColor: MyColor.Material.GREY["300"]}}
                                 iconRight = {{fontFamily: MyConstant.VectorIcon.Entypo, name: 'chevron-right'}}
+                                iconRightOnPress = {onCountry}
                                 helperText = {{message: errors.country?.message ? errors.country.message : null}}
                                 onPress = {onCountry}
                             />
@@ -724,6 +725,7 @@ const MyAddressForm = ({route, navigation}: any) => {
                                 value = {state?.zone_name}
                                 viewStyle = {{borderColor: MyColor.Material.GREY["300"]}}
                                 iconRight = {{fontFamily: MyConstant.VectorIcon.Entypo, name: 'chevron-right'}}
+                                iconRightOnPress = {onState}
                                 helperText = {{message: errors.state?.message ? errors.state.message : null}}
                                 onPress = {onState}
                             />
@@ -739,6 +741,7 @@ const MyAddressForm = ({route, navigation}: any) => {
                                 value = {city?.city_name}
                                 viewStyle = {{borderColor: MyColor.Material.GREY["300"]}}
                                 iconRight = {{fontFamily: MyConstant.VectorIcon.Entypo, name: 'chevron-right'}}
+                                iconRightOnPress = {onCity}
                                 helperText = {{message: errors.city?.message ? errors.city.message : null}}
                                 onPress = {onCity}
                             />
