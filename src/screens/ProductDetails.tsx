@@ -584,7 +584,7 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                                                              }
                                                          >
                                                              <MyMaterialRipple
-                                                                 style = {MyStyleSheet.MRButtonProductPage}
+                                                                 style = {[MyStyleSheet.MRButtonProductPage]}
                                                                  {...MyStyle.MaterialRipple.drawerRounded}
                                                                  onPress = {() => onAttribute(product, i, j)}
                                                              >

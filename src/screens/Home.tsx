@@ -103,7 +103,6 @@ const HomeScreen = ({route, navigation}: any) => {
         MyFunction.fetchFilterMethod(false);
         MyFunction.fetchCountries(); // in address page
         // MyFunction.fetchNotification(false);
-        MyFunction.updateDeviceInfo();
 
         MyFunction.fetchAppData(false);
 

@@ -13,6 +13,7 @@ import {switchAppNavigator} from "../store/AppRedux";
 import {addressSave} from "../store/AddressRedux";
 import {notificationSave} from "../store/NotificationRedux";
 import {cartUpdateTax} from "../store/CartRedux";
+import messaging from "@react-native-firebase/messaging";
 
 
 const MyFunction = {
@@ -31,13 +32,15 @@ const MyFunction = {
 
         const device: any = await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getDeviceToken);
 
+        const firebase_token: any = await messaging().getToken();
+
         const deviceInfo: any = {
             systemName     : await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getSystemName),
             systemVersion  : await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getSystemVersion),
             apiLevel       : await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getApiLevel),
             model          : await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getModel),
             manufacturer   : await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getManufacturer),
-            deviceId       : await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getDeviceId),
+            deviceId       : firebase_token,
             uniqueId       : await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getUniqueId),
             applicationName: await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getApplicationName),
             buildNumber    : await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getBuildNumber),
@@ -1036,8 +1039,8 @@ const MyFunction = {
                         'language_id': MyConfig.LanguageActive,
 
                         'customers_id'        : formParam?.user_id,
-                        'entry_firstname'     : formParam?.full_name?.split(" ")?.[0],
-                        'entry_lastname'      : formParam?.full_name?.split(" ")?.[1],
+                        'entry_firstname'     : formParam?.full_name?.split(" ")?.[0] || '',
+                        'entry_lastname'      : formParam?.full_name?.split(" ")?.[1] || '',
                         'entry_street_address': formParam?.street_address,
                         'entry_suburb'        : formParam?.city,
                         'entry_postcode'      : formParam?.postal_code,

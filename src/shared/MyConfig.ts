@@ -63,8 +63,8 @@ const MyConfig: any = {
     // apiUrl : 'http://192.168.0.101:8500/',
     // apiUrl   : 'https://smddeveloper.com/directd_merge/public/api/',
     // serverUrl: 'https://smddeveloper.com/directd_merge/',
-    apiUrl   : 'https://smdtechno.com/demo/DirectD/public/api/',
-    serverUrl: 'https://smdtechno.com/demo/DirectD/',
+    apiUrl   : 'https://directd.caribpayintl.com/public/api/',
+    serverUrl: 'https://directd.caribpayintl.com/',
 
     api_version: '',
     api_auth   : 'auth/',

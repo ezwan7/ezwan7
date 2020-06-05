@@ -1,0 +1,11 @@
+{
+  "aps": {
+    "alert": {
+      "title": "iOS App Templates",
+      "body": "This is the tutorial about push notification on simulators",
+      "sound": "default"
+    },
+    "badge": 4
+  },
+  "Simulator Target Bundle": "com.directd"
+}

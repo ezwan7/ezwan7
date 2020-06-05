@@ -26,6 +26,8 @@ import {introEmpty} from "../store/IntroRedux";
 import {notificationEmpty} from "../store/NotificationRedux";
 import {orderEmpty} from "../store/OrderRedux";
 import {userLocationEmpty} from "../store/UserLocation";
+import messaging from "@react-native-firebase/messaging";
+import MyFunction from "../shared/MyFunction";
 
 const MyAuth = {
 
@@ -40,39 +42,57 @@ const MyAuth = {
             'navigationActions': navigationActions,
         });
 
-        // Check if Username and Password is stored in local storage:
-        const keychain: any = await MyUtil.keychainGet(false);
-        MyUtil.printConsole(true, 'log', 'LOG: keychainGet: await-response: ', {'keychain': keychain});
 
-        if (keychain && keychain[MyConstant.PASSWORD]) {  // Found Saved Username, Password:
+        try {
+            // Check if Username and Password is stored in local storage:
+            const keychain: any = await MyUtil.keychainGet(false);
+            MyUtil.printConsole(true, 'log', 'LOG: keychainGet: await-response: ', {'keychain': keychain});
 
-            // Call Silent Background Login If Found Saved Username, Password:
-            MyAuth.login(JSON.parse(keychain[MyConstant.username]), showInfoMessage, showErrorMessage, showLoader, doReRoute, routeTo, navigationActions);
+            if (keychain && keychain[MyConstant.PASSWORD] && keychain[MyConstant.username]) {  // Found Saved Username, Password:
 
-            // TODO: If Saved Login Found and Login Not Required => Open Home page First then Call Login API
-            if (MyConfig.loginRequired === true) { // App require Login: Show login screen:
-
-            } else {
-
-            }
-        } else { // No Username, Password Found. SKIP. Check Config to re route:
-
-            if (keychain?.code === 'E_CRYPTO_FAILED') { // TODO: need loop or touch event to know cancel or repeated failed attempt
-                MyAuth.processLogout(null,
-                                     false,
-                                     false,
-                                     [MyConstant.CLEAR_STORAGE.ALL_ASYNC_STORAGE, MyConstant.CLEAR_STORAGE.TOKEN, MyConstant.CLEAR_STORAGE.REDUX],
-                                     false,
-                                     false,
-                                     null,
+                // Call Silent Background Login If Found Saved Username, Password:
+                MyAuth.login(JSON.parse(keychain[MyConstant.username]),
+                             showInfoMessage,
+                             showErrorMessage,
+                             showLoader,
+                             doReRoute,
+                             routeTo,
+                             navigationActions
                 );
-            } else {
-                //
+
+                // TODO: If Saved Login Found and Login Not Required => Open Home page First then Call Login API
+                if (MyConfig.loginRequired === true) { // App require Login: Show login screen:
+
+                } else {
+
+                }
+            } else { // No Username, Password Found. SKIP. Check Config to re route:
+
+                if (keychain?.code === 'E_CRYPTO_FAILED') { // TODO: need loop or touch event to know cancel or repeated failed attempt
+                    MyAuth.processLogout(null,
+                                         false,
+                                         false,
+                                         [MyConstant.CLEAR_STORAGE.ALL_ASYNC_STORAGE, MyConstant.CLEAR_STORAGE.TOKEN, MyConstant.CLEAR_STORAGE.REDUX],
+                                         false,
+                                         false,
+                                         null,
+                    );
+                } else {
+                    //
+                }
+
+                if (doReRoute) {
+                    MyAuth.checkIfLoginRequired(false, null, navigationActions);
+                }
             }
+        } catch (error) {
+
+            MyUtil.printConsole(true, 'log', 'LOG: isSavedLogin: TRY-CATCH: ', {'error': error});
 
             if (doReRoute) {
                 MyAuth.checkIfLoginRequired(false, null, navigationActions);
             }
+
         }
     },
 
@@ -143,7 +163,8 @@ const MyAuth = {
                 break;
         }
 
-        const firebase_token: any = store.getState().auth.firebase_token;
+        // const firebase_token: any = store.getState().auth.firebase_token;
+        // const firebase_token: any = await messaging().getToken();
 
         // Call Login API:
         const response: any = await MyUtil
@@ -161,7 +182,7 @@ const MyAuth = {
                         [MyConstant.FIRST_NAME]    : formParam?.first_name,
                         [MyConstant.LAST_NAME]     : formParam?.last_name,
                         [MyConstant.PHOTO]         : formParam?.photo,
-                        [MyConstant.FIREBASE_TOKEN]: firebase_token,
+                        // [MyConstant.FIREBASE_TOKEN]: firebase_token,
                         // "role"               : MyConfig.UserRole.customer,
                         // "db_key"             : 'app_build_ver_android',
                         // "device"             : null,
@@ -251,6 +272,8 @@ const MyAuth = {
             if (keychain === true) {
 
                 MyUtil.showMessage(MyConstant.SHOW_MESSAGE.TOAST, MyLANG.LoginSuccessfully, false);
+
+                MyFunction.updateDeviceInfo();
 
                 if (MyConfig.loginRequired === true) { // If App require Login: After Login Switch to Home Navigtor
                     store.dispatch(switchAppNavigator(MyConfig.appNavigation.HomeNavigator));

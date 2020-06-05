@@ -16,14 +16,7 @@ import com.facebook.soloader.SoLoader;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
-//import com.wix.reactnativenotifications.RNNotificationsPackage;
-import com.wix.reactnativenotifications.core.AppLaunchHelper;
-import com.wix.reactnativenotifications.core.AppLifecycleFacade;
-import com.wix.reactnativenotifications.core.JsIOHelper;
-import com.wix.reactnativenotifications.core.notification.INotificationsApplication;
-import com.wix.reactnativenotifications.core.notification.IPushNotification;
-
-public class MainApplication extends Application implements ReactApplication, INotificationsApplication {
+public class MainApplication extends Application implements ReactApplication {
 
     private final ReactNativeHost mReactNativeHost =
             new ReactNativeHost(this) {
@@ -38,7 +31,6 @@ public class MainApplication extends Application implements ReactApplication, IN
                     List<ReactPackage> packages = new PackageList(this).getPackages();
                     // Packages that cannot be autolinked yet can be added manually here, for example:
                     // packages.add(new MyReactNativePackage());
-//                    packages.add(new RNNotificationsPackage(MainApplication.this));
 
                     return packages;
                 }
@@ -90,16 +82,6 @@ public class MainApplication extends Application implements ReactApplication, IN
                 e.printStackTrace();
             }
         }
-    }
-
-    /**
-     * Implementation of INotificationsApplication:
-     * Overridden to return our custom {@linkplain MyPushNotification} class instead of
-     * the default {@linkplain com.wix.reactnativenotifications.core.notification.PushNotification}.
-     */
-    @Override
-    public IPushNotification getPushNotification(Context context, Bundle bundle, AppLifecycleFacade defaultFacade, AppLaunchHelper defaultAppLaunchHelper) {
-        return new MyPushNotification(context, bundle, defaultFacade, defaultAppLaunchHelper, new JsIOHelper());
     }
 
     @Override

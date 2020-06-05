@@ -182,9 +182,9 @@ const SigninScreen = ({route, navigation}: any) => {
                     // - if ANDROID auto verify timed out then phoneAuthSnapshot.code would be null, just like ios, you'd
                     //   continue with user input logic.
                     console.log('phoneAuthSnapshot: ', phoneAuthSnapshot);
-                }*/).then((phoneAuthSnapshot) => {
+                }*/).then((phoneAuthSnapshot: any) => {
                     console.log('phoneAuthSnapshot-then', phoneAuthSnapshot);
-                }, (error) => {
+                }, (error: any) => {
                     console.log('phoneAuthSnapshot-error', error);
                 });
         } catch (e) {

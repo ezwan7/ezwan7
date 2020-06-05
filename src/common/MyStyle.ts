@@ -166,7 +166,7 @@ const MyStyle: any = {
         locations: [0.0, 1.0],
         colors   : MyColor.Gradient.google,
     },
-    LGButtonApple         : {
+    LGButtonApple          : {
         start    : {x: 0.0, y: 0.0},
         end      : {x: 1.0, y: 1.0},
         locations: [0.0, 1.0],
@@ -714,8 +714,8 @@ const MyStyleSheet = StyleSheet.create(
             fontFamily  : MyStyle.FontFamily.OpenSans.semiBold,
             fontSize    : 18,
             color       : MyColor.Material.WHITE,
-            flex:1,
-            textAlign: "center",
+            flex        : 1,
+            textAlign   : "center",
             marginBottom: 4,
         },
 

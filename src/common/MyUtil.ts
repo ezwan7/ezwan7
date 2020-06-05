@@ -20,10 +20,16 @@ import NavigationService from "./NavigationService";
 import {DrawerActions, TabActions, StackActions, CommonActions} from '@react-navigation/native';
 import Splash from "react-native-splash-screen";
 
+import PushNotification from 'react-native-push-notification';
+import PushNotificationIOS from "@react-native-community/push-notification-ios";
+import messaging from '@react-native-firebase/messaging';
+// import {firebase} from '@react-native-firebase/messaging';
+// import {Notification, NotificationResponse, Notifications, Registered, RegistrationError} from "react-native-notifications";
+// import {NotificationCompletion} from "react-native-notifications/lib/dist/interfaces/NotificationCompletion";
+
 import {store} from "../store/MyStore";
 import {firebase_token_update} from "../store/AuthRedux";
 
-// import {firebase} from '@react-native-firebase/messaging';
 
 import MyLANG from '../shared/MyLANG';
 import MyImage from '../shared/MyImage';
@@ -33,17 +39,7 @@ import MyColor from '../common/MyColor';
 import {MyStyle} from '../common/MyStyle';
 import MyIcon from "../components/MyIcon";
 
-
 import {MyAlert} from "../components/MyAlert";
-
-import {
-    Notification,
-    NotificationResponse,
-    Notifications,
-    Registered,
-    RegistrationError
-} from "react-native-notifications";
-import {NotificationCompletion} from "react-native-notifications/lib/dist/interfaces/NotificationCompletion";
 
 
 let lastTimeBackPress: number = 0;
@@ -148,11 +144,11 @@ const MyUtil = {
 
                 } else if (formState.dirty === false) { // If set form data, set dirty and other values.
                     // Not Touched, errors {}
-                    throw new Error(JSON.stringify(errors));
+                    // throw new Error(JSON.stringify(errors));
 
                 } else {
                     // Touched, No errors {}, other fields have error
-                    throw new Error(errors);  // TODO:
+                    // throw new Error(errors);  // TODO:
                 }
             } else if (formState.isValid === false) {
                 // FORM INVALID
@@ -487,7 +483,7 @@ const MyUtil = {
     },
 
     //
-    firebaseCheckPermission: async () => {
+    /*firebaseCheckPermission: async () => {
         const hasPermissions: boolean = await Notifications.isRegisteredForRemoteNotifications();
         MyUtil.printConsole(true, 'log', 'LOG: firebaseCheckPermission: ', {
             'hasPermissions': hasPermissions
@@ -495,57 +491,137 @@ const MyUtil = {
         return hasPermissions;
 
         // MyUtil.firebaseCheckPermission();
-    },
+    },*/
 
     firebaseGetToken: async () => {
 
-        // if (MyStyle.platformOS === "ios") {
-        /*Notifications.ios.checkPermissions().then((currentPermissions) => {
-            console.log('Badges enabled: ' + !!currentPermissions.badge);
-            console.log('Sounds enabled: ' + !!currentPermissions.sound);
-            console.log('Alerts enabled: ' + !!currentPermissions.alert);
-        });*/
-        Notifications.registerRemoteNotifications();
-        // }
+        try {
+            // if (MyStyle.platformOS === "ios") {
+            /*Notifications.ios.checkPermissions().then((currentPermissions) => {
+                console.log('Badges enabled: ' + !!currentPermissions.badge);
+                console.log('Sounds enabled: ' + !!currentPermissions.sound);
+                console.log('Alerts enabled: ' + !!currentPermissions.alert);
+            });*/
+            // Notifications.registerRemoteNotifications();
+            // }
 
-        Notifications.events().registerRemoteNotificationsRegistered((registered: Registered) => {
+            /*Notifications.events().registerRemoteNotificationsRegistered((registered: Registered) => {
 
-            MyUtil.printConsole(true, 'log', 'LOG: Notification RemoteNotificationsRegistered: ', {'registered': registered});
+                MyUtil.printConsole(true, 'log', 'LOG: Notification RemoteNotificationsRegistered: ', {'registered': registered});
 
-            const firebaseToken = registered.deviceToken;
+                const firebaseToken = registered.deviceToken;
 
-            if (firebaseToken?.length > 10) {
+                if (firebaseToken?.length > 10) {
 
-                const firebase_token = store.getState().auth.firebase_token;
-                if (firebaseToken !== firebase_token) {
+                    const firebase_token = store.getState().auth.firebase_token;
+                    if (firebaseToken !== firebase_token) {
 
-                    store.dispatch(firebase_token_update(firebaseToken));
+                        store.dispatch(firebase_token_update(firebaseToken));
+                    }
+
+                    MyUtil.firebaseNotificationListeners();
                 }
+            });
 
-                MyUtil.firebaseNotificationListeners();
+            Notifications.events().registerRemoteNotificationsRegistrationFailed((registrationError: RegistrationError) => {
+
+                MyUtil.printConsole(true,
+                                    'log',
+                                    'LOG: Notification RemoteNotificationsRegistrationFailed: ',
+                                    {'registrationError': registrationError}
+                );
+
+                MyUtil.showMessage(MyConstant.SHOW_MESSAGE.TOAST, MyLANG.FirebaseTokenFailed, false);
+
+            });*/
+
+
+            const authStatus = await messaging().requestPermission(
+                {
+                    alert       : true,
+                    announcement: false,
+                    badge       : true,
+                    carPlay     : false,
+                    provisional : false,
+                    sound       : true,
+                });
+
+            const enabled    =
+                      authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+                      authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+
+            if (enabled) {
+                MyUtil.printConsole(true, 'log', 'LOG: Notification Authorization status: ', authStatus);
+
+                const firebaseToken = await messaging().getToken();
+                MyUtil.printConsole(true, 'log', 'LOG: Notification firebaseToken: ', firebaseToken);
+
+                if (firebaseToken?.length > 10) {
+
+                    const firebase_token = store.getState().auth.firebase_token;
+                    if (firebaseToken !== firebase_token) {
+
+                        store.dispatch(firebase_token_update(firebaseToken));
+                    }
+
+                    MyUtil.firebaseNotificationListeners();
+
+                } else {
+
+                    MyUtil.printConsole(true, 'log', 'LOG: Notification firebaseToken: ', "No token received");
+                }
             }
-        });
 
-        Notifications.events().registerRemoteNotificationsRegistrationFailed((registrationError: RegistrationError) => {
+            /*PushNotification.configure(
+                {
+                    senderID: '324398162611',
+                    // (optional) Called when Token is generated (iOS and Android)
+                    onRegister: (token: any) => {
+                        console.log("TOKEN:", token);
+                    },
 
-            MyUtil.printConsole(true,
-                                'log',
-                                'LOG: Notification RemoteNotificationsRegistrationFailed: ',
-                                {'registrationError': registrationError}
-            );
+                    // (required) Called when a remote is received or opened, or local notification is opened
+                    onNotification: (notification: any) => {
+                        console.log("NOTIFICATION:", notification);
 
-            MyUtil.showMessage(MyConstant.SHOW_MESSAGE.TOAST, MyLANG.FirebaseTokenFailed, false);
+                        // process the notification
 
-        });
+                        // (required) Called when a remote is received or opened, or local notification is opened
+                        notification.finish(PushNotificationIOS.FetchResult.NoData);
+                    },
 
-        // MyUtil.firebaseGetToken();
+                    // IOS ONLY (optional): default: all - Permissions to register.
+                    permissions: {
+                        alert: true,
+                        badge: true,
+                        sound: true,
+                    },
+
+                    // Should the initial notification be popped automatically
+                    // default: true
+                    popInitialNotification: true,
+
+                    /!**
+                     * (optional) default: true
+                     * - Specified if permissions (ios) and token (android and ios) will requested or not,
+                     * - if not, you must call PushNotificationsHandler.requestPermissions() later
+                     * - if you are not using remote notification or do not have Firebase installed, use this:
+                     *     requestPermissions: Platform.OS === 'ios'
+                     *!/
+                    requestPermissions: true,
+                });*/
+
+        } catch (error) {
+
+            MyUtil.printConsole(true, 'log', 'LOG: Notification firebaseGetToken: TRY-CATCH: ', {'error': error});
+        }
     },
 
-    firebaseInitialNotification: async () => {
+    /*firebaseInitialNotification: async () => {
 
         return await Notifications.getInitialNotification();
 
-        /*MyUtil.firebaseInitialNotification()
+        /!*MyUtil.firebaseInitialNotification()
             .then((notification) => {
 
                 MyUtil.printConsole(true, 'log', 'LOG: firebaseInitialNotification-then: ', {'notification': notification});
@@ -554,32 +630,66 @@ const MyUtil = {
             .catch((error) => {
                 MyUtil.printConsole(true, 'log', 'LOG: firebaseInitialNotification-catch: ', {'error': error});
 
-            });*/
-    },
+            });*!/
+    },*/
 
-    firebaseSendLocal: async (title: string, body: string, id: number) => {
-        MyUtil.printConsole(true, 'log', 'LOG: firebaseSendLocal:', {
-            'id'   : id,
-            'title': title,
-            'body' : body,
-        });
+    firebaseSendLocal: (remoteMessage: any) => {
+        MyUtil.printConsole(true, 'log', 'LOG: Notification firebaseSendLocal:', remoteMessage);
 
-        let localNotification = Notifications.postLocalNotification(
-            {
-                title     : title,
-                body      : body,
-                // extra     : "data",
-                sound     : "chime.aiff",
-                // silent    : false,
-                // category  : "SOME_CATEGORY",
-                badge     : 0,
-                identifier: "",
-                payload   : {},
-                thread    : "",
-                type      : "",
-            },
-            id
-        );
+        try {
+            PushNotification.localNotification(
+                {
+                    /* Android Only Properties */
+                    // id                : remoteMessage?.id, // (optional) Valid unique 32 bit integer specified as string. default: Autogenerated Unique ID
+                    // ticker            : "My Notification Ticker", // (optional)
+                    autoCancel        : true, // (optional) default: true
+                    largeIcon         : "ic_launcher", // (optional) default: "ic_launcher"
+                    smallIcon         : "ic_notification", // (optional) default: "ic_notification" with fallback for "ic_launcher"
+                    bigText           : remoteMessage?.data?.notification?.body, // (optional) default: "message" prop
+                    subText           : remoteMessage?.data?.notification?.title, // (optional) default: none
+                    color             : MyColor.Primary.first, // (optional) default: system default
+                    vibrate           : true, // (optional) default: true
+                    vibration         : 300, // vibration length in milliseconds, ignored if vibrate=false, default: 1000
+                    // tag               : "some_tag", // (optional) add tag to message
+                    // group             : "group", // (optional) add group to message
+                    ongoing           : false, // (optional) set whether this is an "ongoing" notification
+                    priority          : "high", // (optional) set notification priority, default: high
+                    visibility        : "private", // (optional) set notification visibility, default: private
+                    importance        : "high", // (optional) set notification importance, default: high
+                    allowWhileIdle    : false, // (optional) set notification to work while on doze, default: false
+                    ignoreInForeground: false, // (optional) if true, the notification will not be visible when the app is in the foreground (useful for parity with how iOS notifications appear)
+
+                    /* iOS only properties */
+                    alertAction: "view", // (optional) default: view
+                    category   : "", // (optional) default: empty string
+                    userInfo   : {}, // (optional) default: {} (using null throws a JSON value '<null>' error)
+
+                    /* iOS and Android properties */
+                    title    : remoteMessage?.data?.notification?.title || MyLANG.Error, // (optional)
+                    message  : remoteMessage?.data?.notification?.body || MyLANG.Error, // (required)
+                    playSound: true, // (optional) default: true
+                    soundName: "default", // (optional) Sound to play when the notification is shown. Value of 'default' plays the default sound. It can be set to a custom sound such as 'android.resource://com.xyz/raw/my_sound'. It will look for the 'my_sound' audio file in 'res/raw' directory and play it. default: 'default' (default sound is played)
+                    // number    : 10, // (optional) Valid 32 bit integer specified as string. default: none (Cannot be zero)
+                    // repeatType: "day", // (optional) Repeating interval. Check 'Repeating Notifications' section for more info.
+                    // actions   : '["Yes", "No"]', // (Android only) See the doc for notification actions to know more
+                });
+            // PushNotification.setApplicationIconBadgeNumber(0);
+            /*let localNotification = Notifications.postLocalNotification(
+                {
+                    body: "Local notification!",
+                    title: "Local Notification Title",
+                    sound: "chime.aiff",
+                    silent: false,
+                    category: "SOME_CATEGORY",
+                    userInfo: { }
+                },
+                id,
+            );*/
+
+        } catch (error) {
+
+            MyUtil.printConsole(true, 'log', 'LOG: Notification firebaseSendLocal: TRY-CATCH: ', {'error': error});
+        }
     },
 
     /*firebaseCheckPermission: async () => {
@@ -633,39 +743,73 @@ const MyUtil = {
     // createNotificationListeners:
     firebaseNotificationListeners: () => {
 
-        MyUtil.printConsole(true, 'log', 'LOG: Notification firebaseNotificationListeners: ', {});
+        try {
 
-        // Notifications.cancelLocalNotification(id);
-        // Notifications.removeAllDeliveredNotifications();
+            messaging().onMessage(async (remoteMessage: any) => {
 
-        Notifications.events().registerNotificationReceivedForeground((notification: Notification, completion: (response: NotificationCompletion) => void) => {
+                MyUtil.printConsole(true, 'log', 'LOG: Notification onMessage: ', {remoteMessage});
 
-            MyUtil.printConsole(true, 'log', 'LOG: Notification Received - Foreground: ', {'notification': notification});
+                MyUtil.firebaseSendLocal(remoteMessage);
 
-            // Calling completion on iOS with `alert: true` will present the native iOS inApp notification.
-            completion({alert: true, sound: true, badge: false});
-        });
+            });
 
-        Notifications.events().registerNotificationReceivedBackground((notification: Notification, completion: (response: NotificationCompletion) => void) => {
+            messaging().setBackgroundMessageHandler(async (remoteMessage: any) => {
 
-            MyUtil.printConsole(true, 'log', 'LOG: Notification Received - Background: ', {'notification': notification});
+                MyUtil.printConsole(true, 'log', 'LOG: Notification setBackgroundMessageHandler: ', {remoteMessage});
 
-            // Calling completion on iOS with `alert: true` will present the native iOS inApp notification.
-            completion({alert: true, sound: true, badge: false});
-        });
+                if (MyStyle.platformOS === "iOS") {
+                    MyUtil.firebaseSendLocal(remoteMessage);
+                }
 
-        Notifications.events().registerNotificationOpened((notification: Notification, completion: () => void) => {
+            });
 
-            MyUtil.printConsole(true, 'log', 'LOG: Notification Opened: ', {'notification': notification});
+            messaging().onNotificationOpenedApp((remoteMessage: any) => {
 
-            completion();
-        });
+                MyUtil.printConsole(true, 'log', 'LOG: Notification onNotificationOpenedApp: ', {remoteMessage});
+            });
 
-        /*Notifications.events().registerNotificationOpened((notification: Notification, completion: () => void, action: NotificationActionResponse) => {
-         console.log("Notification opened by device user", notification.payload);
-         console.log(`Notification opened with an action identifier: ${action.identifier} and response text: ${action.text}`);
-         completion();
-         });*/
+            // Check whether an initial notification is available
+            messaging().getInitialNotification().then((remoteMessage: any) => {
+                if (remoteMessage) {
+                    MyUtil.printConsole(true, 'log', 'LOG: Notification getInitialNotification: ', {remoteMessage});
+                }
+            });
+
+            // Notifications.cancelLocalNotification(id);
+            // Notifications.removeAllDeliveredNotifications();
+
+            /*Notifications.events().registerNotificationReceivedForeground((notification: Notification, completion: (response: NotificationCompletion) => void) => {
+
+                MyUtil.printConsole(true, 'log', 'LOG: Notification Received - Foreground: ', {'notification': notification});
+
+                // Calling completion on iOS with `alert: true` will present the native iOS inApp notification.
+                completion({alert: true, sound: true, badge: false});
+            });
+
+            Notifications.events().registerNotificationReceivedBackground((notification: Notification, completion: (response: NotificationCompletion) => void) => {
+
+                MyUtil.printConsole(true, 'log', 'LOG: Notification Received - Background: ', {'notification': notification});
+
+                // Calling completion on iOS with `alert: true` will present the native iOS inApp notification.
+                completion({alert: true, sound: true, badge: false});
+            });
+
+            Notifications.events().registerNotificationOpened((notification: Notification, completion: () => void) => {
+
+                MyUtil.printConsole(true, 'log', 'LOG: Notification Opened: ', {'notification': notification});
+
+                completion();
+            });
+*/
+
+            MyUtil.printConsole(true, 'log', 'LOG: Notification firebaseNotificationListeners: ', {});
+
+
+        } catch (error) {
+
+            MyUtil.printConsole(true, 'log', 'LOG: Notification firebaseNotificationListeners: TRY-CATCH: ', {'error': error});
+        }
+
     },
 
 

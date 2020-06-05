@@ -31,6 +31,9 @@ const App = () => {
 export default App;
 
 
+// TODO: replace push plugin
+
+
 // TODO: minSDK test: FastImage, Geocoder, Layout, Pull to Refresh...........
 // TODO: minSDK: Use condition based for not supported devices.
 

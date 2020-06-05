@@ -30,7 +30,7 @@ let renderCount = 0;
 const addressFormSchema: any = yup.object().shape(
     {
         id            : yup.number()
-                           .max(14, MyLANG.ID + ' ' + MyLANG.mustBeMaximum + ' 14 ' + MyLANG.character),
+                           .max(100, MyLANG.ID + ' ' + MyLANG.mustBeMaximum + ' 100 ' + MyLANG.character),
         address_title : yup.string()
                            .required(MyLANG.AddressTitle + ' ' + MyLANG.isRequired)
                            .min(2, MyLANG.AddressTitle + ' ' + MyLANG.mustBeMinimum + ' 2 ' + MyLANG.character)

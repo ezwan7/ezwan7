@@ -30,7 +30,7 @@ import {
     ProductListItem,
     ProductListItemContentLoader
 } from "../shared/MyContainer";
-import {addressSave} from "../store/AddressRedux";
+import {addressSave, addressEmpty} from "../store/AddressRedux";
 import MyFunction from "../shared/MyFunction";
 import MyMaterialRipple from "../components/MyMaterialRipple";
 
@@ -240,9 +240,9 @@ const MyAddress = ({route, navigation}: any) => {
             'apiURL': MyAPI.user_addresses, 'response': response
         });
 
-        if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data.status === 200 && response.data?.data?.data) {
+        if (response?.type === MyConstant.RESPONSE.TYPE.data && response.data?.status === 200 && response.data.data) {
 
-            const data = response.data.data.data;
+            const data = response.data.data?.data;
             if (data.length > 0) {
 
                 // REMOVE:
@@ -268,6 +268,12 @@ const MyAddress = ({route, navigation}: any) => {
 
                 // Use 2 section
                 prepareAddress(dataReduced, DataSetType);
+
+            } else {
+
+                dispatch(addressEmpty());
+
+                prepareAddress([], MyConstant.DataSetType.fresh);
             }
 
         } else {

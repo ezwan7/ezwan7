@@ -90,6 +90,12 @@ target 'DirectD' do
   pod 'GoogleMaps'  # <~~ remove this line if you do not want to support GoogleMaps on iOS
   pod 'Google-Maps-iOS-Utils'
 
+  # Add the Firebase pod for Google Analytics
+  pod 'Firebase/Analytics'
+
+  # Add the pod for Firebase Cloud Messaging
+  pod 'Firebase/Messaging'
+
   # when not using frameworks this might be necessary, but try without it first and see if `pod install` works (3/4):
   # THIS IS ONLY NECESSARY IF YOU NEED GoogleMaps SUPPORT
   # pre_install do |installer|
