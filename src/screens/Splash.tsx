@@ -63,9 +63,6 @@ const SplashScreen = ({}) => {
         // Update Biometry Type to Redux:
         MyFunction.updateBiometryType();
 
-        // Get Firebase Token
-        await MyUtil.firebaseGetToken();
-
         // Update Current Location only if permission already given:
         await MyFunction.getUserLocation(MyConstant.GeolocationFetchType.store,
                                          MyConfig.geoLocationOptionSilent,
@@ -73,6 +70,9 @@ const SplashScreen = ({}) => {
                                          false,
                                          false,
         );
+
+        // Get Firebase Token
+        MyUtil.firebaseGetToken();
 
         // Check if App is New or Old:
         const storage: any = await MyUtil.AsyncStorageGet(MyConfig.AsyncStorage.APP_FRESH_INSTALL, false);

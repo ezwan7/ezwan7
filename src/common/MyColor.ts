@@ -13,7 +13,7 @@ const MyColor = {
         whitish2: ['#ebebeb', '#f1f1f1'],
         grey    : ['#eeeeee', '#eeeeee'],
         blueish : ['#6271ef', '#1301dc', '#1401eb'],
-        facebook: ['#1B3E79', '#1d5391'],
+        facebook: ['#1B3E79', '#3b5998'],
         google  : ['#d34036', '#F14436'],
         apple   : ['#111111', '#666666'],
         intro   : [

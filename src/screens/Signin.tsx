@@ -1,5 +1,5 @@
 import React, {useState, useEffect, Fragment, useCallback} from 'react';
-import {StyleSheet, View, Text, SafeAreaView, ScrollView, Image, TouchableOpacity, BackHandler} from 'react-native';
+import {StyleSheet, View, Text, SafeAreaView, ScrollView, Image, TouchableOpacity, BackHandler, Platform} from 'react-native';
 import {useFocusEffect} from "@react-navigation/native";
 import {useForm} from 'react-hook-form';
 import {useSelector} from "react-redux";
@@ -359,17 +359,19 @@ const SigninScreen = ({route, navigation}: any) => {
                                     onPress = {MyFunction.loginGoogle}
                                 />
                             </View>
-                            <View style = {[MyStyle.RowCenter, {marginTop: 7}]}>
-                                <MyButton
-                                    color = {MyStyle.LGButtonApple}
-                                    textTransform = "capitalize"
-                                    iconLeft = {{fontFamily: MyConstant.VectorIcon.Fontisto, name: 'apple'}}
-                                    linearGradientStyle = {{marginTop: 7}}
-                                    title = {MyLANG.Apple}
-                                    onPress = {MyFunction.loginApple}
-                                />
-                            </View>
-
+                            {
+                                (MyStyle.platformOS === "iOS") &&
+                                <View style = {[MyStyle.RowCenter, {marginTop: 7}]}>
+                                    <MyButton
+                                        color = {MyStyle.LGButtonApple}
+                                        textTransform = "capitalize"
+                                        iconLeft = {{fontFamily: MyConstant.VectorIcon.Fontisto, name: 'apple'}}
+                                        linearGradientStyle = {{marginTop: 7}}
+                                        title = {MyLANG.Apple}
+                                        onPress = {MyFunction.loginApple}
+                                    />
+                                </View>
+                            }
                             <View style = {[MyStyle.RowCenter, {marginTop: 44}]}>
                                 <Text style = {styles.textDontHaveAccount}>
                                     {MyLANG.DontHaveAnAccount}

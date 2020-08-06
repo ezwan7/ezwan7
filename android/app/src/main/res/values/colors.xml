@@ -2,7 +2,9 @@
 <resources>
     <color name="colorPrimary">#0e1a7c</color>
     <color name="colorAccent">#0e1a7c</color>
-    <color name="blue">#4F6D7A</color>
+    <color name="splash_graident_startColor">#f6f6f6</color>
+    <color name="splash_graident_endColor">#f1f1f1</color>
+    <color name="splash_graident_centerColor">#ebebeb</color>
     <color name="primary_dark">#EFB704</color>
     <color name="colorStatusBarColor">#F2600C</color>
     <color name="status_bar_color">#F2600C</color>

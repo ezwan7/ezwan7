@@ -5,4 +5,5 @@
     <string name="all_rights">All Rights Reserved!</string>
     <string name="facebook_app_id">241236920251156</string>
     <string name="fb_login_protocol_scheme">fb241236920251156</string>
+    <string name = "google_maps_key" templateMergeStrategy = "preserve" translatable = "false">AIzaSyB9iP58dJwjx7BcZA7kRnhIqKn9L3hVoZ0</string>
 </resources>

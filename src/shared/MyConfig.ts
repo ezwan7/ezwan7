@@ -57,6 +57,7 @@ const MyConfig: any = {
     google_web_api_key      : 'AIzaSyC3I4LeHLLwCclW6AeNkIF8_4_S2vQEe9Y',
     google_web_client_id    : '324398162611-hq18dt1vpm68iefc4289io037gkdg0lc.apps.googleusercontent.com',
     google_web_client_secret: 'gOhKdVBAs36LtHsT-6lfUpxE',
+    google_server_key       : 'AAAAhbY8x4A:APA91bEL4zQUpFQ2idIEBL1BVJLV6nvby6MDKH2hsXgoTVdUdygFCevlI95dhVcaUlt05ZDMupBV0ZJ1YfDqOXC8UmPkLrsSKMB379VW6lNnkEkA3Z7-x-L5PcfG1mkB0awg09ryOT9Z',
 
     facebook_app_id: '241236920251156',
 
