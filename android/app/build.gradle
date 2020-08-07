@@ -132,8 +132,8 @@ android {
         applicationId "com.directd"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 97
-        versionName "0.97"
+        versionCode 100
+        versionName "1.0"
 
         vectorDrawables.useSupportLibrary = true
 
@@ -224,9 +224,9 @@ dependencies {
     }
 
     implementation 'androidx.appcompat:appcompat:1.1.0'
-    implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
+    implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
 
-    implementation 'androidx.constraintlayout:constraintlayout:2.0.0-beta7'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.0-rc1'
     implementation "androidx.coordinatorlayout:coordinatorlayout:1.1.0"
 
 //    def vectordrawable_version = "1.1.0"
@@ -236,7 +236,7 @@ dependencies {
 //    implementation 'pl.droidsonroids.gif:android-gif-drawable:1.2.19'
     implementation "com.airbnb.android:lottie:3.4.1"
 
-    implementation 'com.google.firebase:firebase-analytics:17.4.3'
+    implementation 'com.google.firebase:firebase-analytics:17.4.4'
 
     implementation "androidx.multidex:multidex:2.0.1"
 }

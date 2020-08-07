@@ -299,6 +299,14 @@ const ProductBuyPayment = ({route, navigation}: any) => {
             getDefaultDeliveryAddress({'delivery_type': item?.id}, false);
         } else {
             onChangeDeliveryPayment({'delivery_type': item?.id});
+            let address_default: any         = addresses?.[0];
+            const default_address_id: number = addresses.find((e: any) => Number(e.default_address) > 0)?.default_address;
+            if (Number(default_address_id) > 0) {
+                address_default = addresses.find((e: any) => Number(e.id) === default_address_id);
+            }
+            if (address_default?.id) {
+                setValue('delivery_address', address_default, false);
+            }
         }
 
         MyUtil.printConsole(true, 'log', `LOG: onDeliveryType: `, {item, delivery_address});
@@ -635,23 +643,25 @@ const ProductBuyPayment = ({route, navigation}: any) => {
 
                 customers_id       : user?.id,
                 email              : user?.email,
+                customers_name     : `${user?.customers_firstname} ${user?.customers_lastname}`,
                 customers_telephone: user?.customers_telephone,
 
                 delivery_type: delivery_type?.id,
 
-                pickup_address: pickup_address?.id,
+                pickuppoints  : pickup_address?.id,
+                pickup_address: `${pickup_address?.points_name}\n${pickup_address?.addressText}`,
                 receiver_name : delivery_type?.id === MyConfig.DeliveryType.PickUp.id ? values.receiver_name : null,
                 receiver_phone: delivery_type?.id === MyConfig.DeliveryType.PickUp.id ? values.receiver_phone : null,
                 receiver_ic   : delivery_type?.id === MyConfig.DeliveryType.PickUp.id ? values.receiver_ic : null,
 
-                delivery_firstname     : delivery_type?.id === MyConfig.DeliveryType.Courier.id ? delivery_address?.firstname : null,
-                delivery_lastname      : delivery_type?.id === MyConfig.DeliveryType.Courier.id ? delivery_address?.lastname : null,
-                delivery_street_address: delivery_type?.id === MyConfig.DeliveryType.Courier.id ? delivery_address?.street : null,
-                delivery_suburb        : delivery_type?.id === MyConfig.DeliveryType.Courier.id ? delivery_address?.suburb : null,
-                delivery_city          : delivery_type?.id === MyConfig.DeliveryType.Courier.id ? delivery_address?.city : null,
-                delivery_postcode      : delivery_type?.id === MyConfig.DeliveryType.Courier.id ? delivery_address?.postcode : null,
-                delivery_zone          : delivery_type?.id === MyConfig.DeliveryType.Courier.id ? delivery_address?.zone_id : null,
-                delivery_country       : delivery_type?.id === MyConfig.DeliveryType.Courier.id ? delivery_address?.countries_id : null,
+                delivery_firstname     : delivery_address?.firstname,
+                delivery_lastname      : delivery_address?.lastname,
+                delivery_street_address: delivery_address?.street,
+                delivery_suburb        : delivery_address?.suburb,
+                delivery_city          : delivery_address?.city,
+                delivery_postcode      : delivery_address?.postcode,
+                delivery_zone          : delivery_address?.zone_id,
+                delivery_country       : delivery_address?.countries_id,
 
                 billing_firstname     : billing_address?.firstname,
                 billing_lastname      : billing_address?.lastname,
@@ -662,8 +672,8 @@ const ProductBuyPayment = ({route, navigation}: any) => {
                 billing_zone          : billing_address?.zone_id,
                 billing_country       : billing_address?.countries_id,
 
-                shipping_method: delivery_type?.id === MyConfig.DeliveryType.Courier.id ? delivery_method?.id : null,
-                shipping_cost  : delivery_type?.id === MyConfig.DeliveryType.Courier.id ? cart?.delivery_charge : null,
+                shipping_method: delivery_type?.id === MyConfig.DeliveryType.PickUp.id ? 'Self Pickup' : delivery_method?.name,
+                shipping_cost  : cart?.delivery_charge,
 
                 payment_method: payment_method?.id,
 
@@ -893,7 +903,7 @@ const ProductBuyPayment = ({route, navigation}: any) => {
                                  <MyInput
                                      mode = "line"
                                      floatingLabel = {MyLANG.ReceiverPhoneNumber}
-                                     placeholderLabel = "+60 00 0000 0000"
+                                     // placeholderLabel = "+60 00 0000 0000"
                                      mask = {"+60 [00] [0000] [9999]"}
                                      inputProps = {{keyboardType: 'phone-pad'}}
                                      onChangeText = {(text: any) => setValue('receiver_phone', text, true)}

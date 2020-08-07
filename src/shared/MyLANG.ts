@@ -142,7 +142,7 @@ export default new LocalizedStrings(
             Favorites             : "Favorites",
             Settings              : "Settings",
             RateApp               : "Rate App",
-            ReferAndEarn          : "Refer & Earn",
+            ReferAndEarn          : "Refer",
             ReferAndEarnDetails   : "When a new user register using your referral code, you and the user both get RM10",
             ShareRefereCodeDetails: "Download the app and register using this referral code to earn RM 10",
             Share                 : "Share",

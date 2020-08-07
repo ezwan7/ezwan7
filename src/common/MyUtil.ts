@@ -1799,7 +1799,7 @@ const MyUtil = {
                 'type'        : MyConstant.RESPONSE.TYPE.data,
                 'error'       : null,
                 'errors'      : null,
-                'errorMessage': null,
+                'errorMessage': axiosResponse?.data?.message || null,
                 'errorType'   : null,
                 'data'        : axiosResponse,
             }

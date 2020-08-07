@@ -88,7 +88,7 @@ const SearchScreen = ({route, navigation}: any) => {
     const [onEndReachedCalledDuringMomentum, setOnEndReachedCalledDuringMomentum] = useState(false);
 
     const [ApiUrl, setApiUrl]: any = useState(null);
-    const [data, setData]: any     = useState([]);
+    const [product, setProduct]: any     = useState([]);
     const [count, setCount]: any   = useState([]);
 
     const [modalVisibleFilter, setModalVisibleFilter] = useState(false);
@@ -133,7 +133,7 @@ const SearchScreen = ({route, navigation}: any) => {
     );
 
     useEffect(() => {
-        MyUtil.printConsole(true, 'log', `LOG: ${SearchScreen.name}. useEffect: `, {category, filter_method, data});
+        MyUtil.printConsole(true, 'log', `LOG: ${SearchScreen.name}. useEffect: `, {category, filter_method, product});
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -168,7 +168,7 @@ const SearchScreen = ({route, navigation}: any) => {
 
             setLoadingMore(true);
 
-            fetchData(data && data.length > 0 ? data.length : 0,
+            fetchData(product && product.length > 0 ? product.length : 0,
                       MyConfig.ListLimit.searchList,
                       false,
                       true,
@@ -214,69 +214,66 @@ const SearchScreen = ({route, navigation}: any) => {
             );
 
         MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
-            'apiURL': apiUrl, 'response': response,
+            'apiURL': apiUrl, 'response': response, 'DataSetType': DataSetType,
         });
 
-        setTimeout(() => {
-            if (response.type === MyConstant.RESPONSE.TYPE.data && response?.data?.status === 200 && response?.data?.data?.product_data?.products) {
+        if (response.type === MyConstant.RESPONSE.TYPE.data && response?.data?.status === 200 && response?.data?.data?.product_data) {
 
-                const data = response.data.data.product_data.products;
-                if (data.length > 0) {
-                    setCount(response.data.data.total_record);
-                    switch (DataSetType) {
-                        case MyConstant.DataSetType.addToEnd:
-                            setData(data.concat(data));
-                            break;
-                        case MyConstant.DataSetType.addToStart:
-                            setData(data.concat(data));
-                            break;
-                        case MyConstant.DataSetType.addToEndUnique:
-                            // const newData = data.concat(data.filter(({id}: any) => !data.find((f: any) => f.id == id)));
-                            const newData1: any = data;
-                            for (let i = 0; i < data.length; i++) {
-                                if (data.some((item: any) => item?.id === data[i]?.id) === false) {
-                                    newData1.push(data[i]);
-                                }
+            const data = response.data.data.product_data?.products;
+            if (data?.length > 0) {
+                setCount(response.data.data.total_record);
+                switch (DataSetType) {
+                    case MyConstant.DataSetType.addToEnd:
+                        setProduct(product.concat(data));
+                        break;
+                    case MyConstant.DataSetType.addToStart:
+                        setProduct(data.concat(product));
+                        break;
+                    case MyConstant.DataSetType.addToEndUnique:
+                        // const newData = data.concat(data.filter(({id}: any) => !data.find((f: any) => f.id == id)));
+                        const newData1: any = product;
+                        for (let i = 0; i < data.length; i++) {
+                            if (product.some((item: any) => item?.id === data[i]?.id) === false) {
+                                newData1.push(data[i]);
                             }
-                            setData(newData1);
-                            break;
-                        case MyConstant.DataSetType.addToStartUnique:
-                            const newData2: any = data;
-                            for (let i = 0; i < data.length; i++) {
-                                if (data.some((item: any) => item?.id === data[i]?.id) === false) {
-                                    newData2.unshift(data[i]);
-                                }
+                        }
+                        setProduct(newData1);
+                        break;
+                    case MyConstant.DataSetType.addToStartUnique:
+                        const newData2: any = product;
+                        for (let i = 0; i < data.length; i++) {
+                            if (product.some((item: any) => item?.id === data[i]?.id) === false) {
+                                newData2.unshift(data[i]);
                             }
-                            setData(newData2);
-                            break;
-                        case MyConstant.DataSetType.fresh:
-                        default:
-                            setData(data);
-                            break;
-                    }
+                        }
+                        setProduct(newData2);
+                        break;
+                    case MyConstant.DataSetType.fresh:
+                    default:
+                        setProduct(data);
+                        break;
                 }
-            } else {
-
-                setData(null); // Needed
-
-                // MyUtil.showMessage(MyConstant.SHOW_MESSAGE.ALERT, response.errorMessage ? response.errorMessage : MyLANG.UnknownError, false);
             }
+        } else {
 
-            setLoadingMore(false);
-            setOnEndReachedCalledDuringMomentum(true);
-            setLoading(false);
-            if (setRefresh === true) {
-                setRefreshing(false);
-            }
-            if (firstLoad === true) {
-                setFirstLoad(false)
-            }
+            setProduct(null); // Needed
 
-            if (showInfoMessage !== false) {
-                MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message, false);
-            }
+            // MyUtil.showMessage(MyConstant.SHOW_MESSAGE.ALERT, response.errorMessage ? response.errorMessage : MyLANG.UnknownError, false);
+        }
 
-        }, MyConfig.dateSetDelay);
+        setLoadingMore(false);
+        setOnEndReachedCalledDuringMomentum(true);
+        setLoading(false);
+        if (setRefresh === true) {
+            setRefreshing(false);
+        }
+        if (firstLoad === true) {
+            setFirstLoad(false)
+        }
+
+        if (showInfoMessage !== false) {
+            MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message, false);
+        }
     }
 
     const onChangeText = (text: any) => {
@@ -284,8 +281,8 @@ const SearchScreen = ({route, navigation}: any) => {
 
         setValue('searchText', text, true);
 
-        if (data === null || text?.length === 0) {
-            setData([]);
+        if (product === null || text?.length === 0) {
+            setProduct([]);
         }
     }
 
@@ -294,7 +291,7 @@ const SearchScreen = ({route, navigation}: any) => {
 
         setValue('searchText', null, true);
 
-        setData([]);
+        setProduct([]);
     }
 
     const onSubmitEditing = async (text: any) => {
@@ -302,7 +299,7 @@ const SearchScreen = ({route, navigation}: any) => {
 
         if (searchText?.length > 0) {
 
-            setData([]);
+            setProduct([]);
 
             setApiUrl(MyAPI.search);
 
@@ -376,7 +373,7 @@ const SearchScreen = ({route, navigation}: any) => {
 
         if (category_option?.[Object.keys(category_option)?.[0]]?.id) {
 
-            setData([]);
+            setProduct([]);
 
             setApiUrl(MyAPI.filter_product);
 
@@ -427,7 +424,7 @@ const SearchScreen = ({route, navigation}: any) => {
                         <Text>{price}</Text>
                     </View>*/}
 
-                    {(data?.length === 0 && !loading) ?
+                    {(product?.length === 0 && !loading) ?
                      <ListEmptyViewLottie
                          source = {MyImage.lottie_developer}
                          message = {MyLANG.TypeSomethingToSearch}
@@ -435,7 +432,7 @@ const SearchScreen = ({route, navigation}: any) => {
                          style = {{view: {}, image: {}, text: {}}}
                      />
                                                       :
-                     (data?.length === 0 && loading) ?
+                     (product?.length === 0 && loading) ?
                      <ListEmptyViewLottie
                          source = {MyImage.lottie_searching_file}
                          message = {MyLANG.WeAreSearching}
@@ -443,7 +440,7 @@ const SearchScreen = ({route, navigation}: any) => {
                          style = {{view: {}, image: {}, text: {}}}
                      />
                                                      :
-                     (data?.length > 0) ?
+                     (product?.length > 0) ?
                      <FlatList
                          contentContainerStyle = {{flexGrow: 1}}
                          /*refreshControl = {
@@ -454,7 +451,7 @@ const SearchScreen = ({route, navigation}: any) => {
                                  colors = {[MyColor.Primary.first]}
                              />
                          }*/
-                         data = {data}
+                         data = {product}
                          renderItem = {({item, index}: any) =>
                              <ProductListItem
                                  item = {item}
@@ -488,7 +485,7 @@ const SearchScreen = ({route, navigation}: any) => {
                          }}
                      />
                                         :
-                     (data === null) ?
+                     (product === null) ?
                      <ListEmptyViewLottie
                          source = {MyImage.lottie_empty_lost}
                          message = {MyLANG.NoDataFoundInSearch}

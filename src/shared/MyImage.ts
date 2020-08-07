@@ -3,6 +3,7 @@ const MyImage = {
     splashScreen        : require("../../src/images/avatar.png"),
     icon                : require("../../src/images/icon.png"),
     icon512             : require("../../src/images/icon_512.png"),
+    icon_bg            : require("../../src/images/icon_bg.png"),
     logo_white          : require("../../src/images/logo_white.png"),
     logo512             : require("../../src/images/logo.png"),
     logo1024            : require("../../src/images/logo_1024.png"),

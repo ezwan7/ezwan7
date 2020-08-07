@@ -90,6 +90,12 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
 
     const videoRef: any = useRef();
 
+    const [textShown, setTextShown]   = useState(false); //To show ur remaining Text
+    const [lengthMore, setLengthMore] = useState(false); //to show the "Read more & Less Line"
+    const toggleNumberOfLines         = () => { //To toggle the show text or hide it
+        setTextShown(!textShown);
+    }
+
     const {register, getValues, setValue, handleSubmit, formState, errors, reset, triggerValidation, watch}: any = useForm(
         {
             mode                : 'onSubmit',
@@ -145,6 +151,10 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                             'language_id' : MyConfig.LanguageActive,
                             'products_id' : route?.params?.id,
                             'customers_id': user?.id,
+                            "price"       : {
+                                "minPrice": "",
+                                "maxPrice": ""
+                            },
 
                             'app_ver'      : MyConfig.app_version,
                             'app_build_ver': MyConfig.app_build_version,
@@ -411,6 +421,11 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
         }
     }
 
+    const onTextLayout = useCallback(e => {
+        setLengthMore(e.nativeEvent.lines.length >= 10); //to check the text is more than 4 lines or not
+        // console.log(e.nativeEvent);
+    }, []);
+
 
     return (
         <Fragment>
@@ -435,6 +450,7 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                          >
 
                              <ScrollView
+                                 style = {{height: MyStyle.screenWidth / 1.5, maxHeight: MyStyle.screenWidth / 1.5}}
                                  horizontal = {true}
                                  pagingEnabled = {true}
                                  decelerationRate = "fast"
@@ -708,9 +724,26 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                                      }
                                  >
                                      <View style = {[{width: MyStyle.screenWidth, paddingVertical: MyStyle.marginVerticalPage}]}>
-                                         <Text style = {[MyStyleSheet.textListItemTitle2Dark, {marginHorizontal: MyStyle.marginHorizontalPage}]}>
+                                         <Text
+                                             style = {[MyStyleSheet.textListItemTitle2Dark, {marginHorizontal: MyStyle.marginHorizontalPage}]}
+                                             // @ts-ignore
+                                             onTextLayout = {onTextLayout}
+                                             numberOfLines = {textShown ? undefined : 10}
+                                         >
                                              {product?.products_short_description || MyLANG.NoDescriptionFound}
                                          </Text>
+                                         {
+                                             lengthMore ?
+                                             <Text style = {[MyStyleSheet.linkTextList, {
+                                                 marginHorizontal: MyStyle.marginHorizontalPage,
+                                                 marginVertical  : MyStyle.marginViewGapCardTop
+                                             }]}
+                                                   onPress = {toggleNumberOfLines}>
+                                                 {textShown ? 'Read less...' : 'Read more...'}
+                                             </Text>
+                                                        :
+                                             null
+                                         }
                                      </View>
                                      <View style = {{width: MyStyle.screenWidth, paddingVertical: MyStyle.marginVerticalPage}}>
                                          <HTML
@@ -853,7 +886,7 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                                                  MyUtil.share(MyConstant.SHARE.TYPE.open,
                                                               product?.image,
                                                               {
-                                                                  message: `${product?.products_name}\n${product?.image}`,
+                                                                  message: `${product?.products_name}\n${MyConfig.serverUrl}product-detail/${product?.products_slug}`,
                                                                   url    : product?.image,
                                                               },
                                                               false

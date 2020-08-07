@@ -39,8 +39,8 @@ const primaryGradient = {
 const MyConfig: any = {
 
     app_name         : 'DirectD',
-    app_version      : '0.99',
-    app_build_version: 99,
+    app_version      : '1.00',
+    app_build_version: 100,
     app_platform     : platformOS,
 
     app_email    : 'directd@gmail.com',
@@ -53,6 +53,8 @@ const MyConfig: any = {
     android_package_name: 'com.directd',
     ios_app_id          : 'id1111111',
 
+    share_url          : 'https://share.directd.com.my',
+
     google_map_api_key      : 'AIzaSyB9iP58dJwjx7BcZA7kRnhIqKn9L3hVoZ0',
     google_web_api_key      : 'AIzaSyC3I4LeHLLwCclW6AeNkIF8_4_S2vQEe9Y',
     google_web_client_id    : '324398162611-hq18dt1vpm68iefc4289io037gkdg0lc.apps.googleusercontent.com',
@@ -62,10 +64,9 @@ const MyConfig: any = {
     facebook_app_id: '241236920251156',
 
     // apiUrl : 'http://192.168.0.101:8500/',
-    // apiUrl   : 'https://smddeveloper.com/directd_merge/public/api/',
     // serverUrl: 'https://smddeveloper.com/directd_merge/',
-    apiUrl   : 'https://directd.caribpayintl.com/public/api/',
-    serverUrl: 'https://directd.caribpayintl.com/',
+    apiUrl   : 'https://directd.crmcloudy.com/public/api/',
+    serverUrl: 'https://directd.crmcloudy.com/',
 
     api_version: '',
     api_auth   : 'auth/',

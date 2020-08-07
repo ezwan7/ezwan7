@@ -1620,7 +1620,7 @@ const NotificationListItem              = ({item, index}: any) => {
         >
             <View style = {[notificationList.view, {backgroundColor: item?.read_status === 1 ? MyColor.Material.WHITE : MyColor.Material.GREY["100"]}]}>
                 <MyFastImage
-                    source = {[item?.image?.length > 0 ? {'uri': item.image} : MyImage.defaultItem, MyImage.defaultItem]}
+                    source = {[item?.image?.length > 0 ? {'uri': item.image} : MyImage.icon_bg, MyImage.icon_bg]}
                     style = {notificationList.image}
                 />
                 <View style = {notificationList.textsView}>

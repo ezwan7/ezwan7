@@ -246,7 +246,7 @@ const SignupScreen = ({}) => {
                             />
                             <MyInput
                                 floatingLabel = {MyLANG.EnterYourPhone}
-                                placeholderLabel = "+60 00 0000 0000"
+                                // placeholderLabel = "+60 00 0000 0000"
                                 mask = {"+60 [00] [0000] [9999]"}
                                 inputProps = {{keyboardType: 'phone-pad'}}
                                 onChangeText = {(text: any) => setValue('phone', text, true)}

@@ -612,7 +612,7 @@ const OrderDetailsScreen = ({route, navigation}: any) => {
                                       />
                                       <View style = {[MyStyle.ColumnCenterStart, {flex: 1, marginHorizontal: 14}]}>
                                           <Text style = {[MyStyleSheet.textListItemTitleDark]}>
-                                              {order?.pickup_address}
+                                              {order?.pickuppoints}
                                           </Text>
                                       </View>
                                   </View>

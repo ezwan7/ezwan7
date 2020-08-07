@@ -413,16 +413,16 @@ const styles = StyleSheet.create(
             width : MyStyle.screenWidth * 0.60,
             height: (MyStyle.screenWidth * 0.60) / (1024 / 249),
 
-            marginTop: 15,
+            marginTop: 0,
         },
         textLogin           : {
-            marginTop: 44,
+            marginTop: 30,
             alignSelf: "flex-start",
             ...MyStyleSheet.headerPageLarge
         },
         textLoginDescription: {
             marginTop   : 2,
-            marginBottom: 24,
+            marginBottom: 20,
             alignSelf   : "flex-start",
             ...MyStyleSheet.subHeaderPage
         },
