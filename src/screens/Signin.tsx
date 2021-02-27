@@ -372,6 +372,19 @@ const SigninScreen = ({route, navigation}: any) => {
                                     />
                                 </View>
                             }
+                            {
+                                (MyStyle.platformOS === "iOS") &&
+                                <View style = {[MyStyle.RowCenter, {marginTop: 7}]}>
+                                    <MyButton
+                                        color = {MyStyle.LGButtonApple}
+                                        textTransform = "capitalize"
+                                        iconLeft = {{fontFamily: MyConstant.VectorIcon.Fontisto, name: 'apple'}}
+                                        linearGradientStyle = {{marginTop: 7}}
+                                        title = {MyLANG.Apple}
+                                        onPress = {MyFunction.loginApple}
+                                    />
+                                </View>
+                            }
                             <View style = {[MyStyle.RowCenter, {marginTop: 44}]}>
                                 <Text style = {styles.textDontHaveAccount}>
                                     {MyLANG.DontHaveAnAccount}

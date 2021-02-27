@@ -1355,7 +1355,7 @@ const MyUtil = {
                         throw new Error(MyLANG.LocationPermissionDenied);
                     }
                 } else if (MyStyle.platformOS === "ios") {
-                    permission = Geolocation.requestAuthorization();
+                    permission = Geolocation.requestAuthorization('whenInUse');
                     MyUtil.printConsole(true, 'log', 'LOG: requestAuthorization: await-response: ', {
                         'permission': permission
                     });
@@ -1367,7 +1367,7 @@ const MyUtil = {
 
             const currentPosition = new Promise((resolve, reject) => {
                 if (MyStyle.platformOS === "ios") {
-                    Geolocation.requestAuthorization();
+                    Geolocation.requestAuthorization('whenInUse');
                 }
                 Geolocation.getCurrentPosition(
                     (position: any) => {
