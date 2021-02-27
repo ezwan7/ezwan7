@@ -36,11 +36,12 @@ import NumberFormat from 'react-number-format';
 import {MyImageBackground} from "../components/MyImageBackground";
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import HTML from "react-native-render-html";
+import {Checkbox} from "react-native-paper";
 // const MaterialTopTabBarComponent = (props: any) => (<MaterialTopTabBar {...props} />);
 
 const drawerItemOnPress = (loginRequired: boolean, navigation: any, actionType: string, routeName: any, params: any, navigationActions: any) => {
     MyUtil.printConsole(true, 'log', 'LOG: drawerItemOnPress: ', {
-        'loginRequired'    : loginRequired,
+        'loginRequired': loginRequired,
         // 'navigation'       : navigation,
         'actionType'       : actionType,
         'routeName'        : routeName,
@@ -133,7 +134,7 @@ const CustomDrawerContent = ({props}: any) => {
                 icon          : null,
                 text          : {text: MyLANG.Notifications},
                 // text          : {text: `${MyLANG.Notifications} ${Number(user?.unread_notifications) > 0 ? user?.unread_notifications : null}`},
-                onPress       : {loginRequired: true, actionType: MyConstant.DrawerOnPress.Navigate, routeName: MyConfig.routeName.Notifications},
+                onPress: {loginRequired: true, actionType: MyConstant.DrawerOnPress.Navigate, routeName: MyConfig.routeName.Notifications},
             },
             {
                 gradient      : MyStyle.LGDrawerItem,
@@ -1025,6 +1026,8 @@ const CartListItem          = (props: any) => {
 
     let lastKey: string = Object.keys(props?.items)[Object.keys(props?.items)?.length - 1];
 
+    const isLinked: any = [];
+
     return (
         <View style = {{marginTop: MyStyle.marginViewGapCardTop, backgroundColor: MyColor.Material.WHITE}}>
             {(props?.items && Object.keys(props?.items).length > 0 && props?.items.constructor === Object) &&
@@ -1088,12 +1091,22 @@ const CartListItem          = (props: any) => {
                                          <View key = {`${i}_${j}`}
                                                style = {[MyStyle.RowLeftCenter, {marginVertical: 2}]}
                                          >
-                                             <Text style = {[MyStyleSheet.textListItemSubTitle3Alt, {marginRight: 6}]}>{attribute.option?.name}</Text>
+                                             <Text
+                                                 style = {[MyStyleSheet.textListItemSubTitle3Alt,
+                                                           {
+                                                               marginRight: 6,
+                                                               flexBasis  : '30%',
+                                                               flexGrow   : 0,
+                                                           }
+                                                 ]}
+                                             >
+                                                 {attribute.option?.name}
+                                             </Text>
                                              <View style = {[MyStyle.RowLeftCenter, {
                                                  backgroundColor  : MyColor.Material.GREY["200"],
-                                                 paddingVertical  : 1.5,
-                                                 paddingHorizontal: 9,
-                                                 borderRadius     : 100,
+                                                 paddingVertical  : 2,
+                                                 paddingHorizontal: 10,
+                                                 flexGrow         : 0,
                                              }]}>
                                                  <Text style = {[MyStyleSheet.textListItemSubTitle3AltDark, {marginRight: 5}]}>{item.value}</Text>
                                                  {
@@ -1105,28 +1118,77 @@ const CartListItem          = (props: any) => {
                                      )))))
                                     }
 
+                                    {props.items[key].item?.giftitems?.length > 0 &&
+                                     <View style = {[MyStyle.RowLeftCenter, {marginVertical: 6}]}>
+                                         <Text
+                                             style = {[MyStyleSheet.textListItemSubTitle3Alt,
+                                                       {
+                                                           marginRight: 6,
+                                                           flexBasis  : '30%',
+                                                           flexGrow   : 0,
+                                                       }
+                                             ]}
+                                         >
+                                             {MyLANG.GiftItem}
+                                         </Text>
+
+                                         {
+                                             props.items[key].item?.giftitems.map((item: any, i: number) => (item?.cart_selected === true && (
+                                                 <View
+                                                     key = {`${i}`}
+                                                     style = {[MyStyle.RowLeftCenter, {
+                                                         backgroundColor  : MyColor.Material.GREY["200"],
+                                                         paddingVertical  : 2,
+                                                         paddingHorizontal: 10,
+                                                         flexGrow         : 0,
+                                                     }]}>
+                                                     <Text style = {[MyStyleSheet.textListItemSubTitle3AltDark, {marginRight: 5}]}>{item.item_name}</Text>
+                                                 </View>
+                                             )))
+                                         }
+                                     </View>
+                                    }
+
                                     {props.items[key].item?.linked?.length > 0 && props.items[key].item.linked.map(
                                         (addon: any, i: number) => (addon?.products?.length > 0 && addon.products.map(
-                                            (item: any, j: number) => (item?.cart_selected === true && (
-                                         <View key = {`${i}_${j}`}
-                                               style = {[MyStyle.RowLeftCenter, {marginVertical: 3}]}
-                                         >
-                                             <Text style = {[MyStyleSheet.textListItemSubTitle3Alt, {marginRight: 6}]}>{addon.subcat_name}</Text>
-                                             <View style = {[{
-                                                 backgroundColor  : MyColor.Material.GREY["200"],
-                                                 paddingVertical  : 3,
-                                                 paddingHorizontal: 12,
-                                                 borderRadius     : 100,
-                                             }]}>
-                                                 <Text style = {[MyStyleSheet.textListItemSubTitle3AltDark, {}]}>{item.products_name}
-                                                     {
-                                                         (Number(item.products_price) > 0) &&
-                                                         <Text style = {[MyStyleSheet.textListItemSubTitle3, {}]}>&nbsp;&nbsp;+ {item.products_price}</Text>
-                                                     }
-                                                 </Text>
-                                             </View>
-                                         </View>
-                                     )))))
+                                            (item: any, j: number) => {
+
+                                                if (isLinked[key]?.[i]) {
+                                                } else {
+                                                    isLinked[key]    = [];
+                                                    isLinked[key][i] = 'false';
+                                                }
+
+                                                isLinked[key][i] = ((isLinked[key]?.[i] === 'print' || isLinked[key]?.[i] === 'printed') ? 'printed' : ((item?.cart_selected === true && isLinked[key]?.[i] !== 'printed') ? 'print' : 'false'));
+
+                                                return (item?.cart_selected === true && (
+                                                    <View key = {`${i}_${j}`}
+                                                          style = {[MyStyle.ColumnCenterLeft, {marginVertical: 4}]}
+                                                    >
+                                                        {isLinked[key]?.[i] === 'print' &&
+                                                         <Text style = {[MyStyleSheet.textListItemSubTitle3Alt, {
+                                                             marginTop   : 8,
+                                                             marginBottom: 5
+                                                         }]}>{addon.subcat_name}</Text>
+                                                        }
+
+                                                        <View style = {[{
+                                                            backgroundColor  : MyColor.Material.GREY["200"],
+                                                            paddingVertical  : 4,
+                                                            paddingHorizontal: 12,
+                                                        }]}>
+                                                            <Text style = {[MyStyleSheet.textListItemSubTitle3AltDark, {}]}>{item.products_name}</Text>
+                                                            {
+                                                                (Number(item.products_price) > 0) &&
+                                                                <Text style = {[MyStyleSheet.textListItemSubTitle3, {}]}>
+                                                                    + {MyConfig.Currency.MYR.symbol} {item.products_price}
+                                                                </Text>
+                                                            }
+                                                        </View>
+                                                    </View>
+                                                ))
+                                            }
+                                        )))
                                     }
 
                                     <View style = {cartList.viewStock}>
@@ -1464,6 +1526,8 @@ const CartPageTotal         = (props: any) => {
 const CartListItemSmall = (props: any) => {
     // MyUtil.printConsole(true, 'log', 'LOG: CartListItemSmall: ', Object.keys(props?.items).length);
 
+    const isLinked: any = [];
+
     return (
         <>
             {
@@ -1527,20 +1591,27 @@ const CartListItemSmall = (props: any) => {
                                        </View>
 
                                        <View style = {{marginTop: 5}}>
+
                                            {props.items[key].item?.attributes?.length > 0 && props.items[key].item.attributes.map(
                                                (attribute: any, i: number) => (attribute?.values?.length > 0 && attribute.values.map(
                                                    (item: any, j: number) => (item?.cart_selected === true && (
                                                 <View key = {`${i}_${j}`}
                                                       style = {[MyStyle.RowLeftCenter, {marginVertical: 2}]}
                                                 >
-                                                    <Text style = {[MyStyleSheet.textListItemSubTitle3Alt, {marginRight: 6}]}>
+                                                    <Text style = {[MyStyleSheet.textListItemSubTitle3Alt,
+                                                                    {
+                                                                        marginRight: 6,
+                                                                        flexBasis  : '27%',
+                                                                        flexGrow   : 0,
+                                                                    }
+                                                    ]}>
                                                         {attribute.option?.name}
                                                     </Text>
                                                     <View style = {[MyStyle.RowLeftCenter, {
                                                         backgroundColor  : MyColor.Material.GREY["200"],
-                                                        paddingVertical  : 1.5,
-                                                        paddingHorizontal: 9,
-                                                        borderRadius     : 100,
+                                                        paddingVertical  : 2,
+                                                        paddingHorizontal: 10,
+                                                        flexGrow         : 0,
                                                     }]}>
                                                         <Text style = {[MyStyleSheet.textListItemSubTitle3AltDark, {marginRight: 5}]}>
                                                             {item.value}
@@ -1555,36 +1626,77 @@ const CartListItemSmall = (props: any) => {
                                                 </View>
                                             )))))
                                            }
-                                       </View>
 
-                                       <View style = {{marginTop: 5}}>
+                                           {props.items[key].item?.giftitems?.length > 0 &&
+                                            <View style = {[MyStyle.RowLeftCenter, {marginVertical: 6}]}>
+                                                <Text
+                                                    style = {[MyStyleSheet.textListItemSubTitle3Alt,
+                                                              {
+                                                                  marginRight: 6,
+                                                                  flexBasis  : '27%',
+                                                                  flexGrow   : 0,
+                                                              }
+                                                    ]}
+                                                >
+                                                    {MyLANG.GiftItem}
+                                                </Text>
+
+                                                {
+                                                    props.items[key].item?.giftitems.map((item: any, i: number) => (item?.cart_selected === true && (
+                                                        <View
+                                                            key = {`${i}`}
+                                                            style = {[MyStyle.RowLeftCenter, {
+                                                                backgroundColor  : MyColor.Material.GREY["200"],
+                                                                paddingVertical  : 2,
+                                                                paddingHorizontal: 10,
+                                                                flexGrow         : 0,
+                                                            }]}>
+                                                            <Text style = {[MyStyleSheet.textListItemSubTitle3AltDark, {marginRight: 5}]}>{item.item_name}</Text>
+                                                        </View>
+                                                    )))
+                                                }
+                                            </View>
+                                           }
+
                                            {props.items[key].item?.linked?.length > 0 && props.items[key].item.linked.map(
                                                (addon: any, i: number) => (addon?.products?.length > 0 && addon.products.map(
-                                                   (item: any, j: number) => (item?.cart_selected === true && (
-                                                <View key = {`${i}_${j}`}
-                                                      style = {[MyStyle.RowLeftCenter, {marginVertical: 3}]}
-                                                >
-                                                    <Text style = {[MyStyleSheet.textListItemSubTitle3Alt, {marginRight: 6}]}>
-                                                        {addon.subcat_name}
-                                                    </Text>
-                                                    <View style = {[{
-                                                        backgroundColor  : MyColor.Material.GREY["200"],
-                                                        paddingVertical  : 3,
-                                                        paddingHorizontal: 12,
-                                                        borderRadius     : 100,
-                                                    }]}>
-                                                        <Text style = {[MyStyleSheet.textListItemSubTitle3AltDark, {}]}>
-                                                            {item.products_name}
-                                                            {
-                                                                (Number(item.products_price) > 0) &&
-                                                                <Text style = {[MyStyleSheet.textListItemSubTitle3, {}]}>
-                                                                    &nbsp;&nbsp;+ {item.products_price}
-                                                                </Text>
-                                                            }
-                                                        </Text>
-                                                    </View>
-                                                </View>
-                                            )))))
+                                                   (item: any, j: number) => {
+                                                       if (isLinked[key]?.[i]) {
+                                                       } else {
+                                                           isLinked[key]    = [];
+                                                           isLinked[key][i] = 'false';
+                                                       }
+
+                                                       isLinked[key][i] = ((isLinked[key]?.[i] === 'print' || isLinked[key]?.[i] === 'printed') ? 'printed' : ((item?.cart_selected === true && isLinked[key]?.[i] !== 'printed') ? 'print' : 'false'));
+
+                                                       return (item?.cart_selected === true && (
+                                                           <View key = {`${i}_${j}`}
+                                                                 style = {[MyStyle.ColumnCenterLeft, {marginVertical: 4}]}
+                                                           >
+                                                               {isLinked[key]?.[i] === 'print' &&
+                                                                <Text style = {[MyStyleSheet.textListItemSubTitle3Alt, {
+                                                                    marginTop   : 8,
+                                                                    marginBottom: 5
+                                                                }]}>{addon.subcat_name}</Text>
+                                                               }
+
+                                                               <View style = {[{
+                                                                   backgroundColor  : MyColor.Material.GREY["200"],
+                                                                   paddingVertical  : 4,
+                                                                   paddingHorizontal: 12,
+                                                               }]}>
+                                                                   <Text style = {[MyStyleSheet.textListItemSubTitle3AltDark, {}]}>{item.products_name}</Text>
+                                                                   {
+                                                                       (Number(item.products_price) > 0) &&
+                                                                       <Text style = {[MyStyleSheet.textListItemSubTitle3, {}]}>
+                                                                           + {MyConfig.Currency.MYR.symbol} {item.products_price}
+                                                                       </Text>
+                                                                   }
+                                                               </View>
+                                                           </View>
+                                                       ))
+                                                   }
+                                               )))
                                            }
                                        </View>
 
@@ -1620,7 +1732,7 @@ const NotificationListItem              = ({item, index}: any) => {
         >
             <View style = {[notificationList.view, {backgroundColor: item?.read_status === 1 ? MyColor.Material.WHITE : MyColor.Material.GREY["100"]}]}>
                 <MyFastImage
-                    source = {[item?.image?.length > 0 ? {'uri': item.image} : MyImage.defaultItem, MyImage.defaultItem]}
+                    source = {[item?.image?.length > 0 ? {'uri': item.image} : MyImage.icon_bg, MyImage.icon_bg]}
                     style = {notificationList.image}
                 />
                 <View style = {notificationList.textsView}>
@@ -2130,6 +2242,7 @@ const OptionList = ({item, index, listShow, listSelected, onItem}: any) => {
     )
 }
 
+// ModalNotFullScreen:
 const ModalNotFullScreen = (props: any) => {
     // MyUtil.printConsole(true, 'log', 'LOG: ModalNotFullScreen: ', {props});
 
@@ -2168,6 +2281,37 @@ const ModalNotFullScreen = (props: any) => {
     )
 }
 
+// ModalNotFullScreen:
+const ModalNotFullScreenHeaderFooter = (props: any) => {
+    // MyUtil.printConsole(true, 'log', 'LOG: ModalNotFullScreenHeaderFooter: ', {props});
+
+    return (
+        <TouchableOpacity
+            activeOpacity = {1}
+            style = {{
+                flex          : 1,
+                justifyContent: 'center',
+                alignItems    : "center",
+
+                backgroundColor: 'rgba(0,0,0,0.6)',
+            }}
+        >
+            <View style = {props?.viewMain || {
+                marginVertical: MyStyle.screenHeight * 0.08,
+                width         : MyStyle.screenWidth * 0.85,
+
+                backgroundColor: '#f9f9f9',
+                borderRadius   : 4,
+            }}>
+
+                {props.children}
+
+            </View>
+        </TouchableOpacity>
+    )
+}
+
+// ModalFullScreenPage:
 const ModalFullScreenPage = (props: any) => {
     // MyUtil.printConsole(true, 'log', 'LOG: ModalFullscreenPage: ', {props});
 
@@ -2354,6 +2498,171 @@ const ModalRadioList = (props: any) => {
     )
 }
 
+// Modal Checkbox Multi List:
+const ModalMultiList = (props: any) => {
+    // MyUtil.printConsole(true, 'log', 'LOG: ModalMultiList: ', {props});
+
+    return (
+        <TouchableOpacity
+            activeOpacity = {1}
+            style = {{
+                flex          : 1,
+                justifyContent: 'center',
+                alignItems    : "center",
+
+                backgroundColor: 'rgba(0,0,0,0.6)',
+            }}
+        >
+            <View style = {props?.viewMain || {
+                marginTop   : MyStyle.screenHeight * 0.14,
+                marginBottom: MyStyle.screenHeight * 0.10,
+                width       : MyStyle.screenWidth * 0.85,
+
+                backgroundColor: '#f9f9f9',
+                borderRadius   : 4,
+            }}>
+
+                <View
+                    style = {{
+                        borderTopLeftRadius : 4,
+                        borderTopRightRadius: 4,
+
+                        shadowColor    : "#000000",
+                        shadowOffset   : {
+                            width : 0,
+                            height: 1,
+                        },
+                        shadowOpacity  : 0.22,
+                        shadowRadius   : 2.22,
+                        elevation      : 3,
+                        backgroundColor: "#ffffff",
+                    }}
+                >
+                    {props.title && <Text style = {[modalRadioList.textTitle, {paddingTop: 14, paddingBottom: 14}]}>{props.title}</Text>}
+                    {props.subTitle && <Text style = {modalRadioList.textSubtitle}>{props.subTitle}</Text>}
+
+                </View>
+
+                <View
+                    style = {{
+                        flexDirection  : 'row',
+                        justifyContent : 'space-between',
+                        paddingLeft    : MyStyle.paddingHorizontalModal,
+                        paddingRight   : MyStyle.paddingHorizontalModalItem / 1.5,
+                        paddingVertical: 8,
+                        backgroundColor: "#ffffff",
+                    }}>
+                    <TouchableOpacity
+                        activeOpacity = {0.8}
+                        onPress = {() => props.onDeselectAll()}
+                    >
+                        <Text style = {MyStyleSheet.linkTextList}>
+                            {MyLANG.DeselectAll}
+                        </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        activeOpacity = {0.8}
+                        onPress = {() => props.onSelectAll()}
+                    >
+                        <Text style = {MyStyleSheet.linkTextList}>
+                            {MyLANG.SelectAll}
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+
+                <ScrollView contentInsetAdjustmentBehavior = "automatic">
+                    <View style = {modalRadioList.viewItemList}>
+                        {
+                            props?.items?.length > 0 && props.items.map(
+                                (prop: any, index: number) => (
+
+                                    <MyMaterialRipple
+                                        key = {index}
+                                        {...MyStyle.MaterialRipple.drawer}
+                                        style = {[modalRadioList.viewItem, {paddingLeft: MyStyle.paddingHorizontalModal}]}
+                                        onPress = {() => props.onItem(prop, index)}
+                                    >
+
+                                        <View style = {[modalRadioList.viewTexts, {}]}>
+
+                                            {(props.bodyText && prop[props.bodyText]) &&
+                                             <Text
+                                                 numberOfLines = {3}
+                                                 style = {[modalRadioList.textItemBody, {color: prop.cart_selected ? MyColor.textDarkPrimary2 : MyColor.textDarkSecondary}]}
+                                             >
+                                                 {prop[props.bodyText]}
+                                             </Text>
+                                            }
+
+                                            {props.priceText &&
+                                             <Text
+                                                 numberOfLines = {2}
+                                                 style = {[modalRadioList.textItemPrice, {color: prop.cart_selected ? MyColor.textDarkPrimary2 : MyColor.textDarkSecondary}]}
+                                             >
+                                                 + {MyConfig.Currency.MYR.symbol} {prop[props.priceText]}
+                                             </Text>
+                                            }
+                                        </View>
+
+                                        {
+                                            props.checkbox !== false &&
+                                            <MyIcon.AntDesign
+                                                style = {modalRadioList.iconRightCheckBox}
+                                                name = {prop.cart_selected ? "checkcircle" : "checkcircleo"}
+                                                size = {18}
+                                                color = {prop.cart_selected ? MyColor.Primary.first : MyColor.Material.GREY["400"]}
+                                            />
+                                        }
+                                    </MyMaterialRipple>
+                                )
+                            )
+
+                        }
+                    </View>
+                </ScrollView>
+
+                <View
+                    style = {{
+                        flexDirection : 'row',
+                        justifyContent: 'space-around',
+
+                        borderBottomLeftRadius : 4,
+                        borderBottomRightRadius: 4,
+
+                        shadowColor    : "#000000",
+                        shadowOffset   : {width: 0, height: -1},
+                        shadowOpacity  : 0.22,
+                        shadowRadius   : 2.22,
+                        elevation      : 3,
+                        backgroundColor: "#ffffff",
+                    }}
+                >
+                    <MyButton
+                        fill = "transparent"
+                        color = {MyColor.Material.GREY["900"]}
+                        shadow = "none"
+                        shape = "square"
+                        title = {MyLANG.Cancel}
+                        textTransform = "capitalize"
+                        textStyle = {{fontFamily: MyStyle.FontFamily.OpenSans.regular}}
+                        onPress = {() => props.onCancel()}
+                    />
+                    <MyButton
+                        fill = "transparent"
+                        color = {MyColor.attentionDark}
+                        shadow = "none"
+                        shape = "square"
+                        title = {MyLANG.OK}
+                        textStyle = {{fontFamily: MyStyle.FontFamily.OpenSans.semiBold}}
+                        onPress = {() => props.onOk()}
+                    />
+                </View>
+            </View>
+
+        </TouchableOpacity>
+    )
+}
+
 // Modal Info:
 const ModalInfo = (props: any) => {
     // MyUtil.printConsole(true, 'log', 'LOG: ModalInfo: ', {props});
@@ -2399,40 +2708,43 @@ const ModalFilter = (props: any) => {
     return (
         <View style = {modalFilterPage.view}>
 
-            <View>
-                <Text style = {MyStyleSheet.headerPage}>{MyLANG.Category}</Text>
+            {
+                props?.category?.length > 0 &&
+                <View>
+                    <Text style = {MyStyleSheet.headerPage}>{MyLANG.Category}</Text>
 
-                <View style = {[MyStyle.RowLeftCenter, {
-                    flexWrap    : "wrap",
-                    marginTop   : MyStyle.marginVerticalList / 2,
-                    marginBottom: MyStyle.marginVerticalPage * 1.5,
-                }]}>
-                    {props?.category?.length > 0 && props?.category?.map((value: any, i: number) => (
-                        <LinearGradient
-                            key = {i}
-                            style = {[{
-                                marginBottom: 7,
-                                marginRight : 7,
-                                borderRadius: 100,
-                            }]} {...
-                            props?.watchValues?.category_option?.[value?.categories_id] ? {...MyStyle.LGButtonPrimary} : {...MyStyle.LGGrey}
-                            }
-                        >
-                            <MyMaterialRipple
-                                style = {{paddingHorizontal: 17, paddingVertical: 6}}
-                                {...MyStyle.MaterialRipple.drawerRounded}
-                                onPress = {() => props.onFilterItem('category', value, i)}
+                    <View style = {[MyStyle.RowLeftCenter, {
+                        flexWrap    : "wrap",
+                        marginTop   : MyStyle.marginVerticalList / 2,
+                        marginBottom: MyStyle.marginVerticalPage * 1.5,
+                    }]}>
+                        {props?.category?.map((value: any, i: number) => (
+                            <LinearGradient
+                                key = {i}
+                                style = {[{
+                                    marginBottom: 7,
+                                    marginRight : 7,
+                                    borderRadius: 100,
+                                }]} {...
+                                props?.watchValues?.category_option?.[value?.categories_id] ? {...MyStyle.LGButtonPrimary} : {...MyStyle.LGGrey}
+                                }
                             >
-                                <Text style = {[MyStyleSheet.textListItemTitle2AltDark, props?.watchValues?.category_option?.[value?.categories_id] && {
-                                    color: MyColor.textLightPrimary,
-                                }]}>
-                                    {value?.categories_name}
-                                </Text>
-                            </MyMaterialRipple>
-                        </LinearGradient>
-                    ))}
+                                <MyMaterialRipple
+                                    style = {{paddingHorizontal: 17, paddingVertical: 6}}
+                                    {...MyStyle.MaterialRipple.drawerRounded}
+                                    onPress = {() => props.onFilterItem('category', value, i)}
+                                >
+                                    <Text style = {[MyStyleSheet.textListItemTitle2AltDark, props?.watchValues?.category_option?.[value?.categories_id] && {
+                                        color: MyColor.textLightPrimary,
+                                    }]}>
+                                        {value?.categories_name}
+                                    </Text>
+                                </MyMaterialRipple>
+                            </LinearGradient>
+                        ))}
+                    </View>
                 </View>
-            </View>
+            }
 
             {props?.filter_method?.length > 0 && props?.filter_method.map((filter: any, i: number) => (
                 <View key = {i}>
@@ -3132,7 +3444,8 @@ const cartList = StyleSheet.create(
             alignItems    : 'center',
 
             minWidth       : 28,
-            minHeight      : MyStyle.screenWidth * 0.22,
+            minHeight      : MyStyle.screenWidth * 0.25,
+            maxHeight      : MyStyle.screenWidth * 0.25,
             backgroundColor: '#F7F8FA',
             borderWidth    : 1,
             borderColor    : '#D6DBDF',
@@ -3518,12 +3831,24 @@ const modalRadioList = StyleSheet.create(
             color: MyColor.Primary.first,
         },
         iconRight        : {
-            marginLeft  : 6,
+            marginLeft  : 15,
             paddingRight: MyStyle.paddingHorizontalModalItem / 1.5,
         },
         iconRightSelected: {
             marginLeft  : 6,
             paddingRight: MyStyle.paddingHorizontalModalItem / 1.5,
+        },
+
+        iconRightCheckBox: {
+            marginLeft  : 10,
+            paddingRight: MyStyle.paddingHorizontalModalItem / 1.5,
+        },
+        textItemPrice    : {
+            fontFamily: MyStyle.FontFamily.Roboto.regular,
+            fontSize  : 12,
+            color     : MyColor.textDarkSecondary,
+
+            marginTop: 3,
         },
     }
 );
@@ -3667,8 +3992,10 @@ export {
     OptionList,
     ModalInfo,
     ModalRadioList,
+    ModalMultiList,
 
     ModalNotFullScreen,
+    ModalNotFullScreenHeaderFooter,
     ModalFullScreenPage,
     ModalFilter,
 

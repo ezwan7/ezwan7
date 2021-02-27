@@ -522,6 +522,7 @@ const MyButton = (props: any) => {
               props?.shadowStyle?.width ?
               <Shadow
                   useSvg
+                  // @ts-ignore
                   style = {shadowStyles}
               >
                   <View style = {viewStyles}>

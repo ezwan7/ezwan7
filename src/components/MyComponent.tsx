@@ -109,14 +109,17 @@ const HeaderInputSearch = (props: any) => {
                 }}
             >
                 <View style = {{
-                    flexGrow      : 1,
+                    flex    : 1,
+                    flexGrow: 1,
+
                     display       : "flex",
                     flexDirection : "row",
                     justifyContent: "flex-start",
                     alignItems    : "center",
 
-                    marginHorizontal: MyStyle.marginHorizontalPage,
-                    marginBottom    : 6,
+                    marginLeft  : MyStyle.marginHorizontalPage,
+                    marginRight : 8,
+                    marginBottom: 6,
 
                     borderWidth    : 1.0,
                     borderRadius   : 50,
@@ -181,6 +184,181 @@ const HeaderInputSearch = (props: any) => {
                         />
                     </TouchableOpacity>
                 </View>
+                <MyMaterialRipple
+                    {...MyStyle.MaterialRipple.drawerRounded}
+                    style = {{
+                        paddingHorizontal: 15,
+                        paddingVertical  : 10,
+                        borderRadius     : 6,
+
+                        marginRight : 4,
+                        marginBottom: 2,
+                    }}
+                    onPress = {props.onIconRight}
+                >
+                    {
+                        getMyIcon(
+                            {
+                                fontFamily: props.iconRight?.fontFamily || MyConstant.VectorIcon.SimpleLineIcons,
+                                name      : props.iconRight?.name,
+                                size      : props.iconRight?.size || 24,
+                                color     : props.iconRight?.color || MyColor.Material.WHITE,
+                                style     : [props.iconRight?.style]
+                            }
+                        )
+                    }
+                </MyMaterialRipple>
+            </LinearGradient>
+        </Shadow>
+    )
+}
+
+const HeaderInputProductSearch = (props: any) => {
+    return (
+        <Shadow style = {MyStyle.neomorphShadow.header}>
+            <LinearGradient
+                {...MyStyle.LGHeaderPrimary}
+                style = {{
+                    flex          : 1,
+                    flexDirection : "row",
+                    justifyContent: "flex-start",
+                    alignItems    : props?.allowSearch ? "flex-end" : "center",
+                    paddingTop    : MyStyle.platformOS === "ios" ? (MyStyle.headerHeight / 2) : (MyStyle.headerHeightAdjusted / 2),
+                    paddingBottom : 2,
+                }}
+            >
+                {
+                    props?.showBackButton !== false && <MyHeaderBackButton
+                        color = {MyColor.Material.WHITE}
+                        onPress = {props.onBack}
+                    />
+                }
+                {
+                    (!props?.allowSearch && props?.title) &&
+                    <Text style = {[MyStyleSheet.textHeader2, {textAlign: "left", marginLeft: 26}]}>{props?.title}</Text>
+                }
+                {
+                    props?.allowSearch &&
+                    <View style = {{
+                        flex    : 1,
+                        flexGrow: 1,
+
+                        display       : "flex",
+                        flexDirection : "column",
+                        justifyContent: "flex-end",
+                        alignItems    : "flex-start",
+
+                        marginLeft  : MyStyle.marginHorizontalList / 2,
+                        marginRight : props.iconRight?.name ? 8 : MyStyle.marginHorizontalPage,
+                        marginBottom: 2,
+                    }}>
+                        <Text style = {[MyStyleSheet.textListItemSubTitle3, {
+                            color     : MyColor.textLightPrimary,
+                            marginLeft: MyStyle.marginHorizontalList
+                        }]}>
+                            {props?.title}
+                        </Text>
+
+                        <View style = {{
+
+                            display       : "flex",
+                            flexDirection : "row",
+                            justifyContent: "flex-start",
+                            alignItems    : "center",
+
+                            borderWidth    : 1.0,
+                            borderRadius   : 50,
+                            borderColor    : MyColor.Primary.transparent40,
+                            backgroundColor: MyColor.Material.GREY["12"],
+                        }}>
+                            <MyIcon.AntDesign
+                                name = "search1"
+                                size = {17}
+                                color = {MyColor.Material.BLACK}
+                                style = {{paddingLeft: 14, paddingVertical: 8.9}}
+                            />
+                            <TextInput
+                                style = {{
+                                    flex   : 1,
+                                    padding: 0,
+
+                                    marginLeft : 10,
+                                    marginRight: MyStyle.marginHorizontalList,
+
+                                    fontSize  : MyStyle.FontSize.small,
+                                    fontFamily: MyStyle.FontFamily.Roboto.regular,
+                                    color     : MyColor.Material.BLACK,
+                                }}
+                                numberOfLines = {1}
+                                placeholder = {MyLANG.SearchProductByName}
+                                placeholderTextColor = {MyColor.Material.GREY["800"]}
+                                onChangeText = {props.onChangeText}
+                                onSubmitEditing = {props.onSubmitEditing}
+                                value = {props.value}
+                            />
+                            {
+                                props.value?.length > 0 &&
+                                <TouchableOpacity
+                                    activeOpacity = {0.7}
+                                    onPress = {props.onClearIcon}
+                                >
+                                    <MyIcon.SimpleLineIcons
+                                        name = "close"
+                                        size = {17}
+                                        color = {MyColor.Material.BLACK}
+                                        style = {{paddingRight: 6, paddingVertical: 8, paddingLeft: 6}}
+                                    />
+                                </TouchableOpacity>
+                            }
+                            <TouchableOpacity
+                                activeOpacity = {0.7}
+                                onPress = {props.onRightIcon}
+                                style = {{
+                                    paddingVertical: 8.9,
+                                    borderLeftWidth: 1,
+                                    borderLeftColor: MyColor.Material.GREY["500"],
+                                }}
+                            >
+                                <MyIcon.Ionicons
+                                    name = "ios-options"
+                                    size = {17}
+                                    color = {MyColor.Material.BLACK}
+                                    style = {{
+                                        paddingRight: 14,
+                                        paddingLeft : 10,
+                                    }}
+                                />
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                }
+                {
+                    props.iconRight?.name &&
+                    <MyMaterialRipple
+                        {...MyStyle.MaterialRipple.drawerRounded}
+                        style = {{
+                            paddingHorizontal: 15,
+                            paddingVertical  : 10,
+                            borderRadius     : 6,
+
+                            marginRight : 4,
+                            marginBottom: 2,
+                        }}
+                        onPress = {props.onIconRight}
+                    >
+                        {
+                            getMyIcon(
+                                {
+                                    fontFamily: props.iconRight?.fontFamily || MyConstant.VectorIcon.SimpleLineIcons,
+                                    name      : props.iconRight?.name,
+                                    size      : props.iconRight?.size || 24,
+                                    color     : props.iconRight?.color || MyColor.Material.WHITE,
+                                    style     : [props.iconRight?.style]
+                                }
+                            )
+                        }
+                    </MyMaterialRipple>
+                }
             </LinearGradient>
         </Shadow>
     )
@@ -596,6 +774,7 @@ export {
     HeaderGradientPrimaryLogo,
 
     HeaderInputSearch,
+    HeaderInputProductSearch,
     HeaderInputSearchOptionPage,
     HeaderGoogleMapSearch,
 

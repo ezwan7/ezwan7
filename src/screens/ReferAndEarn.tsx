@@ -81,7 +81,7 @@ const ReferAndEarn = ({route, navigation}: any) => {
                                         MyUtil.share(MyConstant.SHARE.TYPE.open,
                                                      false,
                                                      {
-                                                         message: `${MyLANG.ShareRefereCodeDetails}\n${user?.referral_code}\n\n${MyStyle.platformOS === "ios" ? MyConfig.iOS_store_link : MyConfig.android_store_link}`,
+                                                         message: `${MyLANG.ShareRefereCodeDetails}\n${user?.referral_code}\n\n${MyConfig.share_url}`,
                                                      },
                                                      false
                                         )

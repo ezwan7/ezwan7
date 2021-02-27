@@ -276,8 +276,8 @@ const HomeScreens =
                   name = {MyConfig.routeName.ProductList}
                   component = {ProductListScreen}
                   options = {{
-                      title           : MyLANG.Product,
-                      headerBackground: HeaderGradientPrimary,
+                      title: "",
+                      // headerBackground: HeaderGradientPrimary,
                       ...MyStyleCommon.StackOptions.BottomTabStack
                   }}
               />
@@ -615,6 +615,7 @@ const BottomTabNavigator = () => {
                 // activeBackgroundColor: MyColor.Material.GREY["200"],
                 inactiveTintColor: MyColor.Material.GREY["550"],
                 showLabel        : false,
+                //@ts-ignore
                 showIcon         : true,
             }}
         >

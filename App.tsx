@@ -7,6 +7,8 @@ import {Provider} from 'react-redux';
 import {store} from "./src/store/MyStore";
 
 
+console.disableYellowBox = true;
+
 const App = () => {
 
     if (__DEV__) {
@@ -72,7 +74,6 @@ export default App;
 
 // TODO: Loading cancel with alert and api call cancel
 // TODO: Auto login: API call redirect or page redirect: go back to prev page or reroute
-
 
 
 // TODO: Online Cart

@@ -97,7 +97,7 @@ const IntroScreen = ({route, navigation}: any) => {
         return (
             <View style = {styles.buttonCircle}>
                 <MyIcon.Ionicons
-                    name = "md-arrow-round-forward"
+                    name = "md-arrow-forward"
                     color = {MyColor.Material.WHITE}
                     size = {24}
                 />

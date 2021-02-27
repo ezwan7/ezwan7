@@ -7,7 +7,8 @@ import {
     FlatList,
     RefreshControl,
     TextInput,
-    Text, BackHandler,
+    Text,
+    BackHandler,
 } from 'react-native';
 import * as yup from "yup";
 
@@ -25,9 +26,9 @@ import {
     ListEmptyViewLottie,
     StatusBarDark,
     StatusBarLight,
-    HeaderInputSearch, ButtonPageFotter,
+    HeaderInputSearch, ButtonPageFotter, HeaderInputProductSearch,
 } from '../components/MyComponent';
-import {ListItemSeparator, ModalFilter, ModalFullScreenPage, ProductListItem,} from "../shared/MyContainer";
+import {ListItemSeparator, ModalFilter, ModalFullScreenPage, ModalNotFullScreen, ModalRadioList, ProductListItem,} from "../shared/MyContainer";
 
 import {MyModal} from "../components/MyModal";
 import {useForm} from "react-hook-form";
@@ -60,6 +61,8 @@ const filterFormSchema: any = yup.object().shape(
                             ),
         category_option: yup.object(),
         filter_option  : yup.object(),
+        filters        : yup.array(),
+        sorting        : yup.object(),
     }
 );
 
@@ -69,6 +72,8 @@ let defaultValues: any = {
     price_max      : MyConfig.FilterRange.price[1],
     category_option: {},
     filter_option  : {},
+    filters        : [],
+    sorting        : null,
 }
 
 const SearchScreen = ({route, navigation}: any) => {
@@ -87,11 +92,12 @@ const SearchScreen = ({route, navigation}: any) => {
     const [refreshing, setRefreshing]                                             = useState(false);
     const [onEndReachedCalledDuringMomentum, setOnEndReachedCalledDuringMomentum] = useState(false);
 
-    const [ApiUrl, setApiUrl]: any = useState(null);
-    const [data, setData]: any     = useState([]);
-    const [count, setCount]: any   = useState([]);
+    const [ApiUrl, setApiUrl]: any   = useState(null);
+    const [product, setProduct]: any = useState([]);
+    const [count, setCount]: any     = useState([]);
 
-    const [modalVisibleFilter, setModalVisibleFilter] = useState(false);
+    const [modalVisibleFilter, setModalVisibleFilter]   = useState(false);
+    const [modalVisibleSorting, setModalVisibleSorting] = useState(false);
 
 
     const {register, getValues, setValue, handleSubmit, formState, errors, reset, triggerValidation, watch}: any = useForm(
@@ -115,8 +121,8 @@ const SearchScreen = ({route, navigation}: any) => {
         }
     }, [register]);
 
-    const values                                                                  = getValues();
-    const {searchText, price_min, price_max, category_option, filter_option}: any = watch(['searchText', 'price_min', 'price_max', 'category_option', 'filter_option']);
+    const values                                                                                    = getValues();
+    const {searchText, price_min, price_max, category_option, filter_option, filters, sorting}: any = watch(['searchText', 'price_min', 'price_max', 'category_option', 'filter_option', 'filters', 'sorting']);
 
     useFocusEffect(
         useCallback(() => {
@@ -133,7 +139,7 @@ const SearchScreen = ({route, navigation}: any) => {
     );
 
     useEffect(() => {
-        MyUtil.printConsole(true, 'log', `LOG: ${SearchScreen.name}. useEffect: `, {category, filter_method, data});
+        MyUtil.printConsole(true, 'log', `LOG: ${SearchScreen.name}. useEffect: `, {category, filter_method, product});
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -168,7 +174,7 @@ const SearchScreen = ({route, navigation}: any) => {
 
             setLoadingMore(true);
 
-            fetchData(data && data.length > 0 ? data.length : 0,
+            fetchData(product && product.length > 0 ? product.length : 0,
                       MyConfig.ListLimit.searchList,
                       false,
                       true,
@@ -187,7 +193,7 @@ const SearchScreen = ({route, navigation}: any) => {
         return <ActivityIndicatorLarge/>;
     }
 
-    const fetchData = async (skip: number = 0, take: number = MyConfig.ListLimit.searchList, showLoader: any = false, setRefresh: boolean = false, showInfoMessage: any = false, DataSetType: string = MyConstant.DataSetType.fresh, apiUrl: string = ApiUrl) => {
+    const fetchData = async (skip: number = 0, take: number = MyConfig.ListLimit.searchList, showLoader: any = false, setRefresh: boolean = false, showInfoMessage: any = false, DataSetType: string = MyConstant.DataSetType.fresh, apiUrl: string = ApiUrl, sort: any = sorting, filter: any = filters) => {
 
         setLoading(true);
 
@@ -197,14 +203,18 @@ const SearchScreen = ({route, navigation}: any) => {
                         'language_id'  : MyConfig.LanguageActive,
                         'currency_code': 'USD',
 
-                        'searchValue': searchText,
+                        'searchValue': apiUrl === MyAPI.filter_product ? undefined : searchText,
 
                         'categories_id': category_option?.[Object.keys(category_option)?.[0]]?.id,
                         'minprice'     : price_min,
                         'maxprice'     : price_max,
+                        'filters'      : filter,
 
                         'skip': skip,
                         'take': take,
+
+                        'sort_by'       : apiUrl === MyAPI.filter_product ? 'products_id' : sort?.name_key || 'products_id',
+                        'sort_direction': apiUrl === MyAPI.filter_product ? 'DESC' : sort?.direction_key || 'DESC',
 
                         'app_ver'      : MyConfig.app_version,
                         'app_build_ver': MyConfig.app_build_version,
@@ -214,69 +224,66 @@ const SearchScreen = ({route, navigation}: any) => {
             );
 
         MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
-            'apiURL': apiUrl, 'response': response,
+            'apiURL': apiUrl, 'response': response, 'DataSetType': DataSetType,
         });
 
-        setTimeout(() => {
-            if (response.type === MyConstant.RESPONSE.TYPE.data && response?.data?.status === 200 && response?.data?.data?.product_data?.products) {
+        if (response.type === MyConstant.RESPONSE.TYPE.data && response?.data?.status === 200 && response?.data?.data?.product_data?.products) {
 
-                const data = response.data.data.product_data.products;
-                if (data.length > 0) {
-                    setCount(response.data.data.total_record);
-                    switch (DataSetType) {
-                        case MyConstant.DataSetType.addToEnd:
-                            setData(data.concat(data));
-                            break;
-                        case MyConstant.DataSetType.addToStart:
-                            setData(data.concat(data));
-                            break;
-                        case MyConstant.DataSetType.addToEndUnique:
-                            // const newData = data.concat(data.filter(({id}: any) => !data.find((f: any) => f.id == id)));
-                            const newData1: any = data;
-                            for (let i = 0; i < data.length; i++) {
-                                if (data.some((item: any) => item?.id === data[i]?.id) === false) {
-                                    newData1.push(data[i]);
-                                }
+            const data = response.data.data.product_data?.products;
+            if (data?.length > 0) {
+                setCount(response.data.data.total_record);
+                switch (DataSetType) {
+                    case MyConstant.DataSetType.addToEnd:
+                        setProduct(product.concat(data));
+                        break;
+                    case MyConstant.DataSetType.addToStart:
+                        setProduct(data.concat(product));
+                        break;
+                    case MyConstant.DataSetType.addToEndUnique:
+                        // const newData = data.concat(data.filter(({id}: any) => !data.find((f: any) => f.id == id)));
+                        const newData1: any = product;
+                        for (let i = 0; i < data.length; i++) {
+                            if (product.some((item: any) => item?.id === data[i]?.id) === false) {
+                                newData1.push(data[i]);
                             }
-                            setData(newData1);
-                            break;
-                        case MyConstant.DataSetType.addToStartUnique:
-                            const newData2: any = data;
-                            for (let i = 0; i < data.length; i++) {
-                                if (data.some((item: any) => item?.id === data[i]?.id) === false) {
-                                    newData2.unshift(data[i]);
-                                }
+                        }
+                        setProduct(newData1);
+                        break;
+                    case MyConstant.DataSetType.addToStartUnique:
+                        const newData2: any = product;
+                        for (let i = 0; i < data.length; i++) {
+                            if (product.some((item: any) => item?.id === data[i]?.id) === false) {
+                                newData2.unshift(data[i]);
                             }
-                            setData(newData2);
-                            break;
-                        case MyConstant.DataSetType.fresh:
-                        default:
-                            setData(data);
-                            break;
-                    }
+                        }
+                        setProduct(newData2);
+                        break;
+                    case MyConstant.DataSetType.fresh:
+                    default:
+                        setProduct(data);
+                        break;
                 }
-            } else {
-
-                setData(null); // Needed
-
-                // MyUtil.showMessage(MyConstant.SHOW_MESSAGE.ALERT, response.errorMessage ? response.errorMessage : MyLANG.UnknownError, false);
             }
+        } else {
 
-            setLoadingMore(false);
-            setOnEndReachedCalledDuringMomentum(true);
-            setLoading(false);
-            if (setRefresh === true) {
-                setRefreshing(false);
-            }
-            if (firstLoad === true) {
-                setFirstLoad(false)
-            }
+            setProduct(null); // Needed
 
-            if (showInfoMessage !== false) {
-                MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message, false);
-            }
+            // MyUtil.showMessage(MyConstant.SHOW_MESSAGE.ALERT, response.errorMessage ? response.errorMessage : MyLANG.UnknownError, false);
+        }
 
-        }, MyConfig.dateSetDelay);
+        setLoadingMore(false);
+        setOnEndReachedCalledDuringMomentum(true);
+        setLoading(false);
+        if (setRefresh === true) {
+            setRefreshing(false);
+        }
+        if (firstLoad === true) {
+            setFirstLoad(false)
+        }
+
+        if (showInfoMessage !== false) {
+            MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message, false);
+        }
     }
 
     const onChangeText = (text: any) => {
@@ -284,8 +291,8 @@ const SearchScreen = ({route, navigation}: any) => {
 
         setValue('searchText', text, true);
 
-        if (data === null || text?.length === 0) {
-            setData([]);
+        if (product === null || text?.length === 0) {
+            setProduct([]);
         }
     }
 
@@ -294,7 +301,7 @@ const SearchScreen = ({route, navigation}: any) => {
 
         setValue('searchText', null, true);
 
-        setData([]);
+        setProduct([]);
     }
 
     const onSubmitEditing = async (text: any) => {
@@ -302,7 +309,7 @@ const SearchScreen = ({route, navigation}: any) => {
 
         if (searchText?.length > 0) {
 
-            setData([]);
+            setProduct([]);
 
             setApiUrl(MyAPI.search);
 
@@ -317,8 +324,17 @@ const SearchScreen = ({route, navigation}: any) => {
         }
     }
 
-    const onModalVisible = () => {
-        setModalVisibleFilter(true);
+    const onModalVisible = (key: string) => {
+        switch (key) {
+            case 'filter':
+                setModalVisibleFilter(true);
+                break;
+            case 'sorting':
+                setModalVisibleSorting(true);
+                break;
+            default:
+                break;
+        }
     }
 
     const onFilterItem = (key: string, filter: any, j: number) => {
@@ -372,17 +388,24 @@ const SearchScreen = ({route, navigation}: any) => {
 
     const onFilterSubmit = () => {
 
-        MyUtil.printConsole(true, 'log', `LOG: onFilterItem: `, {});
+        MyUtil.printConsole(true, 'log', `LOG: onFilterSubmit: `, {filter_option});
 
         if (category_option?.[Object.keys(category_option)?.[0]]?.id) {
 
-            setData([]);
+            setProduct([]);
 
             setApiUrl(MyAPI.filter_product);
 
             setValue('searchText', null, true);
 
             setModalVisibleFilter(false);
+
+            var numeric_array = new Array();
+            for (var items in filter_option) {
+                numeric_array.push(filter_option[items]);
+            }
+
+            setValue('filters', numeric_array, true);
 
             fetchData(0,
                       MyConfig.ListLimit.searchList,
@@ -391,6 +414,8 @@ const SearchScreen = ({route, navigation}: any) => {
                       false,
                       MyConstant.DataSetType.fresh,
                       MyAPI.filter_product,
+                      null,
+                      numeric_array,
             );
 
         } else {
@@ -401,6 +426,30 @@ const SearchScreen = ({route, navigation}: any) => {
         }
     }
 
+    const onModalItem = (item: any, key: string) => {
+
+        switch (key) {
+            case 'sorting':
+                setModalVisibleSorting(false);
+
+                fetchData(0,
+                          MyConfig.ListLimit.searchList,
+                          MyLANG.PleaseWait + '...',
+                          true,
+                          false,
+                          MyConstant.DataSetType.fresh,
+                          ApiUrl,
+                          item
+                );
+                break;
+
+            default:
+                break;
+        }
+
+        setValue(key, item, false);
+    }
+
     return (
         <Fragment>
             <HeaderInputSearch
@@ -408,7 +457,9 @@ const SearchScreen = ({route, navigation}: any) => {
                 onSubmitEditing = {(text: any) => onSubmitEditing(text)}
                 value = {searchText}
                 onClearIcon = {() => onClearIcon()}
-                onRightIcon = {onModalVisible}
+                onRightIcon = {() => onModalVisible('filter')}
+                iconRight = {{fontFamily: 'FontAwesome', name: 'unsorted', style: {}}}
+                onIconRight = {() => onModalVisible('sorting')}
             />
             <SafeAreaView style = {MyStyleSheet.SafeAreaView2}>
                 <View style = {[MyStyleSheet.SafeAreaView3, {paddingTop: 0, backgroundColor: MyColor.Material.WHITE}]}>
@@ -427,23 +478,23 @@ const SearchScreen = ({route, navigation}: any) => {
                         <Text>{price}</Text>
                     </View>*/}
 
-                    {(data?.length === 0 && !loading) ?
+                    {(product?.length === 0 && !loading) ?
                      <ListEmptyViewLottie
                          source = {MyImage.lottie_developer}
                          message = {MyLANG.TypeSomethingToSearch}
                          speed = {0.4}
                          style = {{view: {}, image: {}, text: {}}}
                      />
-                                                      :
-                     (data?.length === 0 && loading) ?
+                                                         :
+                     (product?.length === 0 && loading) ?
                      <ListEmptyViewLottie
                          source = {MyImage.lottie_searching_file}
                          message = {MyLANG.WeAreSearching}
                          speed = {0.4}
                          style = {{view: {}, image: {}, text: {}}}
                      />
-                                                     :
-                     (data?.length > 0) ?
+                                                        :
+                     (product?.length > 0) ?
                      <FlatList
                          contentContainerStyle = {{flexGrow: 1}}
                          /*refreshControl = {
@@ -454,7 +505,7 @@ const SearchScreen = ({route, navigation}: any) => {
                                  colors = {[MyColor.Primary.first]}
                              />
                          }*/
-                         data = {data}
+                         data = {product}
                          renderItem = {({item, index}: any) =>
                              <ProductListItem
                                  item = {item}
@@ -487,14 +538,14 @@ const SearchScreen = ({route, navigation}: any) => {
                              setOnEndReachedCalledDuringMomentum(false);
                          }}
                      />
-                                        :
-                     (data === null) ?
+                                           :
+                     (product === null) ?
                      <ListEmptyViewLottie
                          source = {MyImage.lottie_empty_lost}
                          message = {MyLANG.NoDataFoundInSearch}
                          style = {{view: {}, image: {}, text: {}}}
                      />
-                                     :
+                                        :
                      null
                     }
                 </View>
@@ -543,6 +594,25 @@ const SearchScreen = ({route, navigation}: any) => {
                             }
                         />
                     }*/
+                />
+                <MyModal
+                    visible = {modalVisibleSorting}
+                    onRequestClose = {() => setModalVisibleSorting(false)}
+                    children = {
+                        <ModalNotFullScreen
+                            onRequestClose = {() => setModalVisibleSorting(false)}
+                            children = {
+                                <ModalRadioList
+                                    title = {MyLANG.SelectSortType}
+                                    selected = {sorting?.id}
+                                    onItem = {(item: any) => onModalItem(item, 'sorting')}
+                                    items = {MyConfig.sortingTypes}
+                                    titleText = "name"
+                                    bodyText = "direction"
+                                />
+                            }
+                        />
+                    }
                 />
 
             </SafeAreaView>

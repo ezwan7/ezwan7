@@ -6,7 +6,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import {MyStyle, MyStyleSheet} from '../common/MyStyle';
 import MyColor from '../common/MyColor';
 import MyImage from '../shared/MyImage';
-import {MyConfig} from '../shared/MyConfig';
+import {MyAPI, MyConfig} from '../shared/MyConfig';
 import MyLANG from '../shared/MyLANG';
 import {MyConstant} from '../common/MyConstant';
 import MyUtil from '../common/MyUtil';
@@ -28,12 +28,21 @@ const ProductBuySuccess = ({route, navigation}: any) => {
         useCallback(() => {
             const onBackPress = () => {
                 // Go back to Login page:
-                MyUtil.stackAction(false,
-                                   navigation,
-                                   MyConstant.StackAction.pop,
-                                   3,
-                                   null,
-                                   null,
+                MyUtil.commonAction(true,
+                                    navigation,
+                                    MyConstant.CommonAction.reset,
+                                    {
+                                        index : 1,
+                                        routes: [
+                                            {name: MyConfig.routeName.Home},
+                                            {
+                                                name  : MyConfig.routeName.OrderDetails,
+                                                params: {'id': route?.params?.id, 'item': route?.params}
+                                            },
+                                        ]
+                                    },
+                                    null,
+                                    null
                 );
                 return true;
             };
@@ -89,16 +98,25 @@ const ProductBuySuccess = ({route, navigation}: any) => {
 
                             <MyButton
                                 color = {MyStyle.LGButtonPrimary}
-                                title = {MyLANG.Close}
+                                title = {MyLANG.ViewOrder}
                                 linearGradientStyle = {{marginTop: 10}}
                                 onPress = {(e: any) => {
-                                    MyUtil.stackAction(false,
-                                                       navigation,
-                                                       MyConstant.StackAction.pop,
-                                                       3,
-                                                       null,
-                                                       null,
-                                    );
+                                    MyUtil.commonAction(true,
+                                                        navigation,
+                                                        MyConstant.CommonAction.reset,
+                                                        {
+                                                            index : 1,
+                                                            routes: [
+                                                                {name: MyConfig.routeName.Home},
+                                                                {
+                                                                    name  : MyConfig.routeName.OrderDetails,
+                                                                    params: {'id': route?.params?.id, 'item': route?.params}
+                                                                },
+                                                            ]
+                                                        },
+                                                        null,
+                                                        null
+                                    )
                                 }}
                             />
 

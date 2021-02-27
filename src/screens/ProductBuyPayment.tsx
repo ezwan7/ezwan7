@@ -142,8 +142,8 @@ const ProductBuyPayment = ({route, navigation}: any) => {
 
     const {register, getValues, setValue, handleSubmit, formState, errors, reset, triggerValidation, watch}: any = useForm(
         {
-            mode                : 'onSubmit',
-            reValidateMode      : 'onChange',
+            mode          : 'onSubmit',
+            reValidateMode: 'onChange',
             // defaultValues       : defaultValues,
             validationSchema    : orderFormSchema,
             validateCriteriaMode: 'all',
@@ -161,8 +161,20 @@ const ProductBuyPayment = ({route, navigation}: any) => {
         }
     }, [register]);
 
-    const values                                                                                                                                                                                                              = getValues();
-    const {delivery_type, delivery_address, pickup_address, billing_address, delivery_method, payment_method, installment_membership_type, installment_period, installment_amount, payment_reference_id, terms_and_condition} = watch(
+    const values = getValues();
+    const {
+              delivery_type,
+              delivery_address,
+              pickup_address,
+              billing_address,
+              delivery_method,
+              payment_method,
+              installment_membership_type,
+              installment_period,
+              installment_amount,
+              payment_reference_id,
+              terms_and_condition
+          }      = watch(
         ['delivery_type', 'delivery_address', 'pickup_address', 'billing_address', 'delivery_method', 'payment_method', 'installment_membership_type', 'installment_period', 'installment_amount', 'payment_reference_id', 'terms_and_condition']);
 
 
@@ -175,9 +187,9 @@ const ProductBuyPayment = ({route, navigation}: any) => {
                 //await MyFunction.fetchAddress(user?.id, user?.customers_telephone);
                 getDefaultDeliveryAddress();
 
-            } else if (route?.params?.payment_status === 'SUCCESS' && route?.params?.payment_reference_id === payment_reference_id) {
+            } else if (route?.params?.payment_status === 'SUCCESS' && route?.params?.payment_reference_id) {
 
-                orderPlace();
+                orderPlace(route?.params?.payment_reference_id);
 
             } else if (route?.params?.payment_status === 'FAILURE') {
 
@@ -299,6 +311,14 @@ const ProductBuyPayment = ({route, navigation}: any) => {
             getDefaultDeliveryAddress({'delivery_type': item?.id}, false);
         } else {
             onChangeDeliveryPayment({'delivery_type': item?.id});
+            let address_default: any         = addresses?.[0];
+            const default_address_id: number = addresses.find((e: any) => Number(e.default_address) > 0)?.default_address;
+            if (Number(default_address_id) > 0) {
+                address_default = addresses.find((e: any) => Number(e.id) === default_address_id);
+            }
+            if (address_default?.id) {
+                setValue('delivery_address', address_default, false);
+            }
         }
 
         MyUtil.printConsole(true, 'log', `LOG: onDeliveryType: `, {item, delivery_address});
@@ -490,20 +510,21 @@ const ProductBuyPayment = ({route, navigation}: any) => {
                     onPress: async () => {
                         MyUtil.printConsole(true, 'log', 'LOG: showAlert: ', 'OK');
 
-                        switch (payment_method?.name) {
+                        switch (payment_method?.id) {
 
-                            case MyConfig.PaymentMethod.CashOnDelivery.name:
-                            case MyConfig.PaymentMethod.Installment.name:
+                            case MyConfig.PaymentMethod.CashOnDelivery.id:
+                            case MyConfig.PaymentMethod.Installment.id:
                                 orderPlace();
                                 break;
 
-                            case MyConfig.PaymentMethod.CreditCard.name:
-                            case MyConfig.PaymentMethod.Grabpay.name:
+                            case MyConfig.PaymentMethod.CreditCard.id:
+                            case MyConfig.PaymentMethod.Grabpay.id:
 
                                 const ref_id: any = generateId(20);
+                                const payment_id  = payment_method?.id === MyConfig.PaymentMethod.CreditCard.id ? 2 : 523;
                                 setValue('payment_reference_id', ref_id, false);
 
-                                const url: string = `${payment_method?.request_url}?amount=${cart?.total}&user_id=${user?.id}&username=${user?.customers_firstname}&email=${user?.email}&phone=${user?.customers_telephone}&ref_id=${ref_id}`;
+                                const url: string = `${payment_method?.request_url}?amount=${(cart?.total).toFixed(2)}&payment_id=${payment_id}&user_id=${user?.id}&username=${user?.customers_firstname}&useremail=${user?.email}&usermobile=${user?.customers_telephone}&ref_id=${ref_id}`;
 
                                 MyUtil.commonAction(false,
                                                     null,
@@ -514,6 +535,7 @@ const ProductBuyPayment = ({route, navigation}: any) => {
                                                         success_url         : payment_method?.success_url,
                                                         failure_url         : payment_method?.failure_url,
                                                         payment_reference_id: ref_id,
+                                                        amount              : (cart?.total).toFixed(2),
                                                         showBackActionAlert : true,
                                                     },
                                                     null,
@@ -521,7 +543,7 @@ const ProductBuyPayment = ({route, navigation}: any) => {
                                 route.params = null;
                                 break;
 
-                            case MyConfig.PaymentMethod.DirectBank.name:
+                            case MyConfig.PaymentMethod.DirectBank.id:
 
                                 let bankAccounts: string = '';
                                 if (payment_method?.bank_details?.length > 0) {
@@ -565,7 +587,7 @@ const ProductBuyPayment = ({route, navigation}: any) => {
     };
 
 
-    const orderPlace = async () => {
+    const orderPlace = async (payment_ref_id: string = payment_reference_id) => {
 
         const cart_array: any = new Array();
 
@@ -615,6 +637,8 @@ const ProductBuyPayment = ({route, navigation}: any) => {
                     }
                 }
 
+                const gift_id: any = cart.items?.[key]?.item?.giftitems?.find((e: any) => e.cart_selected);
+
                 cart_array.push(
                     {
                         'products_id'              : cart.items?.[key]?.item?.id,
@@ -624,6 +648,7 @@ const ProductBuyPayment = ({route, navigation}: any) => {
                         'price'                    : cart.items?.[key]?.price,
                         'attributes'               : attributes_array,
                         'addons'                   : addons_array,
+                        'gift_ids'                 : gift_id?.gift_id || null,
                     });
             }
         }
@@ -635,23 +660,25 @@ const ProductBuyPayment = ({route, navigation}: any) => {
 
                 customers_id       : user?.id,
                 email              : user?.email,
+                customers_name     : `${user?.customers_firstname} ${user?.customers_lastname}`,
                 customers_telephone: user?.customers_telephone,
 
                 delivery_type: delivery_type?.id,
 
-                pickup_address: pickup_address?.id,
+                pickuppoints  : pickup_address?.id,
+                pickup_address: `${pickup_address?.points_name}\n${pickup_address?.addressText}`,
                 receiver_name : delivery_type?.id === MyConfig.DeliveryType.PickUp.id ? values.receiver_name : null,
                 receiver_phone: delivery_type?.id === MyConfig.DeliveryType.PickUp.id ? values.receiver_phone : null,
                 receiver_ic   : delivery_type?.id === MyConfig.DeliveryType.PickUp.id ? values.receiver_ic : null,
 
-                delivery_firstname     : delivery_type?.id === MyConfig.DeliveryType.Courier.id ? delivery_address?.firstname : null,
-                delivery_lastname      : delivery_type?.id === MyConfig.DeliveryType.Courier.id ? delivery_address?.lastname : null,
-                delivery_street_address: delivery_type?.id === MyConfig.DeliveryType.Courier.id ? delivery_address?.street : null,
-                delivery_suburb        : delivery_type?.id === MyConfig.DeliveryType.Courier.id ? delivery_address?.suburb : null,
-                delivery_city          : delivery_type?.id === MyConfig.DeliveryType.Courier.id ? delivery_address?.city : null,
-                delivery_postcode      : delivery_type?.id === MyConfig.DeliveryType.Courier.id ? delivery_address?.postcode : null,
-                delivery_zone          : delivery_type?.id === MyConfig.DeliveryType.Courier.id ? delivery_address?.zone_id : null,
-                delivery_country       : delivery_type?.id === MyConfig.DeliveryType.Courier.id ? delivery_address?.countries_id : null,
+                delivery_firstname     : delivery_address?.firstname,
+                delivery_lastname      : delivery_address?.lastname,
+                delivery_street_address: delivery_address?.street,
+                delivery_suburb        : delivery_address?.suburb,
+                delivery_city          : delivery_address?.city,
+                delivery_postcode      : delivery_address?.postcode,
+                delivery_zone          : delivery_address?.zone_id,
+                delivery_country       : delivery_address?.countries_id,
 
                 billing_firstname     : billing_address?.firstname,
                 billing_lastname      : billing_address?.lastname,
@@ -662,16 +689,16 @@ const ProductBuyPayment = ({route, navigation}: any) => {
                 billing_zone          : billing_address?.zone_id,
                 billing_country       : billing_address?.countries_id,
 
-                shipping_method: delivery_type?.id === MyConfig.DeliveryType.Courier.id ? delivery_method?.id : null,
-                shipping_cost  : delivery_type?.id === MyConfig.DeliveryType.Courier.id ? cart?.delivery_charge : null,
+                shipping_method: delivery_type?.id === MyConfig.DeliveryType.PickUp.id ? 'Self Pickup' : delivery_method?.name,
+                shipping_cost  : cart?.delivery_charge,
 
                 payment_method: payment_method?.id,
 
-                ref_id: (payment_method?.name === MyConfig.PaymentMethod.CreditCard.name || payment_method?.name === MyConfig.PaymentMethod.Grabpay.name) ? payment_reference_id : null,
+                ref_id: (payment_method?.id === MyConfig.PaymentMethod.CreditCard.id || payment_method?.id === MyConfig.PaymentMethod.Grabpay.id) ? payment_ref_id : null,
 
-                installment_membership_type: payment_method?.name === MyConfig.PaymentMethod.Installment.name ? installment_membership_type?.id : null,
-                installment_period         : payment_method?.name === MyConfig.PaymentMethod.Installment.name ? installment_period?.id : null,
-                installment_amount         : payment_method?.name === MyConfig.PaymentMethod.Installment.name ? installment_amount?.data : null,
+                installment_membership_type: payment_method?.id === MyConfig.PaymentMethod.Installment.id ? installment_membership_type?.id : null,
+                installment_period         : payment_method?.id === MyConfig.PaymentMethod.Installment.id ? installment_period?.id : null,
+                installment_amount         : payment_method?.id === MyConfig.PaymentMethod.Installment.id ? installment_amount?.data : null,
 
                 is_coupon_applied: Number(cart?.voucher?.amount) > 0 ? true : false,
                 coupon_amount    : Number(cart?.voucher?.amount) > 0 ? cart?.voucher?.amount : null,
@@ -893,7 +920,7 @@ const ProductBuyPayment = ({route, navigation}: any) => {
                                  <MyInput
                                      mode = "line"
                                      floatingLabel = {MyLANG.ReceiverPhoneNumber}
-                                     placeholderLabel = "+60 00 0000 0000"
+                                     // placeholderLabel = "+60 00 0000 0000"
                                      mask = {"+60 [00] [0000] [9999]"}
                                      inputProps = {{keyboardType: 'phone-pad'}}
                                      onChangeText = {(text: any) => setValue('receiver_phone', text, true)}
@@ -1148,7 +1175,7 @@ const ProductBuyPayment = ({route, navigation}: any) => {
 
                         </View>
 
-                        {(payment_method?.name === MyConfig.PaymentMethod.Installment.name) &&
+                        {(payment_method?.id === MyConfig.PaymentMethod.Installment.id) &&
                          <View style = {[MyStyleSheet.viewPageCard, {paddingHorizontal: 0, paddingBottom: 0}]}>
                              <View style = {[MyStyle.RowBetweenCenter, {paddingHorizontal: MyStyle.paddingHorizontalPage}]}>
                                  <Text style = {[{...MyStyleSheet.headerPage, marginBottom: 4}]}>{MyLANG.MembershipType}</Text>
@@ -1192,7 +1219,7 @@ const ProductBuyPayment = ({route, navigation}: any) => {
 
                          </View>
                         }
-                        {(payment_method?.name === MyConfig.PaymentMethod.Installment.name) &&
+                        {(payment_method?.id === MyConfig.PaymentMethod.Installment.id) &&
                          <View style = {[MyStyleSheet.viewPageCard, {paddingHorizontal: 0, paddingBottom: 0}]}>
                              <View style = {[MyStyle.RowBetweenCenter, {paddingHorizontal: MyStyle.paddingHorizontalPage}]}>
                                  <Text style = {[{...MyStyleSheet.headerPage, marginBottom: 4}]}>{MyLANG.InstallmentPeriod}</Text>
@@ -1271,7 +1298,7 @@ const ProductBuyPayment = ({route, navigation}: any) => {
                         <CartPageTotal
                             cart = {cart}
                             service_charge = {false}
-                            installment = {payment_method?.name === MyConfig.PaymentMethod.Installment.name ? {
+                            installment = {payment_method?.id === MyConfig.PaymentMethod.Installment.id ? {
                                 amount: installment_amount?.data,
                                 months: installment_period?.name
                             } : null}
@@ -1428,7 +1455,7 @@ const ProductBuyPayment = ({route, navigation}: any) => {
                     }
                 />
 
-                {(payment_method?.name === MyConfig.PaymentMethod.Installment.name && app_input?.installment_membership_type?.length > 0) &&
+                {(payment_method?.id === MyConfig.PaymentMethod.Installment.id && app_input?.installment_membership_type?.length > 0) &&
                  <MyModal
                      visible = {modalVisibleEMIMembershipType}
                      onRequestClose = {() => setModalVisibleEMIMembershipType(false)}
@@ -1448,7 +1475,7 @@ const ProductBuyPayment = ({route, navigation}: any) => {
                      }
                  />
                 }
-                {(payment_method?.name === MyConfig.PaymentMethod.Installment.name && app_input?.installment_period?.length > 0) &&
+                {(payment_method?.id === MyConfig.PaymentMethod.Installment.id && app_input?.installment_period?.length > 0) &&
                  <MyModal
                      visible = {modalVisibleEMIInstallmentPeriod}
                      onRequestClose = {() => setModalVisibleEMIInstallmentPeriod(false)}

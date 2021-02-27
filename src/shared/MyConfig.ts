@@ -39,8 +39,8 @@ const primaryGradient = {
 const MyConfig: any = {
 
     app_name         : 'DirectD',
-    app_version      : '0.99',
-    app_build_version: 99,
+    app_version      : '1.28',
+    app_build_version: 128,
     app_platform     : platformOS,
 
     app_email    : 'directd@gmail.com',
@@ -53,18 +53,20 @@ const MyConfig: any = {
     android_package_name: 'com.directd',
     ios_app_id          : 'id1111111',
 
+    share_url: 'https://share.directd.com.my',
+
     google_map_api_key      : 'AIzaSyB9iP58dJwjx7BcZA7kRnhIqKn9L3hVoZ0',
     google_web_api_key      : 'AIzaSyC3I4LeHLLwCclW6AeNkIF8_4_S2vQEe9Y',
     google_web_client_id    : '324398162611-hq18dt1vpm68iefc4289io037gkdg0lc.apps.googleusercontent.com',
     google_web_client_secret: 'gOhKdVBAs36LtHsT-6lfUpxE',
+    google_server_key       : 'AAAAhbY8x4A:APA91bEL4zQUpFQ2idIEBL1BVJLV6nvby6MDKH2hsXgoTVdUdygFCevlI95dhVcaUlt05ZDMupBV0ZJ1YfDqOXC8UmPkLrsSKMB379VW6lNnkEkA3Z7-x-L5PcfG1mkB0awg09ryOT9Z',
 
     facebook_app_id: '241236920251156',
 
     // apiUrl : 'http://192.168.0.101:8500/',
-    // apiUrl   : 'https://smddeveloper.com/directd_merge/public/api/',
     // serverUrl: 'https://smddeveloper.com/directd_merge/',
-    apiUrl   : 'https://directd.caribpayintl.com/public/api/',
-    serverUrl: 'https://directd.caribpayintl.com/',
+    apiUrl   : 'https://directd.crmcloudy.com/public/api/',
+    serverUrl: 'https://directd.crmcloudy.com/',
 
     api_version: '',
     api_auth   : 'auth/',
@@ -185,7 +187,7 @@ const MyConfig: any = {
         },
         CreditCard    : {
             id  : 26,
-            name: 'Credit Card'
+            name: 'Credit Card / Debit Card / Online Banking'
         },
         Grabpay       : {
             id  : 27,
@@ -229,8 +231,8 @@ const MyConfig: any = {
     LanguageActive: 1,
 
     useFormDefault: {
-        mode                : 'onSubmit',
-        reValidateMode      : 'onChange',
+        mode          : 'onSubmit',
+        reValidateMode: 'onChange',
         // defaultValues       : defaultValues,
         // validationResolver    : SignupSchema,
         validateCriteriaMode: 'all',
@@ -295,7 +297,7 @@ const MyConfig: any = {
     },
 
     DefatulImagePickerOptions: {
-        title         : MyLANG.SelectSource,
+        title: MyLANG.SelectSource,
         // customButtons : [{name: 'fb', title: 'Choose Photo from Facebook'}],
         storageOptions: {
             skipBackup: true,
@@ -308,7 +310,7 @@ const MyConfig: any = {
         maxHeight     : 1000,
         rotation      : 0,
         quality       : 0.7,
-        videoQuality  : 'high', // 'low', 'medium', or 'high' on iOS, 'low' or 'high' on Android
+        videoQuality  : 'high', // 'low', 'medium', or 'high' on ios, 'low' or 'high' on Android
         durationLimit : 3,
         allowsEditing : true,
         noData        : false,
@@ -411,6 +413,37 @@ const MyConfig: any = {
             id   : 2,
             icon : 'truck',
             title: MyLANG.CourierService,
+        },
+    ],
+
+    sortingTypes: [
+        {
+            id           : 1,
+            name         : MyLANG.Name,
+            name_key     : 'products_name',
+            direction    : MyLANG.Ascending,
+            direction_key: 'ASC',
+        },
+        {
+            id           : 2,
+            name         : MyLANG.Name,
+            name_key     : 'products_name',
+            direction    : MyLANG.Descending,
+            direction_key: 'DESC',
+        },
+        {
+            id           : 3,
+            name         : MyLANG.Price,
+            name_key     : 'products_price',
+            direction    : MyLANG.Ascending,
+            direction_key: 'ASC',
+        },
+        {
+            id           : 4,
+            name         : MyLANG.Price,
+            name_key     : 'products_price',
+            direction    : MyLANG.Descending,
+            direction_key: 'DESC',
         },
     ],
 
@@ -526,6 +559,7 @@ const MyAPI = {
     filter                     : MyConfig.apiUrl + MyConfig.api_version + 'getfilters',
     filter_product             : MyConfig.apiUrl + MyConfig.api_version + 'getfilterproducts',
     banner                     : MyConfig.apiUrl + MyConfig.api_version + 'getbanners',
+    check_inventory            : MyConfig.apiUrl + MyConfig.api_version + 'check-inventory',
 
     coupon_apply          : MyConfig.apiUrl + MyConfig.api_version + 'getcoupon',
     wishlist              : MyConfig.apiUrl + MyConfig.api_version + 'getwishlist',

@@ -209,6 +209,8 @@ const EditProfile = ({route, navigation}: any) => {
                 const data = response.data?.data?.data?.[0];
                 if (data?.id > 0) {
 
+                    data['token'] = user['token'];
+
                     store.dispatch(updateUser(data, 'all'));
 
                     MyUtil.showMessage(MyConstant.SHOW_MESSAGE.TOAST, MyLANG.ProfileUpdated, false);
@@ -344,7 +346,9 @@ const EditProfile = ({route, navigation}: any) => {
             const data = response.data?.data?.data?.[0];
             if (data?.id > 0) {
 
-                store.dispatch(updateUser(data, 'all'));
+                user['customers_picture'] = data['customers_picture'];
+
+                store.dispatch(updateUser(user, 'all'));
 
                 MyUtil.showMessage(MyConstant.SHOW_MESSAGE.TOAST, MyLANG.ProfilePhotoUploadedSuccessfully, false);
             }
@@ -472,7 +476,7 @@ const EditProfile = ({route, navigation}: any) => {
                             <MyInput
                                 floatingLabel = {MyLANG.EnterYourPhone}
                                 floatingLabelFloated = {true}
-                                placeholderLabel = "+60 00 0000 0000"
+                                // placeholderLabel = "+60 00 0000 0000"
                                 mask = {"+60 [00] [0000] [9999]"}
                                 inputProps = {{keyboardType: 'phone-pad'}}
                                 onChangeText = {(text: any) => setValue('phone', text, true)}

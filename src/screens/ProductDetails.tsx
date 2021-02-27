@@ -6,7 +6,7 @@ import {
     SafeAreaView,
     ScrollView,
     RefreshControl,
-    Modal,
+    Modal, TouchableOpacity,
 } from 'react-native';
 
 import HTML from 'react-native-render-html';
@@ -39,7 +39,7 @@ import {
     ProductListItemContentLoader,
     ListItemSeparator,
     ProductListItem,
-    ProductDetailsContentLoader, ImageSliderCounter,
+    ProductDetailsContentLoader, ImageSliderCounter, ModalNotFullScreen, ModalRadioList, ModalMultiList, ModalNotFullScreenHeaderFooter,
 } from "../shared/MyContainer";
 
 import {cartEmpty, cartItemAdd, cartItemQuantityIncrement} from "../store/CartRedux";
@@ -51,6 +51,7 @@ import * as yup from "yup";
 import {useForm} from "react-hook-form";
 import NumberFormat from "react-number-format";
 import {WebView} from 'react-native-webview';
+import {MyModal} from "../components/MyModal";
 
 
 let renderCount = 0;
@@ -83,6 +84,9 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
 
     const [imageViewerVisible, setImageViewerVisible] = useState(false);
 
+    const [modalVisibleAddOn, setModalVisibleAddOn] = useState(false);
+    const [modalAddOn, setModalAddOn]               = useState({index: -1, name: undefined, items: []});
+
     const scrollRef: any                  = useRef();
     const [segmentIndex, setSegmentIndex] = useState(0);
 
@@ -90,10 +94,16 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
 
     const videoRef: any = useRef();
 
+    const [textShown, setTextShown]   = useState(false); //To show ur remaining Text
+    const [lengthMore, setLengthMore] = useState(false); //to show the "Read more & Less Line"
+    const toggleNumberOfLines         = () => { //To toggle the show text or hide it
+        setTextShown(!textShown);
+    }
+
     const {register, getValues, setValue, handleSubmit, formState, errors, reset, triggerValidation, watch}: any = useForm(
         {
-            mode                : 'onSubmit',
-            reValidateMode      : 'onChange',
+            mode          : 'onSubmit',
+            reValidateMode: 'onChange',
             // defaultValues       : defaultValues,
             validationSchema    : productFormSchema,
             validateCriteriaMode: 'all',
@@ -145,6 +155,10 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                             'language_id' : MyConfig.LanguageActive,
                             'products_id' : route?.params?.id,
                             'customers_id': user?.id,
+                            "price"       : {
+                                "minPrice": "",
+                                "maxPrice": ""
+                            },
 
                             'app_ver'      : MyConfig.app_version,
                             'app_build_ver': MyConfig.app_build_version,
@@ -161,7 +175,13 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
 
                 const data = response.data.data.product_data[0];
                 if (data.id > 0) {
-                    setValue('product', data, true);
+
+                    if (data.giftitems?.length > 0) {
+                        onGift({...data, current_stock: undefined}, 0);
+
+                    } else {
+                        setValue('product', {...data, current_stock: undefined}, true);
+                    }
 
                     calculateTotal(data, false);
                 }
@@ -178,6 +198,44 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
             if (showInfoMessage !== false) {
                 MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message, false);
             }
+        }
+    }
+
+    const fetchStock = async (attributeIds: string, updatedProduct: any, showLoader: any = MyLANG.PleaseWait + '...', setRefresh: boolean = false, showInfoMessage: any = {
+        'showMessage': MyConstant.SHOW_MESSAGE.TOAST,
+        'message'    : MyLANG.StockUpdated
+    }) => {
+        const response: any = await MyUtil
+            .myHTTP(false, MyConstant.HTTP_POST, MyAPI.check_inventory,
+                    {
+                        'language_id': MyConfig.LanguageActive,
+                        'products_id': route?.params?.id,
+                        'attributeid': attributeIds,
+
+                        'app_ver'      : MyConfig.app_version,
+                        'app_build_ver': MyConfig.app_build_version,
+                        'platform'     : MyConfig.app_platform,
+                        'device'       : null,
+                    }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, showLoader, true, false
+            );
+
+        MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
+            'apiURL': MyAPI.check_inventory, 'response': response
+        });
+
+        if (response.type === MyConstant.RESPONSE.TYPE.data && response.data?.status === 200 && response.data?.data?.qty > -1) {
+
+            const data = response.data.data;
+
+            setValue('product', {...updatedProduct, current_stock: data.qty}, true);
+
+            // setValue('product', data, true);
+
+
+        } else {
+            MyUtil.showMessage(MyConstant.SHOW_MESSAGE.TOAST, response.data?.data?.msg || MyLANG.UnknownError, false);
+
+            setValue('product', {...updatedProduct, current_stock: undefined}, false);
         }
     }
 
@@ -301,48 +359,140 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
         const updated_attribute: any = [...item?.attributes];
         updated_attribute[i]         = {...item?.attributes?.[i], values: updated_values};
 
-        const updatedProduct: any = {
+        let updatedProduct: any = {
             ...item,
             attributes: updated_attribute
         }
 
         MyUtil.printConsole(true, 'log', 'LOG: onAttribute: ', {item, i, j, product, total, selected_option, cart_selected, updatedProduct});
 
-        calculateTotal(updatedProduct, true);
-
-    }
-
-    const onAddOn = (item: any, i: number, j: number) => {
-
-        const selected_option: any = item?.linked?.[i]?.products?.[j];
-
-        const cart_selected: boolean = selected_option?.cart_selected === true ? false : true;
-
-        const updated_products: any = [];
-
-        for (const [k, prod] of item?.linked?.[i]?.products?.entries()) {
-            if (k === j) {
-                updated_products[k] = {...prod, cart_selected: cart_selected};
-            } else {
-                updated_products[k] = {...prod, cart_selected: false};
+        let attributeIds: string     = "";
+        let attributeIdCount: number = 0;
+        if (updated_attribute?.length > 0) {
+            for (const [i, attribute] of updated_attribute.entries()) {
+                if (attribute?.values?.length > 0) {
+                    for (const [j, value] of attribute.values.entries()) {
+                        if (value?.cart_selected === true) {
+                            attributeIds += attributeIds?.length > 0 ? "," + value?.id : value?.id;
+                            attributeIdCount++;
+                        }
+                    }
+                }
             }
         }
 
-        const updated_addon: any = [...item?.linked];
-        updated_addon[i]         = {...item?.linked?.[i], products: updated_products};
 
-        const updatedProduct: any = {
-            ...item,
-            linked: updated_addon
+        if (attributeIds?.length > 0 && attributeIdCount === updated_attribute?.length) {
+            fetchStock(attributeIds, updatedProduct);
+
+        } else {
+            updatedProduct = {
+                ...item,
+                attributes   : updated_attribute,
+                current_stock: undefined
+            }
+            setValue('product', updatedProduct, false);
         }
-
-        MyUtil.printConsole(true, 'log', 'LOG: onAttribute: ', {item, i, j, total, selected_option, cart_selected, updatedProduct});
 
         calculateTotal(updatedProduct, true);
 
+        MyUtil.printConsole(true, 'log', 'LOG: attributes: ', {attributeIds, attributeIdCount, attrLength: updated_attribute?.length, updatedProduct});
+
     }
 
+    const onModalAddOnVisible = (linked: any, index: number) => {
+
+        setModalAddOn({index: index, name: MyFunction.toTitleCase(linked.subcat_name), items: linked.products});
+
+        setModalVisibleAddOn(true);
+
+        MyUtil.printConsole(true, 'log', 'LOG: onModalAddOnItem: ', {linked, index});
+    }
+
+    const onModalAddOnSelectDeselectAll = (cart_selected: boolean) => {
+
+        const update_linked_products: any = [];
+
+        for (const [k, prod] of product?.linked?.[modalAddOn?.index]?.products?.entries()) {
+            update_linked_products[k] = {...prod, cart_selected: cart_selected};
+        }
+
+        const update_linked: any         = [...product.linked];
+        update_linked[modalAddOn?.index] = {
+            ...product.linked?.[modalAddOn?.index],
+            products: update_linked_products,
+        };
+
+        setModalAddOn({...modalAddOn, items: update_linked_products});
+
+        MyUtil.printConsole(true, 'log', 'LOG: onModalAddOnSelectDeselectAll: ', {update_linked_products});
+    }
+
+    const onModalAddOnItem = (item: any, index: number) => {
+
+        const target_linked_product: any = modalAddOn?.items?.[index];
+
+        const update_cart_selected: boolean = target_linked_product?.cart_selected === true ? false : true;
+
+
+        const update_linked_products: any = [...modalAddOn?.items];
+        update_linked_products[index]     = {...target_linked_product, cart_selected: update_cart_selected};
+
+        setModalAddOn({...modalAddOn, items: update_linked_products});
+
+
+        MyUtil.printConsole(true, 'log', 'LOG: onModalAddOnItem: ', {item, index, update_cart_selected});
+    }
+
+    const onModalAddOnOk = () => {
+
+        const update_linked: any         = [...product.linked];
+        update_linked[modalAddOn?.index] = {
+            ...product.linked?.[modalAddOn?.index],
+            products: modalAddOn?.items,
+        };
+
+        const updatedProduct: any = {
+            ...product,
+            linked: update_linked,
+        }
+
+        calculateTotal(updatedProduct, true);
+
+
+        setModalAddOn({index: -1, name: undefined, items: []});
+
+        setModalVisibleAddOn(false);
+
+        MyUtil.printConsole(true, 'log', 'LOG: onModalAddOnOk: ', {updatedProduct});
+    }
+
+    const onGift = (item: any, i: number) => {
+
+        const updated_giftitems: any = [...item?.giftitems];
+
+        for (const [k, value] of item?.giftitems?.entries()) {
+            if (k === i) {
+                updated_giftitems[k] = {...value, cart_selected: true};
+            } else {
+                updated_giftitems[k] = {...value, cart_selected: false};
+            }
+        }
+
+        let updatedProduct: any = {
+            ...item,
+            giftitems: updated_giftitems
+        }
+
+        setValue('product', updatedProduct, false);
+
+        MyUtil.printConsole(true, 'log', 'LOG: onGift: ', {item, i, updated_giftitems, updatedProduct});
+    }
+
+
     const onBuyNow = () => {
+
+        let itemAttributeId: string = '';
 
         if (product?.attributes?.length > 0) {
 
@@ -352,6 +502,7 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                 if (attribute?.values?.length > 0) {
                     for (const [j, value] of attribute.values.entries()) {
                         if (value?.cart_selected === true) {
+                            itemAttributeId += '_' + value?.id;
                             message = null;
                         } else {
                             if (message === undefined) {
@@ -367,11 +518,11 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
             }
         }
 
-        const itemId: string = '_' + product?.id;
-        // MyUtil.printConsole(true, 'log', 'LOG: onBuyNow: ', {itemId, product});
+        const itemId: string = '_' + product?.id + itemAttributeId;
+
         if (cart?.items[itemId]) {
             if (Number(product?.current_stock) > Number(cart?.items[itemId]?.quantity)) {
-                dispatch(cartItemAdd(product));
+                dispatch(cartItemAdd(product, itemId));
             } else {
                 MyUtil.showMessage(MyConstant.SHOW_MESSAGE.TOAST, MyLANG.OutOfStock, false);
             }
@@ -384,7 +535,7 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
             )
         } else {
             if (Number(product?.current_stock) > 0) {
-                dispatch(cartItemAdd(product));
+                dispatch(cartItemAdd(product, itemId));
                 MyUtil.commonAction(false,
                                     navigation,
                                     MyConstant.CommonAction.navigate,
@@ -396,6 +547,8 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                 MyUtil.showMessage(MyConstant.SHOW_MESSAGE.TOAST, MyLANG.OutOfStock, false);
             }
         }
+
+        MyUtil.printConsole(true, 'log', 'LOG: onBuyNow: ', {itemId, product});
     };
 
     const onProductLikeUnlike = async () => {
@@ -410,6 +563,11 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
             setValue('product', updatedProduct, true);
         }
     }
+
+    const onTextLayout = useCallback(e => {
+        setLengthMore(e.nativeEvent.lines.length >= 10); //to check the text is more than 4 lines or not
+        // console.log(e.nativeEvent);
+    }, []);
 
 
     return (
@@ -435,6 +593,7 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                          >
 
                              <ScrollView
+                                 style = {{height: MyStyle.screenWidth / 1.5, maxHeight: MyStyle.screenWidth / 1.5}}
                                  horizontal = {true}
                                  pagingEnabled = {true}
                                  decelerationRate = "fast"
@@ -535,6 +694,7 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                                               </Text>
                                           </View>
                                                                              :
+                                          product?.current_stock !== undefined ?
                                           <View style = {[MyStyle.RowLeftBottom, {marginTop: 7}]}>
                                               <MyIcon.SimpleLineIcons
                                                   name = "close"
@@ -546,6 +706,7 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                                                   {MyLANG.OutOfStock}
                                               </Text>
                                           </View>
+                                                                               : null
                                          }
                                          {/*<View style = {[MyStyle.RowLeftBottom, {marginTop: 5}]}>
                                              <MyIcon.SimpleLineIcons
@@ -593,14 +754,6 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                                                                  }]}>
                                                                      {item.value}
                                                                  </Text>
-                                                                 {/*{
-                                                                     (item.price_prefix && item.price) &&
-                                                                     <Text style = {[MyStyleSheet.textListItemSubTitle2, item?.cart_selected === true && {
-                                                                         color: MyColor.textLightPrimary2,
-                                                                     }]}>
-                                                                         {item.price_prefix} {item.price}
-                                                                     </Text>
-                                                                 }*/}
                                                              </MyMaterialRipple>
                                                          </LinearGradient>
                                                      ))
@@ -612,49 +765,103 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                                  ))
                              }
 
-                             {product?.linked?.length > 0 && product.linked.map(
-                                 (addon: any, i: number) => (
-                                     <View key = {i}>
-                                         <View style = {[MyStyleSheet.viewPageCard, MyStyle.ColumnStart, {paddingVertical: MyStyle.paddingVerticalPage / 2}]}>
-                                             <Text style = {[MyStyleSheet.textListItemTitleDark, {paddingVertical: 10}]}>
-                                                 {addon.subcat_name}
-                                             </Text>
-                                             <View style = {[MyStyle.RowLeftCenter, {flexWrap: "wrap"}]}>
-                                                 {addon?.products?.length > 0 && addon.products.map(
-                                                     (item: any, j: number) => (
-                                                         <LinearGradient
-                                                             key = {j}
-                                                             style = {[MyStyle.ColumnStart, MyStyleSheet.LGButtonProductPage]}
-                                                             {...
-                                                                 item?.cart_selected === true ? {...MyStyle.LGButtonPrimary} : {...MyStyle.LGGrey}
-                                                             }
-                                                         >
-                                                             <MyMaterialRipple
-                                                                 style = {MyStyleSheet.MRButtonProductPage}
-                                                                 {...MyStyle.MaterialRipple.drawerRounded}
-                                                                 onPress = {() => onAddOn(product, i, j)}
-                                                             >
-                                                                 <Text style = {[MyStyleSheet.textListItemTitle2Dark, item?.cart_selected === true && {
-                                                                     color: MyColor.textLightPrimary,
-                                                                 }]}>
-                                                                     {item.products_name}
-                                                                 </Text>
-                                                                 {/*{
-                                                                     (Number(item.products_price) > 0) &&
-                                                                     <Text style = {[MyStyleSheet.textListItemSubTitle2, item?.cart_selected === true && {
-                                                                         color: MyColor.textLightPrimary2,
-                                                                     }]}>
-                                                                         + {item.products_price}
-                                                                     </Text>
-                                                                 }*/}
-                                                             </MyMaterialRipple>
-                                                         </LinearGradient>
-                                                     ))
-                                                 }
-                                             </View>
-                                         </View>
-                                         <View style = {MyStyleSheet.viewGap}></View>
+                             {product?.giftitems?.length > 0 &&
+                              <View style = {[MyStyleSheet.viewPageCard, MyStyle.ColumnStart, {paddingVertical: MyStyle.paddingVerticalPage / 2}]}>
+                                  <View style = {{flexDirection: 'row', alignItems: 'center', paddingVertical: 10}}>
+                                      <Text style = {[MyStyleSheet.textListItemTitleDark]}>
+                                          {MyLANG.GiftItem}
+                                      </Text>
+                                      <Text style = {[MyStyleSheet.textListItemSubTitleAlt, {marginLeft: 5}]}>
+                                          ({MyLANG.YouMaySelectOne})
+                                      </Text>
+                                  </View>
+
+                                  <View style = {[MyStyle.RowLeftCenter, {flexWrap: "wrap"}]}>
+                                      {product.giftitems.map(
+                                          (item: any, i: number) => (
+                                              <LinearGradient
+                                                  key = {i}
+                                                  style = {[MyStyle.ColumnStart, MyStyleSheet.LGButtonProductPage]}
+                                                  {...
+                                                      item?.cart_selected === true ? {...MyStyle.LGButtonPrimary} : {...MyStyle.LGGrey}
+                                                  }
+                                              >
+                                                  <MyMaterialRipple
+                                                      style = {[MyStyleSheet.MRButtonProductPage]}
+                                                      {...MyStyle.MaterialRipple.drawerRounded}
+                                                      onPress = {() => onGift(product, i)}
+                                                  >
+                                                      <Text style = {[MyStyleSheet.textListItemTitle2Dark, item?.cart_selected === true && {
+                                                          color: MyColor.textLightPrimary,
+                                                      }]}>
+                                                          {item.item_name}
+                                                      </Text>
+                                                  </MyMaterialRipple>
+                                              </LinearGradient>
+                                          ))
+                                      }
+                                  </View>
+                              </View>
+                             }
+
+                             <View style = {MyStyleSheet.viewGap}></View>
+
+                             {
+                                 product?.linked?.length > 0 && product.linked.map((linked: any, i: number) => (
+                                 linked?.products?.length > 0 &&
+                                 <View key = {i}>
+                                     <View style = {[MyStyleSheet.viewPageCard, MyStyle.ColumnStart, {paddingVertical: MyStyle.paddingVerticalPage / 2}]}>
+
+                                         {/*<View style = {[MyStyle.RowBetweenCenter, {paddingVertical: 10}]}>
+                                                     <Text style = {MyStyleSheet.textListItemTitleDark}>{MyFunction.toTitleCase(linked.subcat_name)}</Text>
+                                                     <TouchableOpacity
+                                                         activeOpacity = {0.8}
+                                                         onPress = {() => onModalAddOnVisible(linked, i)}
+                                                     >
+                                                         <Text style = {[MyStyleSheet.linkTextList, {textTransform: 'uppercase'}]}>{MyLANG.Select}</Text>
+                                                     </TouchableOpacity>
+                                                 </View>*/}
+
+                                         <Text style = {[MyStyleSheet.textListItemTitleDark, {paddingVertical: 10}]}>
+                                             {MyFunction.toTitleCase(linked.subcat_name)}
+                                         </Text>
+
+                                         <LinearGradient
+                                             style = {[MyStyle.ColumnStart, MyStyleSheet.LGButtonProductPage]}
+                                             {...MyStyle.LGGrey}
+                                         >
+                                             <MyMaterialRipple
+                                                 style = {[MyStyleSheet.MRButtonProductPage, {
+                                                     flexDirection : 'row',
+                                                     justifyContent: 'space-between',
+                                                     alignItems    : 'center'
+                                                 }]}
+                                                 {...MyStyle.MaterialRipple.drawerRounded}
+                                                 onPress = {() => onModalAddOnVisible(linked, i)}
+                                             >
+                                                 <Text style = {{
+                                                     fontFamily: MyStyle.FontFamily.OpenSans.regular,
+                                                     fontSize  : 12,
+                                                     color     : MyColor.Material.GREY["600"]
+                                                 }}>
+                                                     {linked?.products?.length > 0 ? linked?.products?.length : '0'} {MyLANG.Available}
+                                                 </Text>
+                                                 <Text style = {{
+                                                     fontFamily: MyStyle.FontFamily.OpenSans.regular,
+                                                     fontSize  : 12,
+                                                     color     : MyColor.Material.GREY["600"]
+                                                 }}>
+                                                     {linked?.products?.length > 0 ? linked.products.filter((lp: any) => lp.cart_selected).length : '0'} {MyLANG.Selected}
+                                                 </Text>
+                                                 <Text style = {[MyStyleSheet.textListItemTitle2Dark, {textTransform: 'uppercase'}]}>
+                                                     {MyLANG.Select}
+                                                 </Text>
+                                             </MyMaterialRipple>
+                                         </LinearGradient>
+
                                      </View>
+                                     <View style = {MyStyleSheet.viewGap}></View>
+                                 </View>
                                  ))
                              }
 
@@ -708,18 +915,59 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                                      }
                                  >
                                      <View style = {[{width: MyStyle.screenWidth, paddingVertical: MyStyle.marginVerticalPage}]}>
-                                         <Text style = {[MyStyleSheet.textListItemTitle2Dark, {marginHorizontal: MyStyle.marginHorizontalPage}]}>
+                                         <Text
+                                             style = {[MyStyleSheet.textListItemTitle2Dark, {marginHorizontal: MyStyle.marginHorizontalPage}]}
+                                             // @ts-ignore
+                                             onTextLayout = {onTextLayout}
+                                             numberOfLines = {textShown ? undefined : 10}
+                                         >
                                              {product?.products_short_description || MyLANG.NoDescriptionFound}
                                          </Text>
+                                         {
+                                             lengthMore ?
+                                             <Text style = {[MyStyleSheet.linkTextList, {
+                                                 marginHorizontal: MyStyle.marginHorizontalPage,
+                                                 marginVertical  : MyStyle.marginViewGapCardTop
+                                             }]}
+                                                   onPress = {toggleNumberOfLines}>
+                                                 {textShown ? 'Read less...' : 'Read more...'}
+                                             </Text>
+                                                        :
+                                             null
+                                         }
                                      </View>
                                      <View style = {{width: MyStyle.screenWidth, paddingVertical: MyStyle.marginVerticalPage}}>
-                                         <HTML
-                                             html = {product?.products_description ? product.products_description : MyLANG.NoInformationFound}
-                                             tagsStyles = {MyStyle.textHTMLBody}
-                                             ignoredTags = {MyStyle.IGNORED_TAGS}
-                                             containerStyle = {{marginHorizontal: MyStyle.marginHorizontalPage}}
-                                             textSelectable = {true}
-                                         />
+                                         {product?.specifications?.map(
+                                             (prop: any, index: any) => (
+                                                 <View
+                                                     key = {index}
+                                                     style = {{
+                                                         flexDirection   : 'row',
+                                                         marginHorizontal: MyStyle.marginHorizontalPage,
+                                                         marginBottom    : 5,
+                                                     }}
+                                                 >
+                                                     <Text
+                                                         style = {[MyStyleSheet.textListItemTitle2Dark, {
+                                                             textTransform: "capitalize",
+                                                             marginRight  : 5,
+                                                             flexBasis    : '40%',
+                                                             flexGrow     : 0,
+                                                         }]}
+                                                     >
+                                                         {Object.keys(prop)?.[0]}
+                                                     </Text>
+                                                     <Text
+                                                         style = {[MyStyleSheet.textListItemTitle2, {
+                                                             flexBasis: '60%',
+                                                             flexGrow : 0
+                                                         }]}
+                                                     >
+                                                         {prop[Object.keys(prop)?.[0]]}
+                                                     </Text>
+                                                 </View>
+                                             )
+                                         )}
                                      </View>
                                      <View style = {{width: MyStyle.screenWidth, paddingVertical: MyStyle.marginVerticalPage}}>
                                          <Text style = {[MyStyleSheet.textListItemTitle2Dark, {marginHorizontal: MyStyle.marginHorizontalPage}]}>
@@ -733,8 +981,8 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                                               javaScriptEnabled = {true}
                                               domStorageEnabled = {true}
                                               source = {{
-                                                  uri: `https://www.youtube.com/embed/${product.products_video?.slice(product.products_video.indexOf(
-                                                      'watch?v=') + 'watch?v='.length)}`
+                                                  uri: product.products_video?.includes('embed') ? product.products_video : `https://www.youtube.com/embed/${product.products_video?.slice(
+                                                      product.products_video.indexOf('watch?v=') + 'watch?v='.length)}`
                                               }}
                                           />
                                                                                                                                                                       :
@@ -760,7 +1008,7 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                                                          <View
                                                              key = {index}
                                                              style = {[MyStyle.RowLeftCenter, {
-                                                                 marginVertical   : MyStyle.marginVerticalPage,
+                                                                 paddingVertical  : MyStyle.marginHorizontalTextsView,
                                                                  borderBottomColor: MyColor.dividerDark,
                                                                  borderBottomWidth: index === (product.reviewed_customers?.length - 1) ? 0 : 0.9,
                                                              }]}
@@ -771,7 +1019,7 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                                                              />
                                                              <View style = {[MyStyle.ColumnBetween, {marginHorizontal: MyStyle.marginHorizontalTextsView}]}>
                                                                  <Text style = {MyStyleSheet.textListItemTitle2Dark}>
-                                                                     {item?.customers_name}
+                                                                     {item?.customers_firstname} {item?.customers_lastname}
                                                                  </Text>
                                                                  <View style = {[MyStyle.RowLeftCenter, {marginVertical: 2}]}>
                                                                      {Array(5).fill('').map(
@@ -853,7 +1101,7 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                                                  MyUtil.share(MyConstant.SHARE.TYPE.open,
                                                               product?.image,
                                                               {
-                                                                  message: `${product?.products_name}\n${product?.image}`,
+                                                                  message: `${product?.products_name}\n${MyConfig.serverUrl}product-detail/${product?.products_slug}`,
                                                                   url    : product?.image,
                                                               },
                                                               false
@@ -972,6 +1220,24 @@ const ProductDetailsScreen = ({route, navigation}: any) => {
                         images = {product?.images?.length > 0 ? product?.images : [{image: product?.image}]}
                     />
                 }
+
+                <MyModal
+                    visible = {modalVisibleAddOn}
+                    onRequestClose = {() => setModalVisibleAddOn(false)}
+                    children = {
+                        <ModalMultiList
+                            title = {`${MyLANG.Select} ${modalAddOn?.name}`}
+                            onCancel = {() => setModalVisibleAddOn(false)}
+                            onOk = {() => onModalAddOnOk()}
+                            onSelectAll = {() => onModalAddOnSelectDeselectAll(true)}
+                            onDeselectAll = {() => onModalAddOnSelectDeselectAll(false)}
+                            onItem = {(item: any, index: number) => onModalAddOnItem(item, index)}
+                            items = {modalAddOn?.items}
+                            bodyText = "products_name"
+                            priceText = "products_price"
+                        />
+                    }
+                />
 
             </SafeAreaView>
         </Fragment>

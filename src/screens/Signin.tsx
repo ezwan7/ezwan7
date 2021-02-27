@@ -1,5 +1,5 @@
 import React, {useState, useEffect, Fragment, useCallback} from 'react';
-import {StyleSheet, View, Text, SafeAreaView, ScrollView, Image, TouchableOpacity, BackHandler} from 'react-native';
+import {StyleSheet, View, Text, SafeAreaView, ScrollView, Image, TouchableOpacity, BackHandler, Platform} from 'react-native';
 import {useFocusEffect} from "@react-navigation/native";
 import {useForm} from 'react-hook-form';
 import {useSelector} from "react-redux";
@@ -324,7 +324,7 @@ const SigninScreen = ({route, navigation}: any) => {
                                         (biometryType === MyConstant.BiometryTypes.FaceID) &&
                                         <>
                                             <MyIcon.Ionicons
-                                                name = "md-qr-scanner"
+                                                name = "scan"
                                                 size = {40}
                                                 color = {MyColor.textDarkPrimary2}
                                                 style = {{textAlign: "center"}}
@@ -359,17 +359,19 @@ const SigninScreen = ({route, navigation}: any) => {
                                     onPress = {MyFunction.loginGoogle}
                                 />
                             </View>
-                            <View style = {[MyStyle.RowCenter, {marginTop: 7}]}>
-                                <MyButton
-                                    color = {MyStyle.LGButtonApple}
-                                    textTransform = "capitalize"
-                                    iconLeft = {{fontFamily: MyConstant.VectorIcon.Fontisto, name: 'apple'}}
-                                    linearGradientStyle = {{marginTop: 7}}
-                                    title = {MyLANG.Apple}
-                                    onPress = {MyFunction.loginApple}
-                                />
-                            </View>
-
+                            {
+                                (MyStyle.platformOS === "ios") &&
+                                <View style = {[MyStyle.RowCenter, {marginTop: 7}]}>
+                                    <MyButton
+                                        color = {MyStyle.LGButtonApple}
+                                        textTransform = "capitalize"
+                                        iconLeft = {{fontFamily: MyConstant.VectorIcon.Fontisto, name: 'apple'}}
+                                        linearGradientStyle = {{marginTop: 7}}
+                                        title = {MyLANG.SignInWithApple}
+                                        onPress = {MyFunction.loginApple}
+                                    />
+                                </View>
+                            }
                             <View style = {[MyStyle.RowCenter, {marginTop: 44}]}>
                                 <Text style = {styles.textDontHaveAccount}>
                                     {MyLANG.DontHaveAnAccount}
@@ -411,16 +413,16 @@ const styles = StyleSheet.create(
             width : MyStyle.screenWidth * 0.60,
             height: (MyStyle.screenWidth * 0.60) / (1024 / 249),
 
-            marginTop: 15,
+            marginTop: 0,
         },
         textLogin           : {
-            marginTop: 44,
+            marginTop: 30,
             alignSelf: "flex-start",
             ...MyStyleSheet.headerPageLarge
         },
         textLoginDescription: {
             marginTop   : 2,
-            marginBottom: 24,
+            marginBottom: 20,
             alignSelf   : "flex-start",
             ...MyStyleSheet.subHeaderPage
         },

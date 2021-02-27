@@ -106,9 +106,9 @@ const MyAddressForm = ({route, navigation}: any) => {
                 // country       : null,
                 // state         : null,
                 // city          : route?.params?.item?.city || '',
-                postal_code   : route?.params?.item?.postcode || '',
-                note          : route?.params?.item?.note || '',
-                is_default    : route?.params?.item?.default_address === route?.params?.item?.id ? true : false,
+                postal_code: route?.params?.item?.postcode || '',
+                note       : route?.params?.item?.note || '',
+                is_default : route?.params?.item?.default_address === route?.params?.item?.id ? true : false,
                 // location      : null,
             } : {},
             validationSchema    : addressFormSchema,
@@ -675,7 +675,7 @@ const MyAddressForm = ({route, navigation}: any) => {
                                 mode = "line"
                                 floatingLabel = {MyLANG.Phone}
                                 readyBorderColor = {{borderColor: MyColor.Primary.first}}
-                                placeholderLabel = "+60 00 0000 0000"
+                                // placeholderLabel = "+60 00 0000 0000"
                                 mask = {"+60 [00] [0000] [9999]"}
                                 inputProps = {{keyboardType: 'phone-pad'}}
                                 onChangeText = {(text: any) => setValue('phone', text, true)}
@@ -803,6 +803,7 @@ const MyAddressForm = ({route, navigation}: any) => {
 
                         <View style = {[MyStyleSheet.viewPageCard, MyStyle.RowBetweenCenter]}>
                             <Text style = {MyStyleSheet.textListItemTitleDark}>{MyLANG.SetAsDefaultAddress}</Text>
+                            {/*@ts-ignore*/}
                             <Switch
                                 onValueChange = {() => setValue('is_default', !values.is_default, true)}
                                 value = {is_default}

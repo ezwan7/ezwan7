@@ -98,14 +98,14 @@ export const MyWebView = (props: any) => {
                         <WebView
                             ref = {webviewRef}
                             source = {{uri: props?.source}}
-                            /*startInLoadingState = {true}
+                            startInLoadingState = {true}
                             renderLoading = {() => (
                                 <ActivityIndicator
                                     color = {MyColor.Primary.first}
                                     size = "large"
                                     style = {{flex: 1}}
                                 />
-                            )}*/
+                            )}
                             // onNavigationStateChange = {props?.onNavigationStateChange}
                             onNavigationStateChange = {handleWebViewNavigationStateChange}
                             style = {{height: MyStyle.screenHeight * 0.80}}

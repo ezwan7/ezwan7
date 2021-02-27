@@ -89,9 +89,58 @@ const MyWebViewScreen = ({route, navigation}: any) => {
     }, []);
 
 
+    const handleOnMessage = (event: any) => {
+        MyUtil.printConsole(true, 'log', 'LOG: handleOnMessage: ', {event: event});
+
+        const {url} = event?.nativeEvent;
+        if (!url) return;
+
+        if (url.includes("ipay88response")) {
+            const html1 = event.nativeEvent.data;
+
+            const isStatus = html1.includes('[status] =&gt; 1');
+            const RefNo    = (html1.split('[RefNo] =&gt; ')?.[1].split('[Amount] =&gt;')?.[0])?.trim();
+            const Amount   = (html1.split('[Amount] =&gt; ')?.[1].split('[Discount] =&gt;')?.[0])?.trim();
+            const TransId  = (html1.split('[TransId] =&gt; ')?.[1].split('[AuthCode] =&gt;')?.[0])?.trim();
+            const status   = (html1.split('[status] =&gt; ')?.[1].split('[message] =&gt;')?.[0])?.trim();
+            const Status   = (html1.split('[Status] =&gt; ')?.[1].split('[ErrDesc] =&gt;')?.[0])?.trim();
+
+            MyUtil.printConsole(true, 'log', 'LOG: success_url: ', {isStatus, RefNo, Amount, TransId, status, Status});
+
+            if (isStatus === true && RefNo?.length > 0 && Amount === route?.params?.amount && TransId?.length > 0 && status === '1' && Status === '1') {
+                webviewRef?.current?.stopLoading();
+                const navParams: any = {
+                    payment_status: 'SUCCESS', payment_reference_id: RefNo,
+                }
+                route.params         = null;
+                return MyUtil.commonAction(false,
+                                           navigation,
+                                           MyConstant.CommonAction.navigate,
+                                           MyConfig.routeName.ProductBuyPayment,
+                                           navParams,
+                                           null,
+                );
+
+            } else {
+                webviewRef?.current?.stopLoading();
+                const navParams: any = {
+                    payment_status: 'FAILURE', payment_reference_id: 'FAILURE',
+                }
+                route.params         = null;
+                return MyUtil.commonAction(false,
+                                           navigation,
+                                           MyConstant.CommonAction.navigate,
+                                           MyConfig.routeName.ProductBuyPayment,
+                                           navParams,
+                                           null,
+                );
+            }
+        }
+    }
+
     const handleWebViewNavigationStateChange = (newNavState: any) => {
 
-        MyUtil.printConsole(true, 'log', 'LOG: handleWebViewNavigationStateChange: ', {newNavState});
+        MyUtil.printConsole(true, 'log', 'LOG: handleWebViewNavigationStateChange: ', {newNavState, webviewRef: webviewRef?.current});
 
         // newNavState looks something like this:
         // {
@@ -102,11 +151,16 @@ const MyWebViewScreen = ({route, navigation}: any) => {
         //   canGoForward?: boolean;
         // }
 
-        const {url} = newNavState;
+        /*const {url} = newNavState;
         if (!url) return;
 
         if (url === route?.params?.success_url) {
+
             webviewRef?.current?.stopLoading();
+
+            MyUtil.printConsole(true, 'log', 'LOG: success_url: ', {newNavState});
+
+            /!*
             const navParams: any = {
                 payment_status: 'SUCCESS', payment_reference_id: route?.params?.payment_reference_id,
             }
@@ -117,9 +171,10 @@ const MyWebViewScreen = ({route, navigation}: any) => {
                                        MyConfig.routeName.ProductBuyPayment,
                                        navParams,
                                        null,
-            );
-        } else if (url === route?.params?.failure_url) {
-            webviewRef?.current?.stopLoading();
+            );*!/
+
+
+            /!*
             const navParams: any = {
                 payment_status: 'FAILURE', payment_reference_id: 'FAILURE',
             }
@@ -130,8 +185,8 @@ const MyWebViewScreen = ({route, navigation}: any) => {
                                        MyConfig.routeName.ProductBuyPayment,
                                        navParams,
                                        null,
-            );
-        }
+            );*!/
+        }*/
 
         // addons in order place api
         // order details new entries, addone, emi,...
@@ -160,6 +215,10 @@ const MyWebViewScreen = ({route, navigation}: any) => {
             webviewRef?.current?.injectJavaScript(redirectTo);
         }*/
     };
+
+    const INJECTED_JAVASCRIPT = `(function() {
+        window.ReactNativeWebView.postMessage(document.documentElement.outerHTML);
+    })();`;
 
     const backButtonHandler = () => {
         MyUtil.printConsole(true, 'log', 'LOG: backButtonHandler: ', {});
@@ -197,6 +256,8 @@ const MyWebViewScreen = ({route, navigation}: any) => {
                             />
                         )}
                         onNavigationStateChange = {handleWebViewNavigationStateChange}
+                        injectedJavaScript = {INJECTED_JAVASCRIPT}
+                        onMessage = {handleOnMessage}
                         /*onNavigationStateChange = {navState => {
                             setCanGoBack(navState.canGoBack)
                             setCanGoForward(navState.canGoForward)

@@ -45,6 +45,7 @@ export default new LocalizedStrings(
             AskMeLater                : "Ask Me Later",
             AvailableStock            : "Available Stock",
             InStock                   : "In Stock",
+            StockUpdated              : "Stock Updated",
             OutOfStock                : "Out of Stock",
             Permission                : {
                 title   : "Permission Request",
@@ -62,6 +63,8 @@ export default new LocalizedStrings(
             AccountHolderName : "Account Holder's Name",
             AccountNumber     : "Account Number",
             Accept            : "Accept",
+            Ascending         : "Ascending",
+            Descending        : "Descending",
 
 
             LoginToManageProfile                 : "Login to manage profile",
@@ -142,7 +145,7 @@ export default new LocalizedStrings(
             Favorites             : "Favorites",
             Settings              : "Settings",
             RateApp               : "Rate App",
-            ReferAndEarn          : "Refer & Earn",
+            ReferAndEarn          : "Refer",
             ReferAndEarnDetails   : "When a new user register using your referral code, you and the user both get RM10",
             ShareRefereCodeDetails: "Download the app and register using this referral code to earn RM 10",
             Share                 : "Share",
@@ -155,10 +158,11 @@ export default new LocalizedStrings(
             TermsAndCondition     : "Terms & Condition",
             BankAccounts          : "BankAccounts",
 
-            Facebook : "Facebook",
-            Google   : "Google",
-            Apple    : "Apple",
-            GoogleMap: "Google Map",
+            Facebook       : "Facebook",
+            Google         : "Google",
+            Apple          : "Apple",
+            SignInWithApple: "Sign in with Apple",
+            GoogleMap      : "Google Map",
 
             // Home
             products: "products",
@@ -270,6 +274,8 @@ export default new LocalizedStrings(
             FeaturedProducts              : "Featured Products",
             NewArrivals                   : "New Arrivals",
             ViewAll                       : "View all",
+            SelectAll                     : "Select All",
+            DeselectAll                   : "Deselect All",
 
             // Cart
             NoDescriptionFound              : "No Description Found",
@@ -481,6 +487,7 @@ export default new LocalizedStrings(
             contactus: "Contact us",
 
             // form
+            Selected              : "Selected",
             NotSelected           : "Not selected",
             EmptyError            : "This field is empty",
             DeliveryInfo          : "Delivery Info",
@@ -597,6 +604,7 @@ export default new LocalizedStrings(
             IAgreeToTermsAndCondition     : "I agree to terms and condition",
             ReadHere                      : "Read here",
             SelectMembershipType          : "Select Membership Type",
+            SelectSortType                : "Select Sort Type",
             SelectMembershipTypeDesc      : "Choose your desired membership type from the list",
             SelectInstallmentPeriod       : "Select Installment Period",
             SelectInstallmentPeriodDesc   : "Choose your desired instalment period from the list",
@@ -661,7 +669,11 @@ export default new LocalizedStrings(
 
             LanguageName: "English",
 
+            GiftItem       : "Gift Item",
+            YouMaySelectOne: "You may select 1",
+
             // review
+            ViewOrder       : "View Order",
             vendorTitle     : "Vendor",
             comment         : "Leave a review",
             yourcomment     : "Your comment",

@@ -115,10 +115,11 @@ const types = {
     UPDATE_TAX           : "UPDATE_TAX",
 }
 
-export const cartItemAdd               = (product: any) => {
+export const cartItemAdd               = (product: any, itemId: string) => {
     return {
         type   : types.ADD_CART_ITEM,
         payload: product,
+        itemId : itemId,
     }
 }
 export const cartItemRemove            = (key: string) => {
@@ -256,18 +257,18 @@ const calculateTotal = (state: any) => {
             const product_price: number    = Number(state.items[key]?.item?.products_price) > 0 ? Number(state.items[key]?.item?.products_price) : 0;
             const price: number            = discounted_price > 0 ? discounted_price : product_price;
 
-            let attribute_amount: number            = 0;
-            let price_with_attribute_amount: number = 0;
-            let attribute_total: number             = 0;
+            let attribute_amount: number                              = 0;
+            let price_with_attribute_amount: number                   = 0;
+            let attribute_total: number                               = 0;
             let subtotal_before_discount_with_attribute_total: number = 0;
 
-            let addon_amount: number            = 0;
-            let price_with_addon_amount: number = 0;
-            let addon_total: number             = 0;
+            let addon_amount: number                              = 0;
+            let price_with_addon_amount: number                   = 0;
+            let addon_total: number                               = 0;
             let subtotal_before_discount_with_addon_total: number = 0;
 
             let subtotal_before_discount_with_attribute_and_addon_total: number = 0;
-            let price_with_attribute_and_addon_amount: number = 0;
+            let price_with_attribute_and_addon_amount: number                   = 0;
 
             let discount: number = 0;
 
@@ -311,7 +312,7 @@ const calculateTotal = (state: any) => {
                 subtotal_before_discount_with_addon_total = (product_price * quantity) + addon_total;
 
                 subtotal_before_discount_with_attribute_and_addon_total = (product_price * quantity) + (attribute_total + addon_total);
-                price_with_attribute_and_addon_amount = price + attribute_amount + addon_amount;
+                price_with_attribute_and_addon_amount                   = price + attribute_amount + addon_amount;
 
 
                 discount = discounted_price > 0 ? ((product_price - discounted_price) * quantity) : 0;
@@ -404,7 +405,7 @@ const CartReducer = (state: any = initialState, action: any) => {
 
         case types.ADD_CART_ITEM:
             const addCartItem: any = state?.items;
-            const itemId: string   = '_' + action.payload?.id;
+            const itemId: string   = action.itemId;
 
             if (addCartItem && itemId) {
 
@@ -412,6 +413,7 @@ const CartReducer = (state: any = initialState, action: any) => {
 
                     if (Number(action.payload?.current_stock) > Number(addCartItem[itemId]?.quantity)) {
                         addCartItem[itemId].item     = action.payload;
+                        // addCartItem[itemId].quantity = 1;
                         addCartItem[itemId].quantity = Number(addCartItem[itemId].quantity) > 0 ? Number(addCartItem[itemId].quantity) + 1 : 1;
                     } else {
                         return state;

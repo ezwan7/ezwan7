@@ -30,9 +30,7 @@ const MyFunction = {
 
     updateDeviceInfo: async (type: string = 'ALL', storeInRedux: boolean = true, updateBackend: boolean = true, askPermission: boolean = true, showLoader: any = false, showErrorMessage: any = false) => {
 
-        const device: any = await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getDeviceToken);
-
-        const firebase_token: any = await messaging().getToken();
+        // const device: any = await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getDeviceToken);
 
         const deviceInfo: any = {
             systemName     : await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getSystemName),
@@ -40,7 +38,7 @@ const MyFunction = {
             apiLevel       : await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getApiLevel),
             model          : await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getModel),
             manufacturer   : await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getManufacturer),
-            deviceId       : firebase_token,
+            deviceId       : await messaging().getToken(),
             uniqueId       : await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getUniqueId),
             applicationName: await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getApplicationName),
             buildNumber    : await MyUtil.GetDeviceInfo(MyConstant.DeviceInfo.getBuildNumber),
@@ -56,8 +54,8 @@ const MyFunction = {
 
         if (updateBackend) {
 
-            const {user, firebase_token} = store.getState().auth;
-            const user_location          = store.getState().user_location;
+            const user          = store.getState().auth.user;
+            const user_location = store.getState().user_location;
 
             const response: any = await MyUtil
                 .myHTTP(true, MyConstant.HTTP_POST, MyAPI.register_device,
@@ -71,7 +69,7 @@ const MyFunction = {
                             'manufacturer': deviceInfo.manufacturer,
 
                             'customers_id': user?.id,
-                            'device_id'   : firebase_token,
+                            'device_id'   : deviceInfo.deviceId,
                             'location'    : user_location?.formatted_address,
 
                             'app_ver'      : MyConfig.app_version,
@@ -805,7 +803,7 @@ const MyFunction = {
                         'app_build_ver': MyConfig.app_build_version,
                         'platform'     : MyConfig.app_platform,
                         'device'       : null,
-                    }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.Medium, showLoader, true, false
+                    }, {}, false, MyConstant.HTTP_JSON, MyConstant.TIMEOUT.ExtraHigh, showLoader, true, false
             );
 
         MyUtil.printConsole(true, 'log', 'LOG: myHTTP: await-response: ', {
@@ -1265,6 +1263,14 @@ const MyFunction = {
             default:
                 break;
         }
+    },
+
+    toTitleCase(string: any) {
+        string = string.toLowerCase().split(' ');
+        for (var i = 0; i < string.length; i++) {
+            string[i] = string[i].charAt(0).toUpperCase() + string[i].slice(1);
+        }
+        return string.join(' ');
     },
 
     getName: (user: any) => {

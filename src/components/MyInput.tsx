@@ -144,7 +144,7 @@ const MyInput = (props: any) => {
 
         props.floatingLabel && {
             position       : "absolute",
-            fontFamily     : isFocused || value ? MyStyle.FontFamily.OpenSans.medium : MyStyle.FontFamily.OpenSans.regular,
+            fontFamily     : isFocused || value ? MyStyle.FontFamily.OpenSans.semiBold : MyStyle.FontFamily.OpenSans.regular,
             backgroundColor: isFocused || value ? (props.mode === "line" && "transparent" ||
                                                    props.mode === "outlined" && props.floatingLabelBackground ||
                                                    props.mode === "rounded" && props.floatingLabelBackground)
@@ -171,7 +171,7 @@ const MyInput = (props: any) => {
 
         props.floatingLabelFloated && props.floatingLabelFloated === true && {
             position       : "absolute",
-            fontFamily     : MyStyle.FontFamily.OpenSans.medium,
+            fontFamily     : MyStyle.FontFamily.OpenSans.semiBold,
             backgroundColor: (props.mode === "line" && "transparent" ||
                               props.mode === "outlined" && props.floatingLabelBackground ||
                               props.mode === "rounded" && props.floatingLabelBackground),

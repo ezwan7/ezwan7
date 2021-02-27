@@ -1,4 +1,4 @@
-import React, {Fragment, useCallback, useEffect, useLayoutEffect, useState} from 'react';
+import React, {Fragment, useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 
 import {View, SafeAreaView, ScrollView, RefreshControl, Text, BackHandler, TouchableOpacity, FlatList} from 'react-native';
 import {useFocusEffect} from "@react-navigation/native";
@@ -61,6 +61,8 @@ const HomeScreen = ({route, navigation}: any) => {
     const [loadingMoreNewArrival, setLoadingMoreNewArrival]                                           = useState(false);
     const [onEndReachedCalledDuringMomentumNewArrival, setOnEndReachedCalledDuringMomentumNewArrival] = useState(true);
 
+    const scrollRef: any       = useRef();
+    const [loop, setLoop]: any = useState();
 
     useFocusEffect(
         useCallback(() => {
@@ -70,8 +72,7 @@ const HomeScreen = ({route, navigation}: any) => {
 
             BackHandler.addEventListener('hardwareBackPress', onBackPress);
 
-            return () =>
-                BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+            return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
             // eslint-disable-next-line react-hooks/exhaustive-deps
         }, [])
     );
@@ -286,6 +287,9 @@ const HomeScreen = ({route, navigation}: any) => {
                         'skip'       : skip,
                         'take'       : take,
 
+                        'sort_by'       : 'products_id',
+                        'sort_direction': 'DESC',
+
                         'app_ver'      : MyConfig.app_version,
                         'app_build_ver': MyConfig.app_build_version,
                         'platform'     : MyConfig.app_platform,
@@ -358,6 +362,9 @@ const HomeScreen = ({route, navigation}: any) => {
                         'skip'       : skip,
                         'take'       : take,
 
+                        'sort_by'       : 'products_id',
+                        'sort_direction': 'DESC',
+
                         'app_ver'      : MyConfig.app_version,
                         'app_build_ver': MyConfig.app_build_version,
                         'platform'     : MyConfig.app_platform,
@@ -421,6 +428,28 @@ const HomeScreen = ({route, navigation}: any) => {
             MyUtil.showMessage(showInfoMessage.showMessage, showInfoMessage.message, false);
         }
     }
+
+
+    useEffect(() => {
+        let index: number = 0;
+        if (banner?.length > 0) {
+            setLoop(
+                setInterval(() => {
+                    MyUtil.printConsole(true, 'log', 'LOG: autoScrollSlide: ', {'index': scrollRef, 'data.length': banner?.length});
+                    scrollRef?.current?.scrollTo(
+                        {
+                            x        : index * MyStyle.screenWidth,
+                            animation: true,
+                        });
+                    index = index >= banner.length - 1 ? 0 : index + 1;
+                }, 5000)
+            );
+        }
+
+        return () => clearInterval(loop);
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [banner]);
 
     return (
         <Fragment>
@@ -497,6 +526,7 @@ const HomeScreen = ({route, navigation}: any) => {
                          </ScrollView>
 
                          <ScrollView
+                             ref = {scrollRef}
                              horizontal = {true}
                              pagingEnabled = {true}
                              decelerationRate = "fast"

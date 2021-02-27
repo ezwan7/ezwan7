@@ -605,7 +605,7 @@ const settingsItemOnPress = (loginRequired: boolean, navigation: any, actionType
                 MyUtil.share(MyConstant.SHARE.TYPE.open,
                              false,
                              {
-                                 message: `${MyLANG.ShareUs}\n\n${MyStyle.platformOS === "ios" ? MyConfig.iOS_store_link : MyConfig.android_store_link}`,
+                                 message: `${MyLANG.ShareUs}\n\n${MyConfig.share_url}`,
                                  subject: MyLANG.AppShare,
                              },
                              false

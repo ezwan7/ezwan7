@@ -39,7 +39,7 @@ import {
     ProductDetailsContentLoader, AddressListItem, CartPageTotal, OrderDetailsContentLoader, ModalNotFullScreen, ModalRadioList,
 } from "../shared/MyContainer";
 
-import {cartEmpty, cartItemAdd, cartItemQuantityIncrement} from "../store/CartRedux";
+import {cartEmpty, cartItemQuantityIncrement} from "../store/CartRedux";
 import {MyImageViewer} from "../components/MyImageViewer";
 import MyMaterialRipple from "../components/MyMaterialRipple";
 import {MyFastImage} from "../components/MyFastImage";
@@ -67,6 +67,8 @@ const OrderDetailsScreen = ({route, navigation}: any) => {
 
     const [imageViewerVisible, setImageViewerVisible]         = useState(false);
     const [modalVisibleFileSource, setModalVisibleFileSource] = useState(false);
+
+    const isLinked: any = [];
 
     useEffect(() => {
         MyUtil.printConsole(true, 'log', `LOG: ${OrderDetailsScreen.name}. useEffect: `, {user, app_input});
@@ -520,14 +522,21 @@ const OrderDetailsScreen = ({route, navigation}: any) => {
                                                               <View key = {i}
                                                                     style = {[MyStyle.RowLeftCenter, {marginVertical: 2}]}
                                                               >
-                                                                  <Text style = {[MyStyleSheet.textListItemSubTitle3Alt, {marginRight: 6}]}>
+                                                                  <Text
+                                                                      style = {[MyStyleSheet.textListItemSubTitle3Alt,
+                                                                                {
+                                                                                    marginRight: 6,
+                                                                                    flexBasis  : '27%',
+                                                                                    flexGrow   : 0,
+                                                                                }
+                                                                      ]}>
                                                                       {attribute.products_options}
                                                                   </Text>
                                                                   <View style = {[MyStyle.RowLeftCenter, {
                                                                       backgroundColor  : MyColor.Material.GREY["200"],
-                                                                      paddingVertical  : 1.5,
-                                                                      paddingHorizontal: 9,
-                                                                      borderRadius     : 100,
+                                                                      paddingVertical  : 2,
+                                                                      paddingHorizontal: 10,
+                                                                      flexGrow         : 0,
                                                                   }]}>
                                                                       <Text style = {[MyStyleSheet.textListItemSubTitle3AltDark, {marginRight: 5}]}>
                                                                           {attribute.products_options_values}
@@ -542,38 +551,67 @@ const OrderDetailsScreen = ({route, navigation}: any) => {
                                                               </View>
                                                           ))
                                                       }
-                                                  </View>
 
-                                                  <View style = {{marginTop: 5}}>
+                                                      {Number(prop.gift_item?.item_id) > 0 &&
+                                                       <View style = {[MyStyle.RowLeftCenter, {marginVertical: 6}]}>
+                                                           <Text
+                                                               style = {[MyStyleSheet.textListItemSubTitle3Alt,
+                                                                         {
+                                                                             marginRight: 6,
+                                                                             flexBasis  : '27%',
+                                                                             flexGrow   : 0,
+                                                                         }
+                                                               ]}
+                                                           >
+                                                               {MyLANG.GiftItem}
+                                                           </Text>
+
+                                                           <View
+                                                               style = {[MyStyle.RowLeftCenter, {
+                                                                   backgroundColor  : MyColor.Material.GREY["200"],
+                                                                   paddingVertical  : 2,
+                                                                   paddingHorizontal: 10,
+                                                                   flexGrow         : 0,
+                                                               }]}>
+                                                               <Text style = {[MyStyleSheet.textListItemSubTitle3AltDark, {marginRight: 5}]}>{prop.gift_item?.item_name}</Text>
+                                                           </View>
+                                                       </View>
+                                                      }
+
                                                       {prop?.addons?.length > 0 && prop.addons.map(
-                                                          (addon: any, i: number) => (
-                                                              <View key = {i}
-                                                                    style = {[MyStyle.RowLeftCenter, {marginVertical: 3}]}
-                                                              >
-                                                                  <Text style = {[MyStyleSheet.textListItemSubTitle3Alt, {marginRight: 6}]}>
-                                                                      {addon.addons_name}
-                                                                  </Text>
-                                                                  <View style = {[{
-                                                                      backgroundColor  : MyColor.Material.GREY["200"],
-                                                                      paddingVertical  : 3,
-                                                                      paddingHorizontal: 12,
-                                                                      borderRadius     : 100,
-                                                                  }]}>
-                                                                      <Text style = {[MyStyleSheet.textListItemSubTitle3AltDark, {}]}>
-                                                                          {addon.addons_value_name}
+                                                          (addon: any, i: number) => {
+
+                                                              isLinked[addon.addons_name] = ((isLinked[addon.addons_name] === 'print' || isLinked[addon.addons_name] === 'printed') ? 'printed' : ((isLinked[addon.addons_name] !== 'printed') ? 'print' : 'false'));
+
+                                                              return (<View key = {i}
+                                                                            style = {[MyStyle.ColumnCenterLeft, {marginVertical: 4}]}
+                                                                  >
+                                                                      {isLinked[addon.addons_name] === 'print' &&
+                                                                       <Text style = {[MyStyleSheet.textListItemSubTitle3Alt, {
+                                                                           marginTop   : 8,
+                                                                           marginBottom: 5
+                                                                       }]}>{addon.addons_name}</Text>
+                                                                      }
+                                                                      <View style = {[{
+                                                                          backgroundColor  : MyColor.Material.GREY["200"],
+                                                                          paddingVertical  : 4,
+                                                                          paddingHorizontal: 12,
+                                                                      }]}>
+                                                                          <Text style = {[MyStyleSheet.textListItemSubTitle3AltDark, {}]}>
+                                                                              {addon.addons_value_name}
+                                                                          </Text>
                                                                           {
                                                                               (Number(addon.addons_value_price) > 0) &&
                                                                               <Text style = {[MyStyleSheet.textListItemSubTitle3, {}]}>
-                                                                                  &nbsp;&nbsp;+ {addon.addons_value_price}
+                                                                                  + {addon.addons_value_price}
                                                                               </Text>
                                                                           }
-                                                                      </Text>
+                                                                      </View>
                                                                   </View>
-                                                              </View>
-                                                          ))
+                                                              )
+                                                          })
                                                       }
                                                   </View>
-
                                               </View>
 
                                           </MyMaterialRipple>
@@ -612,7 +650,7 @@ const OrderDetailsScreen = ({route, navigation}: any) => {
                                       />
                                       <View style = {[MyStyle.ColumnCenterStart, {flex: 1, marginHorizontal: 14}]}>
                                           <Text style = {[MyStyleSheet.textListItemTitleDark]}>
-                                              {order?.pickup_address}
+                                              {order?.pickuppoints}
                                           </Text>
                                       </View>
                                   </View>

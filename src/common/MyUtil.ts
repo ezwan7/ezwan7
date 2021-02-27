@@ -546,7 +546,7 @@ const MyUtil = {
                     sound       : true,
                 });
 
-            const enabled    =
+            const enabled =
                       authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
                       authStatus === messaging.AuthorizationStatus.PROVISIONAL;
 
@@ -575,7 +575,7 @@ const MyUtil = {
             /*PushNotification.configure(
                 {
                     senderID: '324398162611',
-                    // (optional) Called when Token is generated (iOS and Android)
+                    // (optional) Called when Token is generated (ios and Android)
                     onRegister: (token: any) => {
                         console.log("TOKEN:", token);
                     },
@@ -633,10 +633,11 @@ const MyUtil = {
             });*!/
     },*/
 
-    firebaseSendLocal: (remoteMessage: any) => {
-        MyUtil.printConsole(true, 'log', 'LOG: Notification firebaseSendLocal:', remoteMessage);
+    firebaseSendLocal: (remoteMessage: any, title: any, body: any) => {
+        MyUtil.printConsole(true, 'log', 'LOG: Notification firebaseSendLocal:', {remoteMessage, title, body});
 
         try {
+
             PushNotification.localNotification(
                 {
                     /* Android Only Properties */
@@ -645,8 +646,8 @@ const MyUtil = {
                     autoCancel        : true, // (optional) default: true
                     largeIcon         : "ic_launcher", // (optional) default: "ic_launcher"
                     smallIcon         : "ic_notification", // (optional) default: "ic_notification" with fallback for "ic_launcher"
-                    bigText           : remoteMessage?.data?.notification?.body, // (optional) default: "message" prop
-                    subText           : remoteMessage?.data?.notification?.title, // (optional) default: none
+                    bigText           : body, // (optional) default: "message" prop
+                    subText           : title, // (optional) default: none
                     color             : MyColor.Primary.first, // (optional) default: system default
                     vibrate           : true, // (optional) default: true
                     vibration         : 300, // vibration length in milliseconds, ignored if vibrate=false, default: 1000
@@ -656,17 +657,19 @@ const MyUtil = {
                     priority          : "high", // (optional) set notification priority, default: high
                     visibility        : "private", // (optional) set notification visibility, default: private
                     importance        : "high", // (optional) set notification importance, default: high
+                    // @ts-ignore
                     allowWhileIdle    : false, // (optional) set notification to work while on doze, default: false
-                    ignoreInForeground: false, // (optional) if true, the notification will not be visible when the app is in the foreground (useful for parity with how iOS notifications appear)
+                    // @ts-ignore
+                    ignoreInForeground: false, // (optional) if true, the notification will not be visible when the app is in the foreground (useful for parity with how ios notifications appear)
 
-                    /* iOS only properties */
+                    /* ios only properties */
                     alertAction: "view", // (optional) default: view
                     category   : "", // (optional) default: empty string
                     userInfo   : {}, // (optional) default: {} (using null throws a JSON value '<null>' error)
 
-                    /* iOS and Android properties */
-                    title    : remoteMessage?.data?.notification?.title || MyLANG.Error, // (optional)
-                    message  : remoteMessage?.data?.notification?.body || MyLANG.Error, // (required)
+                    /* ios and Android properties */
+                    title    : title, // (optional)
+                    message  : body, // (required)
                     playSound: true, // (optional) default: true
                     soundName: "default", // (optional) Sound to play when the notification is shown. Value of 'default' plays the default sound. It can be set to a custom sound such as 'android.resource://com.xyz/raw/my_sound'. It will look for the 'my_sound' audio file in 'res/raw' directory and play it. default: 'default' (default sound is played)
                     // number    : 10, // (optional) Valid 32 bit integer specified as string. default: none (Cannot be zero)
@@ -749,7 +752,10 @@ const MyUtil = {
 
                 MyUtil.printConsole(true, 'log', 'LOG: Notification onMessage: ', {remoteMessage});
 
-                MyUtil.firebaseSendLocal(remoteMessage);
+                const title: string = remoteMessage?.data?.notification?.title || remoteMessage?.notification?.title || remoteMessage?.data?.title || MyLANG.Error;
+                const body: string  = remoteMessage?.data?.notification?.body || remoteMessage?.notification?.body || remoteMessage?.data?.body || MyLANG.Error;
+
+                MyUtil.firebaseSendLocal(remoteMessage, title, body);
 
             });
 
@@ -757,9 +763,9 @@ const MyUtil = {
 
                 MyUtil.printConsole(true, 'log', 'LOG: Notification setBackgroundMessageHandler: ', {remoteMessage});
 
-                if (MyStyle.platformOS === "iOS") {
-                    MyUtil.firebaseSendLocal(remoteMessage);
-                }
+                // if (MyStyle.platformOS === "ios") {
+                //     MyUtil.firebaseSendLocal(remoteMessage);
+                // }
 
             });
 
@@ -782,7 +788,7 @@ const MyUtil = {
 
                 MyUtil.printConsole(true, 'log', 'LOG: Notification Received - Foreground: ', {'notification': notification});
 
-                // Calling completion on iOS with `alert: true` will present the native iOS inApp notification.
+                // Calling completion on ios with `alert: true` will present the native ios inApp notification.
                 completion({alert: true, sound: true, badge: false});
             });
 
@@ -790,7 +796,7 @@ const MyUtil = {
 
                 MyUtil.printConsole(true, 'log', 'LOG: Notification Received - Background: ', {'notification': notification});
 
-                // Calling completion on iOS with `alert: true` will present the native iOS inApp notification.
+                // Calling completion on ios with `alert: true` will present the native ios inApp notification.
                 completion({alert: true, sound: true, badge: false});
             });
 
@@ -1360,7 +1366,9 @@ const MyUtil = {
             }
 
             const currentPosition = new Promise((resolve, reject) => {
-                Geolocation.requestAuthorization();
+                if (MyStyle.platformOS === "ios") {
+                    Geolocation.requestAuthorization();
+                }
                 Geolocation.getCurrentPosition(
                     (position: any) => {
                         resolve(position);
@@ -1441,8 +1449,10 @@ const MyUtil = {
 
         try {
             // if (Geocoder.isInit() !== true) {
+            // @ts-ignore
             Geocoder.init(MyConfig.google_map_api_key, {});
             // }
+            // @ts-ignore
             const response = await Geocoder.from(
                 {
                     latitude : latitude,
@@ -1504,8 +1514,10 @@ const MyUtil = {
             }
 
             // if (Geocoder.isInit() !== true) {
+            // @ts-ignore
             Geocoder.init(MyConfig.google_map_api_key, {});
             // }
+            // @ts-ignore
             const geocoder: any = await Geocoder.from(address);
 
             if (geocoder?.results?.[0]?.geometry && geocoder?.results?.[0]?.geometry?.location?.lat && geocoder?.results?.[0]?.geometry?.location?.lng) {
@@ -1791,7 +1803,7 @@ const MyUtil = {
                 'type'        : MyConstant.RESPONSE.TYPE.data,
                 'error'       : null,
                 'errors'      : null,
-                'errorMessage': null,
+                'errorMessage': axiosResponse?.data?.message || null,
                 'errorType'   : null,
                 'data'        : axiosResponse,
             }
