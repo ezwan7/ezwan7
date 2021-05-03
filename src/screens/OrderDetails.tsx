@@ -840,7 +840,9 @@ const OrderDetailsScreen = ({route, navigation}: any) => {
 
                              <CartPageTotal
                                  cart = {{
-                                     subtotal       : order?.subtotal,
+                                     subtotal       : (
+                                         order.order_price - (order.discount || 0) - (order.coupon_amount || 0) - (order.shipping_cost || 0) - (order.total_tax || 0)
+                                     ),
                                      discount       : order?.discount,
                                      voucher        : order?.coupon_amount,
                                      delivery_charge: order?.shipping_cost,

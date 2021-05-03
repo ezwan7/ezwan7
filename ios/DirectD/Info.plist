@@ -135,5 +135,9 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<key>NSCameraUsageDescription</key>
+    <string>This app require camera access to upload profile photo</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+    <string>This app require library access to upload profile photo</string>
 </dict>
 </plist>
